@@ -211,22 +211,22 @@ Custom marketplaceとしてこのrepositoryを登録します。
 | Git ref | `main` |
 | Sparse paths | 空欄 |
 
-登録後、`compound-engineering-plugin`をinstallしてCodexを再起動します。
+登録後、`i484-engineering`をinstallしてCodexを再起動します。
 
 ### Codex CLI
 
 ```bash
 codex plugin marketplace add ishibashi-c/i484-engineering
-codex plugin add compound-engineering@compound-engineering-plugin
+codex plugin add i484-engineering@i484-engineering-plugin
 ```
 
-Plugin IDはCompound Engineeringとの互換性を保つため、現時点ではupstream由来のIDを維持しています。
+配布上のMarketplace IDは`i484-engineering-plugin`、Plugin IDは`i484-engineering`です。CE由来のSkill名（`ce-*`）はupstreamとの意味・由来を保つため変更しません。
 
 ### その他のhost
 
 Claude Code、Cursor、Kimi、Cline、Devin、OpenCode、Piなどに対応するdistribution metadataはCompound Engineeringから継承しています。
 
-これらはSkill本体を複製しているのではなく、各hostから同じ`skills/`を利用するための互換レイヤーです。i484 Engineeringでは、upstream追従コストを増やさないため原則としてそのまま保持します。
+これらはSkill本体を複製しているのではなく、各hostから同じ`skills/`を利用するための互換レイヤーです。配布上の名称・作者・repositoryはi484 Engineeringに統一し、CE由来のSkill名とengineering semanticsは維持します。
 
 ## Upstreamとの関係
 
