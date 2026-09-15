@@ -45,11 +45,15 @@ When triage selects Return-to-Caller Mode, read `references/return-to-caller.md`
 
 Before the first implementation write, including on the Trivial route, read `references/implementation-loop.md`. It decides how evidence is chosen, verification, when to stop a unit, incremental commits, following existing patterns, continuous testing, where simplification stops, UI work, progress tracking, and settled decisions.
 
+**i484 specialist knowledge is additive, never a second workflow.** When the task changes a user-facing product UI and the installed skill catalog exposes `i484-product-design`, load it for product-design judgment before making the relevant UI decisions. Use its UX, composition, interaction, accessibility, content-stress, and visual-language criteria as domain knowledge; this `ce-work` flow still owns task execution, evidence strategy, verification, commits, review, and shipping. Other i484 specialists may be used when their artifact/domain description directly matches the requested work, without transferring engineering authority to them.
+
 The commit rule from this file stays in force throughout: every implementation commit names only that unit's owned files. A bare `git commit` can absorb the user's pre-existing index, so it is forbidden.
 
 ### Phase 3-4: Quality Check and Finishing Work
 
 After the tasks and local verification are complete, standalone mode reads `references/shipping-workflow.md` before any quality check or delivery. It decides simplification, code-review receipts and fallbacks, leftover findings, final validation, and delivery.
+
+**i484 quality providers stay inside CE's quality gate.** Apply clearly relevant specialist quality checks declared by the active project/environment without creating a parallel finalization phase. For example, when available and applicable, use `natural-japanese` for changed user-facing Japanese; when a JavaScript/TypeScript project configures Ultracite as its lint/check provider, CE's configured lint step uses Ultracite rather than inventing a second lint path. If a specialist check changes files, those edits remain in the CE-owned diff and must pass the relevant CE verification before shipping.
 
 **Code-review completion gate (standalone only).** Code review must actually happen before shipping. The run is not done, must not call a commit or shipping skill, and must not report that shipping is complete until the shipping reference has recorded either an actual completed `ce-code-review` receipt or one of its exact authorized skip states. Never substitute a mental self-review or findings already applied earlier. This rule does not apply in Return-to-Caller Mode.
 

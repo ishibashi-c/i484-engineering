@@ -215,7 +215,7 @@ describe("release metadata", () => {
 
     expect(counts).toEqual({
       agents: 0,
-      skills: 35,
+      skills: 38,
       mcpServers: 0,
     })
   })
@@ -242,7 +242,7 @@ describe("release metadata", () => {
       .map((entry) => entry.name)
       .sort()
 
-    const listed = [...section.matchAll(/`(ce-[a-z0-9-]+|lfg)`/g)].map((match) => match[1])
+    const listed = [...section.matchAll(/`(ce-[a-z0-9-]+|i484-[a-z0-9-]+|lfg)`/g)].map((match) => match[1])
     const listedSet = new Set(listed)
 
     expect(skills.filter((skill) => !listedSet.has(skill))).toEqual([])
@@ -360,10 +360,7 @@ describe("release metadata", () => {
     await writeFile(
       path.join(root, ".devin-plugin", "plugin.json"),
       JSON.stringify(
-        { name: "compound-engineering", version: "2.41.0" },
-        null,
-        2,
-      ),
+        { name: "compound-engineering", version: "2.41.0" }, null, 2),
     )
     const result = await syncReleaseMetadata({ root, write: true })
     const devinPath = path.join(root, ".devin-plugin", "plugin.json")
@@ -682,7 +679,6 @@ describe("release metadata", () => {
       ),
     ).toBe(true)
   })
-
 
   test("reports Devin plugin.json name mismatch as structural error", async () => {
     const root = await makeFixtureRoot()
