@@ -47,12 +47,13 @@ describe("i484 Engineering specialist contract", () => {
     const content = await readRepoFile("skills/i484-product-design/SKILL.md")
 
     expect(content).toContain("プロダクトUIについて、**何を良い設計と判断するか**を支える")
-    expect(content).toContain("planning、task decomposition、実装順序")
-    expect(content).toContain("branch、worktree、commit、push、PR、deploy、handoff")
-    expect(content).toContain("engineering workflowの統括は現在のengineering frameworkに残す")
+    expect(content).toContain("Planning、task decomposition、実装順序")
+    expect(content).toContain("branch / worktree / commit / PR / deploy / shipping")
+    expect(content).toContain("engineering workflowの統括はCEに残す")
     expect(content).toContain("**Data parity:**")
     expect(content).toContain("**Visual parity:**")
     expect(content).toContain("**Interaction parity:**")
+    expect(content).not.toContain("V0 / V1 / V2 / V3")
   })
 
   test("keeps artifact specialists outside general engineering authority", async () => {
