@@ -2,9 +2,9 @@
   "version": "2",
   "plugins": [
     {
-      "id": "compound-engineering",
-      "displayName": "Compound Engineering",
-      "source": "https://github.com/EveryInc/compound-engineering-plugin"
+      "id": "i484-engineering",
+      "displayName": "i484 Engineering",
+      "source": "https://github.com/ishibashi-c/i484-engineering"
     }
   ]
 }
