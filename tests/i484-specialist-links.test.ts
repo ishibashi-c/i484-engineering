@@ -50,6 +50,7 @@ describe("i484 specialist references", () => {
       "interaction-content-accessibility.md",
       "usability-checklist.md",
       "content-stress-and-alternatives.md",
+      "design-evaluation.md",
     ]
     const combined = (
       await Promise.all(
