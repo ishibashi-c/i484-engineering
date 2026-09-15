@@ -1,27 +1,26 @@
 {
-  "name": "compound-engineering-plugin",
+  "name": "i484-engineering-plugin",
   "owner": {
-    "name": "Kieran Klaassen and Trevin Chow"
+    "name": "ishibashi-c"
   },
   "metadata": {
-    "description": "Plugin marketplace for Claude Code and Codex extensions"
+    "description": "i484 Engineering plugin marketplace"
   },
   "plugins": [
     {
-      "name": "compound-engineering",
-      "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
+      "name": "i484-engineering",
+      "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
       "version": "3.26.2",
       "author": {
-        "name": "Kieran Klaassen and Trevin Chow"
+        "name": "ishibashi-c"
       },
-      "homepage": "https://github.com/EveryInc/compound-engineering-plugin",
+      "homepage": "https://github.com/ishibashi-c/i484-engineering",
       "tags": [
-        "ai-powered",
+        "i484-engineering",
         "compound-engineering",
-        "workflow-automation",
-        "code-review",
-        "quality",
-        "knowledge-management"
+        "product-design",
+        "visualization",
+        "geometric-illustration"
       ],
       "source": "./"
     }
