@@ -18,6 +18,32 @@ The migration is intentionally **not** an in-place merge of two engineering fram
 | `i484-core` runtime routing | Not migrated | The old core/router model must not remain an engineering authority beside CE. Its historical tools/data can be evaluated separately as tooling, not as runtime workflow policy. |
 | Behavior Studio | Separate future evaluation | It may remain useful as an instruction/skill analysis tool, but it is not required for the i484 Engineering runtime and must not become a second router. |
 
+## Legacy extraction audit
+
+The first migration pass re-read the legacy repositories as source material after the CE baseline was established. The rule is to extract knowledge, not preserve architecture.
+
+### `i484-workflow`
+
+No runtime content is migrated. Its Outcome / Authority / Scope / Evidence intake, risk sizing, routing, verification, recovery, integration, and handoff semantics all belong to the engineering layer now owned by CE. `natural-japanese` and Ultracite remain useful, but only as specialist quality providers inside CE-owned work rather than as a reason to keep the old router.
+
+### `i484-review`
+
+The review framework is not copied. Its strongest distinct ideas are falsification, explicit counter-evidence, separating a candidate finding from its adjudication, and distinguishing “a better greenfield design” from “a migration worth doing now.” Those remain provenance candidates, not runtime rules. CE's current `ce-code-review` already owns multi-reviewer selection, independent/cross-model review, evidence-backed findings, validation, and review receipts; add an i484 adjudication specialist only if actual CE usage exposes a repeatable gap that those mechanisms do not cover.
+
+### `i484-product-design`
+
+The knowledge extraction keeps UX heuristics, composition, interaction/content/accessibility guidance, content stress, visual language, and data / visual / interaction parity. The legacy `visual-qa.md` also contained non-engineering design knowledge that was worth preserving: matching observations to a design claim, repeated-component stability, separating functional/visual/accessibility judgments, finding priority, and evidence-shaped design findings. Those parts are now extracted into `skills/i484-product-design/references/design-evaluation.md` without V-routes, reviewer activation, browser sequencing, or other engineering orchestration.
+
+The legacy `design-governance.md` is intentionally not embedded as runtime Product Design knowledge. Its durable-preference promotion and rule-lifecycle ideas are maintenance/governance concerns. They can be reconsidered later as project/design-memory tooling, but should not make the Product Design skill responsible for global memory or harness policy.
+
+### `i484-visualize` and `i484-geometric-illustration`
+
+Their artifact-specific authoring contracts are retained because sequence can be intrinsic to producing and judging the artifact. General planning, Git, code-review orchestration, repository verification, and shipping are removed or delegated to CE. No additional legacy workflow layer is needed.
+
+### `i484-core`
+
+The old lock/acceptance records, family-routing checks, Behavior Studio datasets, and environment materialization logic are not copied into the runtime plugin. CE already carries its own skill-authoring and evaluation infrastructure. Behavior Studio and any useful provenance/acceptance tooling should be evaluated separately as maintainer tooling, with a concrete gap and cost justification before migration. The large historical datasets remain in `i484-core` as provenance rather than being duplicated into this fork.
+
 ## Local cutover contract
 
 A machine has completed the migration only when all of the following are true:
