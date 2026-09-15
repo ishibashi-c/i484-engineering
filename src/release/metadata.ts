@@ -5,6 +5,7 @@ import { readJson, writeJson } from "../utils/files"
 import type { ReleaseComponent } from "./types"
 
 type ClaudePluginManifest = {
+  name?: string
   version: string
   description?: string
   mcpServers?: Record<string, unknown>
@@ -273,6 +274,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
   const compoundCursor = await readJson<CursorPluginManifest>(compoundCursorPath)
   const marketplaceClaude = await readJson<MarketplaceManifest>(marketplaceClaudePath)
   const marketplaceCursor = await readJson<MarketplaceManifest>(marketplaceCursorPath)
+  const expectedPluginName = compoundClaude.name ?? "compound-engineering"
   const expectedCompoundVersion = resolveExpectedVersion(
     versions["compound-engineering"],
     compoundClaude.version,
@@ -331,7 +333,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
   }
 
   for (const plugin of marketplaceClaude.plugins) {
-    if (plugin.name === "compound-engineering") {
+    if (plugin.name === expectedPluginName) {
       if (plugin.description !== compoundMarketplaceDescription) {
         plugin.description = compoundMarketplaceDescription
         changed = true
@@ -352,7 +354,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
   }
 
   for (const plugin of marketplaceCursor.plugins) {
-    if (plugin.name === "compound-engineering") {
+    if (plugin.name === expectedPluginName) {
       if (plugin.description !== compoundMarketplaceDescription) {
         plugin.description = compoundMarketplaceDescription
         changed = true
@@ -383,7 +385,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
       claudePath: compoundClaudePath,
       claude: compoundClaude,
       codexPath: compoundCodexPath,
-      expectedName: "compound-engineering",
+      expectedName: expectedPluginName,
     },
   ]
 
@@ -473,14 +475,14 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
       kimiManifestMissing = true
       errors.push(`${compoundKimiPath} is missing but ${compoundClaudePath} exists. Kimi manifest parity required.`)
       updates.push({ path: compoundKimiPath, changed: false })
-      kimi = { name: "compound-engineering", version: compoundClaude.version }
+      kimi = { name: expectedPluginName, version: compoundClaude.version }
     } else {
       throw err
     }
   }
 
-  if (kimi.name !== "compound-engineering") {
-    errors.push(`${compoundKimiPath}: name "${kimi.name}" does not match expected "compound-engineering"`)
+  if (kimi.name !== expectedPluginName) {
+    errors.push(`${compoundKimiPath}: name "${kimi.name}" does not match expected "${expectedPluginName}"`)
   }
 
   let kimiChanged = false
@@ -491,7 +493,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
     kimi.description = compoundClaude.description
     kimiChanged = true
   }
-  await validateDeclaredSkillsPath(compoundKimiPath, "compound-engineering", "Kimi", kimi.skills, errors)
+  await validateDeclaredSkillsPath(compoundKimiPath, expectedPluginName, "Kimi", kimi.skills, errors)
   updates.push({ path: compoundKimiPath, changed: kimiChanged })
   if (write && kimiChanged && !kimiManifestMissing) await writeJson(compoundKimiPath, kimi)
 
@@ -546,14 +548,14 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
       grokManifestMissing = true
       errors.push(`${compoundGrokPath} is missing but ${compoundClaudePath} exists. Grok manifest parity required.`)
       updates.push({ path: compoundGrokPath, changed: false })
-      grok = { name: "compound-engineering", version: compoundClaude.version }
+      grok = { name: expectedPluginName, version: compoundClaude.version }
     } else {
       throw err
     }
   }
 
-  if (grok.name !== "compound-engineering") {
-    errors.push(`${compoundGrokPath}: name "${grok.name}" does not match expected "compound-engineering"`)
+  if (grok.name !== expectedPluginName) {
+    errors.push(`${compoundGrokPath}: name "${grok.name}" does not match expected "${expectedPluginName}"`)
   }
 
   let grokChanged = false
@@ -564,7 +566,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
     grok.description = compoundClaude.description
     grokChanged = true
   }
-  await validateDeclaredSkillsPath(compoundGrokPath, "compound-engineering", "Grok", grok.skills, errors)
+  await validateDeclaredSkillsPath(compoundGrokPath, expectedPluginName, "Grok", grok.skills, errors)
   updates.push({ path: compoundGrokPath, changed: grokChanged })
   if (write && grokChanged && !grokManifestMissing) await writeJson(compoundGrokPath, grok)
 
@@ -623,7 +625,7 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
     }
     let ompChanged = false
     for (const plugin of marketplaceOmp.plugins) {
-      if (plugin.name !== "compound-engineering") continue
+      if (plugin.name !== expectedPluginName) continue
       if (plugin.version === undefined) {
         errors.push(
           `${marketplaceOmpPath}: plugin "${plugin.name}" is missing required field "version". omp's update checker skips version-less catalog entries, so the plugin would never upgrade.`,
@@ -674,8 +676,8 @@ export async function syncReleaseMetadata(options: SyncOptions = {}): Promise<Me
   }
 
   if (devin) {
-    if (devin.name !== "compound-engineering") {
-      errors.push(`${compoundDevinPath}: name "${devin.name}" does not match expected "compound-engineering"`)
+    if (devin.name !== expectedPluginName) {
+      errors.push(`${compoundDevinPath}: name "${devin.name}" does not match expected "${expectedPluginName}"`)
     }
 
     let devinChanged = false

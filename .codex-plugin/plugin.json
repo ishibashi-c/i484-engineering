@@ -1,41 +1,38 @@
 {
-  "name": "compound-engineering",
+  "name": "i484-engineering",
   "version": "3.26.2",
   "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
   "author": {
-    "name": "Kieran Klaassen and Trevin Chow"
+    "name": "ishibashi-c"
   },
-  "homepage": "https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it",
-  "repository": "https://github.com/EveryInc/compound-engineering-plugin",
+  "homepage": "https://github.com/ishibashi-c/i484-engineering",
+  "repository": "https://github.com/ishibashi-c/i484-engineering",
   "license": "MIT",
   "keywords": [
-    "brainstorming",
-    "code-review",
+    "i484-engineering",
     "compound-engineering",
-    "debugging",
-    "ideation",
-    "workflows",
-    "workflow-automation"
+    "product-design",
+    "visualization",
+    "geometric-illustration",
+    "workflows"
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Compound Engineering",
-    "shortDescription": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
-    "longDescription": "Compound Engineering guides AI agents through the full engineering loop: strategy, ideation, requirements, planning, execution, debugging, review, PR feedback, and captured learnings that make future work easier.",
-    "developerName": "Kieran Klaassen and Trevin Chow",
+    "displayName": "i484 Engineering",
+    "shortDescription": "Compound Engineering with i484 specialist skills",
+    "longDescription": "i484 Engineering keeps Compound Engineering as the engineering baseline and adds i484 specialist skills for product design, portable visualization, and geometric illustration.",
+    "developerName": "ishibashi-c",
     "category": "Coding",
     "capabilities": [
       "Interactive",
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/EveryInc/compound-engineering-plugin",
-    "privacyPolicyURL": "https://every.to/legal",
-    "termsOfServiceURL": "https://every.to/legal",
+    "websiteURL": "https://github.com/ishibashi-c/i484-engineering",
     "defaultPrompt": [
-      "Brainstorm a new feature with me",
-      "Ideate and surprise me!",
-      "Simplify the code in my most-churned file"
+      "Plan and implement this change",
+      "Review this product UI",
+      "Visualize this structure"
     ],
     "brandColor": "#C9EFFA",
     "composerIcon": "./assets/icon.svg",

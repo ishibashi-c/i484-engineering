@@ -1,17 +1,16 @@
 {
-  "name": "compound-engineering",
+  "name": "i484-engineering-plugin",
   "owner": {
-    "name": "Kieran Klaassen",
-    "email": "kieran@every.to",
-    "url": "https://github.com/kieranklaassen"
+    "name": "ishibashi-c",
+    "url": "https://github.com/ishibashi-c"
   },
   "metadata": {
-    "description": "Cursor plugin marketplace for Every Inc plugins",
+    "description": "i484 Engineering plugin marketplace",
     "version": "1.0.2"
   },
   "plugins": [
     {
-      "name": "compound-engineering",
+      "name": "i484-engineering",
       "source": ".",
       "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents"
     }

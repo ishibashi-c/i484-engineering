@@ -1,11 +1,11 @@
 {
-  "name": "compound-engineering-plugin",
+  "name": "i484-engineering-plugin",
   "interface": {
-    "displayName": "Compound Engineering"
+    "displayName": "i484 Engineering"
   },
   "plugins": [
     {
-      "name": "compound-engineering",
+      "name": "i484-engineering",
       "source": {
         "source": "local",
         "path": "./"

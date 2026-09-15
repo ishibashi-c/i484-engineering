@@ -1,7 +1,7 @@
 {
-  "name": "compound-engineering",
+  "name": "i484-engineering",
   "version": "3.26.2",
-  "description": "Official Compound Engineering skills plugin for coding agents",
+  "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
   "type": "module",
   "private": true,
   "main": ".opencode/plugins/compound-engineering.js",
@@ -13,8 +13,8 @@
       "./skills"
     ]
   },
-  "homepage": "https://github.com/EveryInc/compound-engineering-plugin",
-  "repository": "https://github.com/EveryInc/compound-engineering-plugin",
+  "homepage": "https://github.com/ishibashi-c/i484-engineering",
+  "repository": "https://github.com/ishibashi-c/i484-engineering",
   "scripts": {
     "codex:dev": "bun run scripts/codex-dev.ts",
     "dev": "bun run src/index.ts",
