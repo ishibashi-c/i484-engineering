@@ -1,25 +1,24 @@
 {
-  "name": "compound-engineering",
+  "name": "i484-engineering",
   "version": "3.26.2",
-  "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
+  "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
   "keywords": [
-    "brainstorming",
-    "code-review",
+    "i484-engineering",
     "compound-engineering",
-    "debugging",
-    "ideation",
-    "workflows",
-    "workflow-automation"
+    "product-design",
+    "visualization",
+    "geometric-illustration",
+    "workflows"
   ],
-  "author": "Kieran Klaassen and Trevin Chow",
-  "homepage": "https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it",
+  "author": "ishibashi-c",
+  "homepage": "https://github.com/ishibashi-c/i484-engineering",
   "license": "MIT",
   "skills": "./skills/",
   "interface": {
-    "displayName": "Compound Engineering",
-    "shortDescription": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
-    "longDescription": "Compound Engineering guides AI agents through the full engineering loop: strategy, ideation, requirements, planning, execution, debugging, review, PR feedback, and captured learnings that make future work easier.",
-    "developerName": "Kieran Klaassen and Trevin Chow",
-    "websiteURL": "https://github.com/EveryInc/compound-engineering-plugin"
+    "displayName": "i484 Engineering",
+    "shortDescription": "Compound Engineering with i484 specialist skills",
+    "longDescription": "i484 Engineering keeps Compound Engineering as the engineering baseline and adds i484 specialist skills for product design, portable visualization, and geometric illustration.",
+    "developerName": "ishibashi-c",
+    "websiteURL": "https://github.com/ishibashi-c/i484-engineering"
   }
 }
