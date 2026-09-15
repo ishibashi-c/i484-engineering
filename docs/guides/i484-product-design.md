@@ -13,8 +13,9 @@ The skill contributes product-design judgment that a general engineering workflo
 - content stress across short, long, missing, localized, loading, empty, and error states
 - visual-language interpretation
 - separate data, visual, and interaction parity judgments
+- design-evaluation criteria that tie claims to observable rendered states, repeated-component stability, and user-impact-first findings
 
-The usability checklist is selective rather than procedural: it chooses the heuristics that matter to the current user task and affected controls instead of forcing a fixed checklist pass.
+The usability checklist is selective rather than procedural: it chooses the heuristics that matter to the current user task and affected controls instead of forcing a fixed checklist pass. The design-evaluation reference preserves useful visual-QA knowledge without reviving the old V0–V3 workflow or taking ownership of browser/test sequencing.
 
 ## When to use it
 
