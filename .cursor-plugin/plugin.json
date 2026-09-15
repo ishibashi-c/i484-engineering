@@ -1,25 +1,21 @@
 {
-  "name": "compound-engineering",
-  "displayName": "Compound Engineering",
+  "name": "i484-engineering",
+  "displayName": "i484 Engineering",
   "version": "3.26.2",
-  "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
+  "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
   "author": {
-    "name": "Kieran Klaassen and Trevin Chow"
+    "name": "ishibashi-c"
   },
-  "homepage": "https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it",
-  "repository": "https://github.com/EveryInc/compound-engineering-plugin",
+  "homepage": "https://github.com/ishibashi-c/i484-engineering",
+  "repository": "https://github.com/ishibashi-c/i484-engineering",
   "license": "MIT",
   "keywords": [
     "cursor",
     "plugin",
-    "ai-powered",
+    "i484-engineering",
     "compound-engineering",
-    "workflow-automation",
-    "code-review",
-    "rails",
-    "ruby",
-    "python",
-    "typescript",
-    "knowledge-management"
+    "product-design",
+    "visualization",
+    "geometric-illustration"
   ]
 }
