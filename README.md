@@ -1,26 +1,57 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="Compound Engineering" width="120">
+<img src="assets/logo.png" alt="i484 Engineering" width="120">
 
-# Compound Engineering
+# i484 Engineering
 
-**AI skills that make each unit of engineering work easier than the last.**
+**Compound Engineering as the engineering baseline, extended with i484 specialist knowledge.**
 
-[![Build Status](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml)
+[![Build Status](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-35-black.svg)](docs/guides/README.md)
+[![Skills](https://img.shields.io/badge/skills-38-black.svg)](docs/guides/README.md)
 
 </div>
 
-Compound Engineering is a plugin of 35 skills for AI coding agents. It structures the work around a loop — brainstorm, plan, build, review, then **capture what you learned** — so the knowledge from each change is written down where the next change can read it.
+i484 Engineering is a plugin of 38 skills for AI coding agents: the 35-skill [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) baseline plus three i484 specialist skills for product design, portable visualization, and geometric illustration.
 
-It runs on 14 agent hosts, including Claude Code, Cursor, and Codex.
+Compound Engineering remains authoritative for planning, execution, debugging, verification, review orchestration, Git workflow, shipping, recovery, and knowledge compounding. i484 specialists add domain judgment without creating a second engineering workflow. See [`I484_ENGINEERING.md`](I484_ENGINEERING.md) for the authority model and [`MIGRATION.md`](MIGRATION.md) for the cutover from the legacy i484 environment.
 
-Maintained by [Kieran Klaassen](https://github.com/kieranklaassen) and [Trevin Chow](https://github.com/tmchow), with contributions from the open-source community.
+The upstream Compound Engineering project is maintained by [Kieran Klaassen](https://github.com/kieranklaassen) and [Trevin Chow](https://github.com/tmchow), with contributions from the open-source community. This fork preserves the upstream MIT license and explicit credit in [`ATTRIBUTION.md`](ATTRIBUTION.md).
 
 For understanding before a change, ask `ce-explain` how the relevant behavior works and why it exists. For a recommendation, use `ce-pov`; “oracle this” adds independent model opinions. Both can contribute to another workflow without a separate human interaction.
 
-## Install
+## Install i484 Engineering
+
+The plugin IDs intentionally remain compatible with Compound Engineering; the repository source is the fork.
+
+### Codex App
+
+Add a custom marketplace with:
+
+| Field | Value |
+| --- | --- |
+| Source | `ishibashi-c/i484-engineering` |
+| Git ref | `main` |
+| Sparse paths | leave blank |
+
+Then install `compound-engineering-plugin` from that marketplace and restart Codex.
+
+### Codex CLI
+
+```bash
+codex plugin marketplace add ishibashi-c/i484-engineering
+codex plugin add compound-engineering@compound-engineering-plugin
+```
+
+For local development from this checkout, use the inherited CE development workflow (`bun run codex:dev -- local`) so the active harness reads the current branch rather than a cached marketplace snapshot.
+
+For other supported hosts, use this fork as the repository source where the host accepts a GitHub repository directly. The detailed commands below are retained as the upstream CE installation reference; replace the repository source with `ishibashi-c/i484-engineering` when installing this fork.
+
+---
+
+## Upstream Compound Engineering install reference
+
+The following section tracks the upstream CE installation documentation. Commands that explicitly name `EveryInc/compound-engineering-plugin` install upstream CE, not the i484 fork.
 
 ### Claude Code
 
@@ -110,6 +141,8 @@ The marketplace step only makes the plugin available; the plugin install is what
 
 **Each unit of engineering work should make subsequent units easier -- not harder.**
 
+The engineering philosophy and workflow in this fork come from Compound Engineering. i484 additions are deliberately specialist: they define domain goals, constraints, quality criteria, and relevant evidence while CE continues to decide how engineering work is run.
+
 Invocation syntax: this README uses `/skill-name` examples for slash-skill hosts. In Codex, invoke installed skills with `$skill-name` (for example, `$ce-plan` and `$lfg`). In oh-my-pi (omp), these prompts can model-route to visible skills; use the native deterministic `/skill:<name>` form for manual-only or hidden skills (for example, `/skill:ce-polish`). `/goal` remains a Codex built-in command.
 
 Traditional development accumulates technical debt. Every feature adds complexity. Every bug fix leaves behind a little more local knowledge that someone has to rediscover later. The codebase gets larger, the context gets harder to hold, and the next change becomes slower.
@@ -176,7 +209,7 @@ Starting from a bug instead of a feature? Use [`/ce-debug`](docs/guides/ce-debug
 
 ## Skills at a glance
 
-35 skills, grouped by what they are for. The full catalog, with a page per skill and how each one chains into the others, is in **[docs/guides](docs/guides/README.md)**.
+38 skills, grouped by what they are for. The full catalog, with a page per skill and how each one chains into the others, is in **[docs/guides](docs/guides/README.md)**.
 
 | Group | Skills | What it covers |
 |-------|--------|----------------|
@@ -188,9 +221,13 @@ Starting from a bug instead of a feature? Use [`/ce-debug`](docs/guides/ce-debug
 | [Testing & design](docs/guides/README.md#frontend-design) | `ce-test-browser` `ce-test-xcode` `ce-polish` `ce-dogfood` | Verifying and polishing what you built |
 | [Collaboration](docs/guides/README.md#collaboration) | `ce-proof` `ce-handoff` `ce-promote` | Sharing work and handing it off |
 | [Utilities](docs/guides/README.md#workflow-utilities) | `ce-setup` `ce-noslop` `ce-retune` `ce-riffrec-feedback-analysis` | Setup, writing, and maintenance |
+| [i484 specialists](docs/guides/README.md#i484-specialists) | `i484-product-design` `i484-visualize` `i484-geometric-illustration` | Product-design judgment, portable visual explanation, and geometric illustration |
 
 **Learn more**
 
+- [i484 Engineering architecture](I484_ENGINEERING.md)
+- [Migration from legacy i484](MIGRATION.md)
+- [Attribution and provenance](ATTRIBUTION.md)
 - [Skill documentation catalog](docs/guides/README.md)
 - [Compound engineering: how Every codes with agents](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
 - [The story behind compounding engineering](https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it)
@@ -199,7 +236,7 @@ Starting from a bug instead of a feature? Use [`/ce-debug`](docs/guides/ce-debug
 
 ## More Install Options
 
-[Claude Code, Cursor, and Codex](#install) are at the top. Everything here is equally supported.
+[Claude Code, Cursor, and Codex](#upstream-compound-engineering-install-reference) are documented above using the upstream source. To install the i484 fork on a host that accepts a GitHub repository source, use `ishibashi-c/i484-engineering` instead.
 
 ### Kimi Code CLI
 
@@ -236,7 +273,7 @@ Start a new Cline task after installing or updating skills. See [`.cline/INSTALL
 
 ### Grok Build CLI (`grok`)
 
-xAI's [Grok Build CLI](https://x.ai/cli) (`grok`) installs Compound Engineering directly from this repository. The repo root is a valid Grok plugin: `grok` reads the existing Claude-compatible manifests, and the repo also ships a native `.grok-plugin/plugin.json`.
+xAI's [Grok Build CLI](https://x.ai/cli) installs Compound Engineering directly from GitHub. The repo root is a valid Grok plugin: `grok` reads the existing Claude-compatible manifests, and the repo also ships a native `.grok-plugin/plugin.json`.
 
 ```bash
 grok plugin install EveryInc/compound-engineering-plugin
@@ -244,7 +281,7 @@ grok plugin install EveryInc/compound-engineering-plugin
 
 This tracks the repository; run `grok plugin update` to pull the latest. To browse it as a marketplace source instead, the repo ships a native `.grok-plugin/marketplace.json`:
 
-```bash
+```text
 grok plugin marketplace add EveryInc/compound-engineering-plugin
 grok plugin install compound-engineering
 ```
@@ -438,21 +475,22 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, and [`docs/development.md`](
 
 | | |
 |---|---|
+| [i484 architecture](I484_ENGINEERING.md) | CE authority, specialist boundaries, upstream policy |
+| [Migration](MIGRATION.md) | Legacy i484 disposition and cutover contract |
+| [Attribution](ATTRIBUTION.md) | Upstream credit and i484 provenance |
 | [Skill catalog](docs/guides/README.md) | A page per skill, and how they chain together |
 | [Configuration](docs/guides/configuration.md) | `.compound-engineering/config.yaml` options |
 | [Compound Packs](docs/guides/packs.md) | Declaring, authoring, and publishing prescriptive rule packs |
-| [Installing](#install) · [Upgrading](docs/install/upgrading.md) | Per-host install and refresh |
+| [Upstream installing reference](#upstream-compound-engineering-install-reference) · [Upgrading](docs/install/upgrading.md) | Per-host install and refresh |
 | [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) | Working on the plugin itself |
 | [Security](SECURITY.md) · [Privacy](PRIVACY.md) | Reporting and data handling |
 
 ## Contributing
 
-Contributions are welcome. Issues, bug reports, and pull requests all help make this better, and we genuinely appreciate them — bug reports especially. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), which covers setup and what to do before opening a PR.
+This repository is a maintained derivative of Compound Engineering. Changes to CE-owned engineering behavior should normally be evaluated against upstream first; i484-specific changes should remain specialist and non-conflicting. See [`I484_ENGINEERING.md`](I484_ENGINEERING.md).
 
-A note on what to expect: Compound Engineering is opinionated by design. It's maintained by [@kieranklaassen](https://github.com/kieranklaassen) and [@tmchow](https://github.com/tmchow), and its direction reflects a specific point of view about how AI-assisted engineering should work. So while we welcome help, we can't promise to accept every change — some proposals won't fit that vision even when they're good ideas on their own.
-
-Open an issue or send a PR, and we'll fold in what moves the plugin in the right direction. We just want to be upfront that not everything will land.
+For upstream Compound Engineering contribution guidance, see the original project at [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The original Compound Engineering copyright and license notice are preserved; see [`ATTRIBUTION.md`](ATTRIBUTION.md).
