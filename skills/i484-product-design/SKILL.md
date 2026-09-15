@@ -7,115 +7,79 @@ description: プロダクトUIの設計判断を支える専門Knowledge Skill�
 
 プロダクトUIについて、**何を良い設計と判断するか**を支える。実装の進め方を指揮するSkillではない。
 
-現在の依頼、Projectの仕様・DESIGN.md、既存UI、実データ契約、ユーザーが提示した参考を設計判断の材料として扱う。既存UIは維持そのものを目的にせず、ユーザーの仕事と既存の意味あるpatternに合うかで判断する。
+## Outcome
+
+ユーザーのtask、情報の意味、状態、interaction、accessibility、visual hierarchyに照らして、今回のUIに必要な設計条件と品質判断を返す。
+
+**Done:** 主要taskと重要stateを損なう設計上の問題・制約・改善方向が明確で、見た目や操作についての主張が何を観測すれば支持または反証できるか説明できる。
+
+現在の依頼、Project仕様・DESIGN.md、既存UI、実データ契約、ユーザーが提示した参考を判断材料とする。既存UIは維持そのものを目的にせず、意味あるpatternとユーザーtaskに合うかで扱う。
 
 ## 責務境界
 
 このSkillが持つのはProduct Design固有の判断である。
 
 - ユーザーが何を読み、比較し、判断し、操作するか。
-- 情報階層、composition、密度、文字組み、色、surface、componentの役割。
+- 情報階層、composition、component role、typography、color、surface、密度。
 - navigation、form、control、state、feedback、error prevention、recovery。
-- contentの長短・欠落・大量・localized content・loading / empty / errorなどへの耐性。
-- native semantics、keyboard、focus、label、contrast、reduced motionを含むaccessibility。
-- data / visual / interaction parityを区別したUI fidelityの判断。
-- 見た目や操作について、どの観測事実がその主張を支えるかという品質基準。
+- 長短・欠落・localized content、loading / empty / errorなどへの耐性。
+- semantics、keyboard、focus、label、contrast、reduced motionを含むaccessibility。
+- data / visual / interaction parityを分けたUI fidelity。
+- 設計上の主張に対応する観測事実とfindingの優先度。
 
-次はこのSkillの責務ではない。
-
-- planning、task decomposition、実装順序、phase、作業規模の分類。
-- test / lint / buildの実行順、検証量、reviewerの起動条件。
-- branch、worktree、commit、push、PR、deploy、handoffなどのengineering workflow。
-- 他Skillのルーティングや、完了・shippingの統括。
-
-これらはCompound Engineeringなど、現在のengineering frameworkとProject指示を正とする。Product Design上の観点がengineering上の判断と競合する場合、このSkillは工程を上書きせず、必要な設計条件だけを返す。
+Planning、task decomposition、実装順序、test / lint / build、reviewer起動、branch / worktree / commit / PR / deploy / shipping、他Skillのroutingと完了統括は持たない。そこはCompound Engineeringなど現在のengineering frameworkとProject指示を正とする。競合時は工程を上書きせず、必要な設計条件だけを返す。
 
 ## 必要な知識だけ読む
 
-| 今回判断するもの | Reference |
+| 判断するもの | Reference |
 |---|---|
-| 視覚方向、文字組み、色、参考画像/URLの解釈 | [design-language.md](references/design-language.md) |
-| layout、共通部品、一覧、可変content、responsive構造 | [composition-components.md](references/composition-components.md) |
-| control、form、navigation、state、focus、accessibility | [interaction-content-accessibility.md](references/interaction-content-accessibility.md) |
-| UX、状態可視化、誤操作防止、入力、error recovery、help | [usability-checklist.md](references/usability-checklist.md) |
-| 長文、欠落データ、large collection、saving / failure、比較案 | [content-stress-and-alternatives.md](references/content-stress-and-alternatives.md) |
-| renderを根拠にしたdesign評価、component安定性、findingの優先度 | [design-evaluation.md](references/design-evaluation.md) |
+| 視覚方向、文字組み、色、参考画像/URL | [design-language.md](references/design-language.md) |
+| layout、共通部品、一覧、responsive構造 | [composition-components.md](references/composition-components.md) |
+| control、form、navigation、state、accessibility | [interaction-content-accessibility.md](references/interaction-content-accessibility.md) |
+| usability、誤操作防止、入力、error recovery、help | [usability-checklist.md](references/usability-checklist.md) |
+| 長文、欠落、大量データ、saving / failure、比較案 | [content-stress-and-alternatives.md](references/content-stress-and-alternatives.md) |
+| renderに基づく評価、component安定性、finding優先度 | [design-evaluation.md](references/design-evaluation.md) |
 
-必要なReferenceだけ読む。Reference数を品質指標にせず、既に文脈にある知識を機械的に再読しない。
+必要なReferenceだけ読む。Reference数やchecklist消化を品質指標にしない。
 
-## 設計判断の核
+## 判断原則
 
-表面の装飾より先に、ユーザーのtaskと情報の意味を捉える。何を最初に理解し、何を比較し、どこで判断し、どう回復する必要があるかから構造を選ぶ。
+表面の装飾より先に、ユーザーが何を理解し、比較し、判断し、どこで操作・回復する必要があるかから構造を選ぶ。
 
-- hierarchyは重要度とtask順序を反映する。すべてを同じsurface、同じ強調、同じcardへ押し込まない。
-- componentは見た目ではなくroleで選ぶ。button、link、tab、checkbox、switch、selectなどの意味と適用タイミングを一致させる。
+- hierarchyは重要度とtask順序を反映する。同じsurfaceや強調を無差別に増やさない。
+- componentは外観ではなくroleで選び、同じ意味のcontrolやstateには一貫した表現を使う。
 - typography、color、spacing、border、badgeは役割を持たせる。装飾の種類を増やすことを固有性と混同しない。
-- Project内の一貫性とplatformの慣例を出発点にし、異なる設計が必要ならユーザーtaskから理由を持たせる。
-- 一回限りの構成を将来の再利用を想像して基盤化しない。逆に、同じ意味のpatternを画面ごとに別物へしない。
+- Project内の一貫性とplatform慣例を出発点にし、外す場合はユーザーtaskから理由を持たせる。
+- 一回限りの構成を想像上の再利用のために基盤化せず、反対に同じ意味のpatternを画面ごとに別物へしない。
+- 短い理想データだけで成立するUIを合格にしない。判断を変えうる代表状態を選び、主要task・意味上のslot・回復経路が保たれるかを見る。
 
-## UXの判断
+UXの具体的な観点は`usability-checklist.md`から今回のtaskとstateに関係するものだけを選ぶ。全項目を機械的に実行しない。
 
-`usability-checklist.md`の観点を、今回のユーザーtask、control、stateに応じて選ぶ。全項目を機械的に消化しない。
+## UI fidelity
 
-特に次を優先して見る。
+必要に応じて次を区別する。これは作業順序ではなく品質軸であり、一つの成立を他の証拠にしない。
 
-- 現在地、処理中、選択、保存、成功、失敗などの状態が理解できるか。
-- labelとaction後の結果がユーザーの言葉で予測できるか。
-- 間違いを防ぎ、取り消し・再試行・戻る・修正が可能か。
-- 同じ意味のcontrolや状態が一貫した見た目と挙動を持つか。
-- 記憶を要求するより、候補・例・既存値・状態など認識できる手掛かりを出せているか。
-- errorが原因・影響・次の行動を理解できる形で、関係する場所に現れるか。
-- 重要な情報とprimary actionが、装飾や補助情報に埋もれていないか。
-
-## Contentと状態
-
-短い理想データだけで成立するUIを良い設計としない。今回のsurfaceに関係する範囲で、次の圧力を考える。
-
-- 短い / 長い / localized content。
-- 欠落値、画像失敗、未知値。
-- empty、loading、saving、success、error、permission denied。
-- 少数とlarge collection。
-- keyboard / focus時、狭幅、overflow。
-
-すべてのstateを毎回作る必要はない。設計判断を変えうる代表状態を選び、その状態でも主要task、意味上のslot、回復経路が失われないことを基準にする。
-
-## UI fidelityの3つの軸
-
-モック、fixture、実装、既存画面を比較するときは、必要に応じて次を区別する。これは作業順序ではなく、品質を混同しないための判断軸である。
-
-- **Data parity:** 件数、フィールド、欠落値、派生state、asset fallbackなど、表示される意味が実データ契約と整合しているか。
-- **Visual parity:** hierarchy、geometry、spacing、surface、typography、responsive変換など、合意した視覚意図が保たれているか。
+- **Data parity:** 件数、フィールド、欠落値、派生state、asset fallbackなど、表示される意味が実データ契約と整合するか。
+- **Visual parity:** hierarchy、geometry、spacing、surface、typography、responsive変換が合意した視覚意図を保つか。
 - **Interaction parity:** 主要操作、state transition、keyboard / focus、validation、error recoveryが同じユーザーtaskを成立させるか。
 
-一つを確認したことを他の成立証拠にしない。
+## Evidence
 
-## Evidenceを設計判断へ結び付ける
+このSkillはverification workflowを所有しない。設計主張に必要な観測対象だけを示す。詳しい基準は[design-evaluation.md](references/design-evaluation.md)を使う。
 
-このSkillはverification workflowを所有しないが、設計上の主張に必要な観測対象は示す。詳しい評価基準が必要なときは[design-evaluation.md](references/design-evaluation.md)を使う。
+見た目の主張には実render、操作の主張には実際のstate transitionやfocus/recovery、native host固有の主張にはそのhostでの観測が関係する。Responsiveは名前付きdeviceを消化するのではなく、content pressureやlayout transitionが起きる条件を見る。観測できない主張は未確認のままにする。
 
-- 見た目の主張には実際にrenderされた表示が関係する。
-- 操作の主張には実際のstate transition、keyboard / focus、error recoveryが関係する。
-- native host固有の見た目や挙動は、そのhostでの観測なしに成立したと断定しない。
-- responsiveの主張は名前付きdeviceだけでなく、content pressureやlayout transitionが起きる条件を見る。
-- 「使いやすそう」「きれいそう」という印象だけで問題なしとしない。
+実際のtool、順序、検証量、再実行、review、shippingはengineering frameworkが決める。
 
-実際にどのtoolで、どの順序で、どの量を検証するかはengineering frameworkが決める。このSkillは**何を観測すればそのデザイン主張を支持または反証できるか**だけを提供する。
+## 他の専門Skill
 
-## 参考と視覚方向
+- ミニマル幾何学ラスターが必要なら`i484-geometric-illustration`。Product Designは用途、配置、crop、比率、背景との関係、代替説明を判断する。
+- 単一のポータブルHTMLで説明・図解すること自体が成果物なら`i484-visualize`。
+- ユーザー向け日本語の自然さを確認する専門Skillが利用可能なら、その知識を併用できる。
+- lint、typecheck、tests、browser executionはこのSkillの専門領域ではない。
 
-参考画像・URLは、targetかreferenceかを依頼文から判断する。観測した構造・文字・色・挙動と推論を区別し、読めない資料の内容を推測しない。
+## Output
 
-視覚方向を選ぶときは、見栄えの模倣よりも、主役、情報密度、reading rhythm、shape、surface、color role、静かな領域を抽出する。既存Projectのdesign languageがあればそれを基準にし、変更が必要な場合はユーザーtaskと内容から理由を持たせる。
+必要な設計判断だけを返す。状況に応じて設計制約、改善案、優先度、影響するstate、観測すべき条件を示す。
 
-## 他の専門Skillとの境界
-
-- ミニマル幾何学ラスターそのものが必要なら`i484-geometric-illustration`の専門知識を利用できる。Product Design側は用途、配置、crop、比率、背景との関係、代替説明を判断する。
-- 単一のポータブルHTMLで説明・図解すること自体が成果物なら`i484-visualize`の領域とする。
-- ユーザー向け日本語の自然さを専門的に確認するSkillが利用可能なら、文言品質はその専門知識を併用できる。
-- コード品質、lint、typecheck、tests、browser executionはこのSkillの専門領域ではない。
-
-## 出力
-
-必要な設計判断だけを返す。状況に応じて、設計制約、改善案、優先度、影響するstate、観測すべき条件を示す。
-
-このSkillのために固定Phase、V-level、checklist消化報告、reviewer起動、engineering task listを追加しない。実装担当と同じAgentがこのKnowledgeを使ってコードを書いてもよいが、engineering workflowの統括は現在のengineering frameworkに残す。
+固定Phase、V-level、engineering task list、reviewer起動、Git/shipping手順を追加しない。同じAgentがこのKnowledgeを使って実装してもよいが、engineering workflowの統括はCEに残す。
