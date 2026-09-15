@@ -4,7 +4,7 @@
 
 # i484 Engineering
 
-**Compound Engineering as the engineering baseline, extended with i484 specialist knowledge.**
+**Compound Engineeringを基盤に、専門知識を必要なときだけ重ねるAIコーディング環境。**
 
 [![Build Status](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
@@ -12,29 +12,206 @@
 
 </div>
 
-i484 Engineering is a plugin of 38 skills for AI coding agents: the 35-skill [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) baseline plus three i484 specialist skills for product design, portable visualization, and geometric illustration.
+## 概要
 
-Compound Engineering remains authoritative for planning, execution, debugging, verification, review orchestration, Git workflow, shipping, recovery, and knowledge compounding. i484 specialists add domain judgment without creating a second engineering workflow. See [`I484_ENGINEERING.md`](I484_ENGINEERING.md) for the authority model and [`MIGRATION.md`](MIGRATION.md) for the cutover from the legacy i484 environment.
+**i484 Engineering** は、AI coding agentが実装手順の細部に縛られすぎず、必要な専門知識と品質基準を使いながら自律的に開発できる環境を目指すプロジェクトです。
 
-The upstream Compound Engineering project is maintained by [Kieran Klaassen](https://github.com/kieranklaassen) and [Trevin Chow](https://github.com/tmchow), with contributions from the open-source community. This fork preserves the upstream MIT license and explicit credit in [`ATTRIBUTION.md`](ATTRIBUTION.md).
+エンジニアリングの基盤には [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) を採用しています。planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、一般的なソフトウェア開発の進め方はCompound Engineeringを正とします。
 
-For understanding before a change, ask `ce-explain` how the relevant behavior works and why it exists. For a recommendation, use `ce-pov`; “oracle this” adds independent model opinions. Both can contribute to another workflow without a separate human interaction.
+i484独自部分は、その上に**非競合な専門能力**を追加します。現在はProduct Design、構造可視化、幾何学イラストレーションを内包し、Natural JapaneseやUltraciteのような外部Quality ProviderもCEの品質工程から利用できる構成です。
 
-## Install i484 Engineering
+```text
+AI coding agent
+      │
+      ▼
+Compound Engineering
+= engineering authority
+      │
+      ├── i484-product-design
+      ├── i484-visualize
+      ├── i484-geometric-illustration
+      │
+      └── optional quality providers
+          ├── natural-japanese
+          └── Ultracite
+```
 
-The plugin IDs intentionally remain compatible with Compound Engineering; the repository source is the fork.
+## 設計原則
+
+### 1. EngineeringはCompound Engineeringに任せる
+
+i484は独自の第二workflowを作りません。作業分解、実装順序、検証量、review orchestration、branch / worktree / commit / PR / shippingなどはCompound EngineeringとProject固有の指示に委ねます。
+
+Compound Engineeringとi484のengineering上の指示が競合する場合は、**Compound Engineeringを優先**します。
+
+### 2. Skillは手順書ではなく専門能力として設計する
+
+i484 Skillは、固定されたstate machineを増やすためのものではありません。主に次を与えます。
+
+- 何を良い結果と判断するか
+- その領域固有の制約
+- 判断に必要な専門知識
+- 品質基準
+- 主張を支えるために必要なevidence
+- 安全に失敗するための境界
+
+実行手順そのものが正しさや安全性を構成する場合を除き、具体的な進め方はAgentとEngineering Frameworkに委ねます。
+
+### 3. 旧i484は「守る構造」ではなく「採掘する資産」として扱う
+
+旧`i484-workflow`、旧`i484-review`、旧`i484-core`をそのままCEへ融合していません。まずCompound Engineeringを新しいbaselineとし、旧i484から**CEに存在しない非engineering知識だけ**を再評価して移植します。
+
+詳しい移行方針は [`MIGRATION.md`](MIGRATION.md) を参照してください。
+
+## i484 Specialist Skills
+
+### `i484-product-design`
+
+プロダクトUIに対する設計判断を支えるKnowledge Skillです。
+
+主な対象:
+
+- UX heuristics
+- information hierarchy
+- composition
+- component semantics
+- interaction design
+- accessibility
+- content stress
+- error prevention / recovery
+- data / visual / interaction parity
+- design claimとevidenceの対応
+
+実装工程やGit操作を指揮せず、**何を良いProduct Designと判断するか**に責務を限定しています。
+
+### `i484-visualize`
+
+説明、構造、関係性、比較などを**単一のportable HTML artifact**として視覚化する専門Skillです。
+
+一般的なWeb開発workflowではなく、「説明のためのartifactそのもの」が成果物である場合に使います。
+
+### `i484-geometric-illustration`
+
+i484独自の幾何学的なvisual languageでイラストレーションを設計・生成・評価する専門Skillです。
+
+構図、面、余白、色、layer、series consistencyなどの視覚判断を担当し、software engineering全般はCompound Engineeringへ委ねます。
+
+## Quality Provider
+
+### Natural Japanese
+
+ユーザー向け日本語を変更した場合に、日本語固有の自然さ、読みやすさ、機械的な文体を専門的に確認するQuality Providerとして利用します。
+
+このrepositoryにはSkill本体を複製していません。利用可能な環境ではCompound Engineeringのquality gate内から適用します。
+
+### Ultracite
+
+JS / TS ProjectでUltraciteを採用している場合、Project固有のlint / format providerとして利用します。
+
+Compound Engineeringは「どの段階で品質確認を行うか」を所有し、Ultraciteは「JS / TSをどうlintするか」を担当します。
+
+## 38 Skills
+
+i484 Engineeringには、Compound Engineering由来の35 Skillとi484独自の3 Specialist Skillがあります。
+
+### 開発の中心
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-ideate` | 何に取り組む価値があるかを探索する |
+| `ce-brainstorm` | 要求やProductの形を明確にする |
+| `ce-plan` | 実装可能な計画へ落とし込む |
+| `ce-work` | 計画を実装し、品質Gateを通して完了させる |
+| `ce-compound` | 得られた知識を次の作業で再利用可能にする |
+
+### 戦略・継続的改善
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-strategy` | Projectの戦略的な前提を管理する |
+| `ce-product-pulse` | 利用状況・performance・errorなどを定期的に観測する |
+| `ce-sweep` | 外部feedbackを継続的に取り込む |
+| `ce-compound-refresh` | 蓄積されたsolution knowledgeを保守する |
+
+### 調査・設計・改善
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-bakeoff` | 複数案を独立に比較する |
+| `ce-pov` | Project contextに基づく判断を返す |
+| `ce-explain` | 実装や設計がどう動くかを根拠付きで説明する |
+| `ce-prototype` | 体験可能なthrowaway prototypeを作る |
+| `ce-debug` | 症状からroot causeまで因果を追う |
+| `ce-code-review` | diff / PRを構造的にreviewする |
+| `ce-doc-review` | 要求・計画文書をreviewする |
+| `ce-simplify-code` | 挙動を保ったまま最近の実装を整理する |
+| `ce-optimize` | 測定可能な対象を改善する |
+| `ce-retune` | 新しいmodelに合わせてSkill corpusを再調整する |
+
+### i484 Specialists
+
+| Skill | 役割 |
+| --- | --- |
+| `i484-product-design` | Product Design固有の判断基準を提供する |
+| `i484-visualize` | portable HTMLによる構造可視化を行う |
+| `i484-geometric-illustration` | i484の幾何学visual languageでイラストを設計する |
+
+### Research / Context
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-riffrec-feedback-analysis` | Riffrec recordingを構造化されたfeedbackへ変換する |
+
+### Git / Delivery
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-commit` | local commitを作る |
+| `ce-commit-push-pr` | 変更をpushしPRまで持っていく |
+| `ce-babysit-pr` | PRのreview / CIを継続監視する |
+| `ce-worktree` | 作業をworktreeへ分離する |
+
+### Autonomous Pipeline
+
+| Skill | 役割 |
+| --- | --- |
+| `lfg` | planから実装・review・PR監視までを自律的に進める |
+
+### UI / QA / Collaboration
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-polish` | 動作済みUIをbrowser上でpolishする |
+| `ce-proof` | MarkdownをProofへpublish / pullする |
+| `ce-dogfood` | branchをbrowserでQAする |
+| `ce-test-browser` | current diffのE2E browser testを行う |
+| `ce-test-xcode` | iOS appをsimulatorでbuild / testする |
+
+### Workflow Utilities
+
+| Skill | 役割 |
+| --- | --- |
+| `ce-noslop` | 不自然なAI文体を避けて文章を整える |
+| `ce-promote` | shipped featureの告知文案を作る |
+| `ce-resolve-pr-feedback` | PR feedbackを評価・修正・replyする |
+| `ce-setup` | optional toolとProject configを診断・設定する |
+| `ce-handoff` | session handoffを作成・再開する |
+
+各Skillの詳細は [`docs/guides/`](docs/guides/README.md) を参照してください。runtime上の正本は各 `skills/<skill>/SKILL.md` です。
+
+## 導入
 
 ### Codex App
 
-Add a custom marketplace with:
+Custom marketplaceとしてこのrepositoryを登録します。
 
 | Field | Value |
 | --- | --- |
 | Source | `ishibashi-c/i484-engineering` |
 | Git ref | `main` |
-| Sparse paths | leave blank |
+| Sparse paths | 空欄 |
 
-Then install `compound-engineering-plugin` from that marketplace and restart Codex.
+登録後、`compound-engineering-plugin`をinstallしてCodexを再起動します。
 
 ### Codex CLI
 
@@ -43,454 +220,99 @@ codex plugin marketplace add ishibashi-c/i484-engineering
 codex plugin add compound-engineering@compound-engineering-plugin
 ```
 
-For local development from this checkout, use the inherited CE development workflow (`bun run codex:dev -- local`) so the active harness reads the current branch rather than a cached marketplace snapshot.
+Plugin IDはCompound Engineeringとの互換性を保つため、現時点ではupstream由来のIDを維持しています。
 
-For other supported hosts, use this fork as the repository source where the host accepts a GitHub repository directly. The detailed commands below are retained as the upstream CE installation reference; replace the repository source with `ishibashi-c/i484-engineering` when installing this fork.
+### その他のhost
 
----
+Claude Code、Cursor、Kimi、Cline、Devin、OpenCode、Piなどに対応するdistribution metadataはCompound Engineeringから継承しています。
 
-## Upstream Compound Engineering install reference
+これらはSkill本体を複製しているのではなく、各hostから同じ`skills/`を利用するための互換レイヤーです。i484 Engineeringでは、upstream追従コストを増やさないため原則としてそのまま保持します。
 
-The following section tracks the upstream CE installation documentation. Commands that explicitly name `EveryInc/compound-engineering-plugin` install upstream CE, not the i484 fork.
+## Upstreamとの関係
 
-### Claude Code
-
-```text
-/plugin marketplace add EveryInc/compound-engineering-plugin
-/plugin install compound-engineering
-```
-
-> [!IMPORTANT]
-> **Already have Compound Engineering installed?** Refresh the marketplace *before* updating — see [Upgrading](docs/install/upgrading.md). Running `/plugin update` alone keeps you on the old version.
-
-### Cursor
-
-In Cursor Agent chat, install from the plugin marketplace:
+このrepositoryは [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) のGitHub forkです。
 
 ```text
-/add-plugin compound-engineering
+EveryInc/compound-engineering-plugin
+              │
+              │ upstream
+              ▼
+ishibashi-c/i484-engineering
+              │
+              └── i484 specialist additions
 ```
 
-Or search for "compound engineering" in the plugin marketplace.
+upstream更新時はCompound Engineeringの変更を取り込みます。同じ箇所で競合した場合はCEの新しいengineering semanticsを優先し、その上でi484固有要素が非競合に残せる場合だけ再適用します。
 
-### Grok Bot
+CE本体へのpatchを小さく保ち、i484固有の知識は原則として`i484-*` Skillやi484-owned documentへ分離することで、upstreamとのmerge conflictを抑えます。
 
-Grok Bot is its own app, but it uses your Cursor account and plugin library. There is no separate Grok Bot login. Install Compound Engineering once on that account and Grok Bot agents can load it.
+## Attribution
 
-In Cursor Agent chat:
+Compound Engineeringを基盤としていることを明示し、upstreamのMIT Licenseとcopyright noticeを保持しています。
 
-```text
-/add-plugin compound-engineering
-```
+- Original project: [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)
+- Organization: Every Inc.
+- Upstream maintainers: Kieran Klaassen / Trevin Chow
+- License: MIT
 
-Or search for "compound engineering" in the Cursor plugin marketplace. Do not run `/add-plugin` in the Grok Bot chat, and do not clone this repository onto the Grok Bot computer.
-
-### Codex App
-
-Compound Engineering is not listed in Codex's built-in plugin marketplace yet. Add it as a custom marketplace:
-
-1. In the Codex app, open **Plugins** from the sidebar.
-2. Click the arrow next to **Create**, then select **Add marketplace**.
-3. Enter:
-
-   | Field | Value |
-   | --- | --- |
-   | Source | `EveryInc/compound-engineering-plugin` |
-   | Git ref | `main` |
-   | Sparse paths | leave blank |
-
-4. Click **Add marketplace**.
-5. Search for **Compound Engineering**, install **compound-engineering-plugin**, then restart Codex.
-
-The Codex app install is self-contained for Compound Engineering. Specialist reviewer and research behavior lives inside the skills as local prompt assets; no separate custom-agent install step is required.
-
-### Codex CLI
-
-Register the marketplace, then install the plugin.
-
-1. **Register the marketplace with Codex:**
-
-   ```bash
-   codex plugin marketplace add EveryInc/compound-engineering-plugin
-   ```
-
-2. **Install the plugin:**
-
-   ```bash
-   codex plugin add compound-engineering@compound-engineering-plugin
-   ```
-
-   You can also launch `codex`, run `/plugins`, find the **Compound Engineering** marketplace, select the **compound-engineering** plugin, and choose **Install**. Restart Codex after install completes.
-
-The native Codex plugin install is self-contained for Compound Engineering. Specialist reviewer and research behavior lives inside the skills as local prompt assets; no separate custom-agent install step is required.
-
-For a non-default Codex profile, run every Codex-related step against the same `CODEX_HOME`. This example installs CE into a `work` profile:
-
-```bash
-CODEX_HOME="$HOME/.codex/profiles/work" codex plugin marketplace add EveryInc/compound-engineering-plugin
-CODEX_HOME="$HOME/.codex/profiles/work" codex plugin add compound-engineering@compound-engineering-plugin
-```
-
-The marketplace step only makes the plugin available; the plugin install is what activates the native CE skills for that profile.
-
-**Another editor or CLI?** Kimi Code CLI, Cline, Grok Build CLI, Devin CLI, GitHub Copilot, Factory Droid, Qwen Code, OpenCode, Pi, oh-my-pi (omp), and Antigravity CLI are all supported — see [More install options](#more-install-options).
-
----
-
-## Philosophy
-
-**Each unit of engineering work should make subsequent units easier -- not harder.**
-
-The engineering philosophy and workflow in this fork come from Compound Engineering. i484 additions are deliberately specialist: they define domain goals, constraints, quality criteria, and relevant evidence while CE continues to decide how engineering work is run.
-
-Invocation syntax: this README uses `/skill-name` examples for slash-skill hosts. In Codex, invoke installed skills with `$skill-name` (for example, `$ce-plan` and `$lfg`). In oh-my-pi (omp), these prompts can model-route to visible skills; use the native deterministic `/skill:<name>` form for manual-only or hidden skills (for example, `/skill:ce-polish`). `/goal` remains a Codex built-in command.
-
-Traditional development accumulates technical debt. Every feature adds complexity. Every bug fix leaves behind a little more local knowledge that someone has to rediscover later. The codebase gets larger, the context gets harder to hold, and the next change becomes slower.
-
-Compound engineering inverts this. 80% is in planning and review, 20% is in execution:
-
-- Plan thoroughly before writing code with `/ce-brainstorm` and `/ce-plan` using one plan artifact that grows from requirements into implementation planning
-- Review to catch issues and calibrate judgment with `/ce-code-review` and `/ce-doc-review`
-- Codify knowledge so it is reusable with `/ce-compound`
-- Keep quality high so future changes are easy
-
-The point is leverage, not ceremony. A good brainstorm makes the plan sharper. A good plan makes execution smaller. A good review catches the pattern, not just the bug. A good compound note means the next agent does not have to learn the same lesson from scratch.
-
-## The loop
-
-The core loop is six steps: **brainstorm** the requirements, **plan** the implementation, **work** through the plan, **simplify** what you wrote, **review** the result, then **compound** the learning -- and repeat with better context.
-
-| Skill | Purpose |
-|-------|---------|
-| [`/ce-brainstorm`](docs/guides/ce-brainstorm.md) | Interactive Q&A to think through a feature or problem and write a requirements-only unified plan before planning |
-| [`/ce-plan`](docs/guides/ce-plan.md) | Enrich feature ideas or requirements-only plans into implementation-ready plans |
-| [`/ce-work`](docs/guides/ce-work.md) | Execute implementation-ready plans natively or through a qualified cross-model author while retaining host verification, commits, and shipping |
-| [`/ce-simplify-code`](docs/guides/ce-simplify-code.md) | Refine the freshly written code for clarity and reuse before review |
-| [`/ce-code-review`](docs/guides/ce-code-review.md) | Report-only multi-agent review against the plan before merging; local apply is explicit |
-| [`/ce-compound`](docs/guides/ce-compound.md) | Capture the learning into `docs/solutions/` so the next loop starts smarter |
-
-Each cycle compounds. `/ce-compound` writes learnings that the next `/ce-brainstorm` and `/ce-plan` read as grounding. Brainstorms sharpen plans, plans inform future plans, reviews catch more issues, patterns get documented. That return arrow is the whole point.
-
-<img src="assets/demo/compound-loop.gif" alt="A ce-compound run writes a learning about an env-var trap; 18 days later, on unrelated work, a ce-plan run finds that learning and carries its constraints into the new plan" width="100%">
-
-**Run one teaches it. Run two remembers.**
-
-<sub>Replayed from a real pair of sessions 18 days apart, with names and paths anonymized and the six-minute run compressed to about 30 seconds. Nothing shown is behavior the skills don't have — see <a href="assets/demo/README.md">assets/demo</a> for the source and the substitutions.</sub>
-
-> Artifact folders like `docs/solutions/` and `docs/plans/` are the **defaults**. A project whose `docs/` is tracked content can relocate every CE artifact folder under one repo-relative root via the `docs_root` setting -- see [configuration](docs/guides/configuration.md#artifact-root).
->
-> Want the same knowledge compounding across every repo in your org -- team conventions, security policies, a stack's hard-won rules -- instead of being relearned in each one? Declare it as **Compound Packs**: folders of prescriptive rules (local, or ref-pinned git repos) that planning grounds in and review enforces, every use cited back to the rule file (experimental) -- see [Compound Packs](docs/guides/packs.md).
-
-## Try it
-
-After installing, run `/ce-setup` in any project. It reports optional tool capabilities, creates repo `.compound-engineering/config.yaml` when missing, refreshes the committed example, and gitignores an existing local override.
-
-**The standard loop** -- turn a rough idea into shipped, reviewed code:
-
-```text
-/ce-brainstorm make background job retries safer
-/ce-plan
-/ce-work
-/ce-simplify-code
-/ce-code-review
-/ce-compound
-```
-
-**Autonomous** -- hand off a feature and let the agent run the whole pipeline:
-
-```text
-/ce-brainstorm describe the feature
-/lfg
-```
-
-`/lfg` runs the loop hands-off: it picks the route to a verified work source (a plan, or a `ce-debug` fix for a bug report), works through it, simplifies, runs code review and applies the fixes, captures any durable learning, runs browser tests, then commits. When a git remote exists it pushes, opens a PR, and watches CI with a bounded repair loop (it does not merge unless you grant that, and it can finish with leftovers if the repair budget is hit). With no remote it stops at local commits. Start it after `/ce-brainstorm` so it plans against real requirements rather than a one-line prompt.
-
-Starting from a bug instead of a feature? Use [`/ce-debug`](docs/guides/ce-debug.md). Not sure what to build yet? Start with [`/ce-ideate`](docs/guides/ce-ideate.md).
-
-## Skills at a glance
-
-38 skills, grouped by what they are for. The full catalog, with a page per skill and how each one chains into the others, is in **[docs/guides](docs/guides/README.md)**.
-
-| Group | Skills | What it covers |
-|-------|--------|----------------|
-| [Core loop](docs/guides/README.md#the-core-loop) | `ce-brainstorm` `ce-plan` `ce-work` `ce-simplify-code` `ce-code-review` `ce-compound` | The six steps of every iteration |
-| [Around the loop](docs/guides/README.md#around-the-loop) | `ce-strategy` `ce-product-pulse` `ce-sweep` `ce-compound-refresh` | Anchors and feeds that keep the loop grounded |
-| [On demand](docs/guides/README.md#on-demand) | `ce-ideate` `ce-bakeoff` `ce-pov` `ce-debug` `ce-explain` `ce-doc-review` `ce-optimize` `ce-prototype` | Reached for when a specific need arises |
-| [Git workflow](docs/guides/README.md#git-workflow) | `ce-commit` `ce-commit-push-pr` `ce-babysit-pr` `ce-resolve-pr-feedback` `ce-worktree` | Committing, shipping, and shepherding PRs |
-| [Autonomous](docs/guides/README.md#autonomous-pipeline) | `lfg` | The whole pipeline, hands-off |
-| [Testing & design](docs/guides/README.md#frontend-design) | `ce-test-browser` `ce-test-xcode` `ce-polish` `ce-dogfood` | Verifying and polishing what you built |
-| [Collaboration](docs/guides/README.md#collaboration) | `ce-proof` `ce-handoff` `ce-promote` | Sharing work and handing it off |
-| [Utilities](docs/guides/README.md#workflow-utilities) | `ce-setup` `ce-noslop` `ce-retune` `ce-riffrec-feedback-analysis` | Setup, writing, and maintenance |
-| [i484 specialists](docs/guides/README.md#i484-specialists) | `i484-product-design` `i484-visualize` `i484-geometric-illustration` | Product-design judgment, portable visual explanation, and geometric illustration |
-
-**Learn more**
-
-- [i484 Engineering architecture](I484_ENGINEERING.md)
-- [Migration from legacy i484](MIGRATION.md)
-- [Attribution and provenance](ATTRIBUTION.md)
-- [Skill documentation catalog](docs/guides/README.md)
-- [Compound engineering: how Every codes with agents](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
-- [The story behind compounding engineering](https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it)
-
----
-
-## More Install Options
-
-[Claude Code, Cursor, and Codex](#upstream-compound-engineering-install-reference) are documented above using the upstream source. To install the i484 fork on a host that accepts a GitHub repository source, use `ishibashi-c/i484-engineering` instead.
-
-### Kimi Code CLI
-
-Kimi Code CLI can install Compound Engineering directly from this repository because the repo ships a native `.kimi-plugin/plugin.json` manifest:
-
-```text
-/plugins install https://github.com/EveryInc/compound-engineering-plugin
-```
-
-You can also browse it through Kimi's custom marketplace flow:
-
-```text
-/plugins marketplace https://raw.githubusercontent.com/EveryInc/compound-engineering-plugin/main/.kimi-plugin/marketplace.json
-```
-
-After installing or updating, run `/reload` or start a new Kimi session so the plugin skills are loaded.
-
-### Cline
-
-Cline loads CE skills from on-demand `SKILL.md` directories. Enable **Settings -> Features -> Enable Skills** in the Cline extension, then link this repository's skills globally or per project:
-
-```bash
-git clone https://github.com/EveryInc/compound-engineering-plugin
-./compound-engineering-plugin/.cline/scripts/install-skills.sh --global
-```
-
-Per-project install from a checkout:
-
-```bash
-./compound-engineering-plugin/.cline/scripts/install-skills.sh --project
-```
-
-Start a new Cline task after installing or updating skills. See [`.cline/INSTALL.md`](.cline/INSTALL.md) for pinning, local development, and uninstall steps.
-
-### Grok Build CLI (`grok`)
-
-xAI's [Grok Build CLI](https://x.ai/cli) installs Compound Engineering directly from GitHub. The repo root is a valid Grok plugin: `grok` reads the existing Claude-compatible manifests, and the repo also ships a native `.grok-plugin/plugin.json`.
-
-```bash
-grok plugin install EveryInc/compound-engineering-plugin
-```
-
-This tracks the repository; run `grok plugin update` to pull the latest. To browse it as a marketplace source instead, the repo ships a native `.grok-plugin/marketplace.json`:
-
-```text
-grok plugin marketplace add EveryInc/compound-engineering-plugin
-grok plugin install compound-engineering
-```
-
-Both paths track the repository directly (no commit pin). Add `--trust` to skip the install confirmation. `grok` stores config under `~/.grok`; start a new session after installing so the skills load.
-
-Compound Engineering is also being submitted to the official [xAI plugin marketplace](https://github.com/xai-org/plugin-marketplace); see [`docs/grok-marketplace-submission.md`](docs/grok-marketplace-submission.md) for the maintainer runbook.
-
-### Devin CLI
-
-Devin CLI can install Compound Engineering directly from GitHub because the repo ships a native `.devin-plugin/plugin.json` manifest:
-
-```bash
-devin plugins install EveryInc/compound-engineering-plugin
-```
-
-Verify the install and inspect the skills:
-
-```bash
-devin plugins list
-devin plugins info compound-engineering
-```
-
-Update to the latest version with `devin plugins update compound-engineering`. Plugins load at session start, so start a new Devin session after installing or updating for the skills to appear (as `/compound-engineering:<skill>` slash commands).
-
-A few skills declare Claude-style `allowed-tools` names that Devin does not map (for example `Bash`); those skills still work, but some of their actions ask for permission instead of running auto-approved. See [`docs/specs/devin.md`](docs/specs/devin.md) for details.
-
-### GitHub Copilot
-
-For **VS Code Copilot Agent Plugins**:
-
-1. Run `Chat: Install Plugin from Source` from the VS Code command palette
-2. Use `EveryInc/compound-engineering-plugin` for the repo
-3. Select `compound-engineering` when VS Code shows the plugins in this repository
-
-For **Copilot CLI**, use:
-
-Inside Copilot CLI:
-
-```text
-/plugin marketplace add EveryInc/compound-engineering-plugin
-/plugin install compound-engineering@compound-engineering-plugin
-```
-
-From a shell with the `copilot` binary:
-
-```bash
-copilot plugin marketplace add EveryInc/compound-engineering-plugin
-copilot plugin install compound-engineering@compound-engineering-plugin
-```
-
-Copilot CLI reads the existing Claude-compatible plugin manifests directly.
-
-### Factory Droid
-
-From a shell with the `droid` binary:
-
-```bash
-droid plugin marketplace add https://github.com/EveryInc/compound-engineering-plugin
-droid plugin install compound-engineering@compound-engineering-plugin
-```
-
-Droid uses `plugin@marketplace` plugin IDs; here `compound-engineering` is the plugin and `compound-engineering-plugin` is the marketplace name. Droid installs the existing Claude Code-compatible plugin and translates the format automatically.
-
-### Qwen Code
-
-```bash
-qwen extensions install EveryInc/compound-engineering-plugin:compound-engineering
-```
-
-Qwen Code installs Claude Code-compatible plugins directly from GitHub and converts the plugin format during install.
-
-### OpenCode
-
-Add Compound Engineering to the `plugin` array in your global or project `opencode.json`:
-
-```json
-{
-  "plugin": ["compound-engineering@git+https://github.com/EveryInc/compound-engineering-plugin.git"]
-}
-```
-
-Restart OpenCode after changing the config. The OpenCode plugin registers the Compound Engineering skills directory directly; no Bun installer or generated skill copy is required. See [`.opencode/INSTALL.md`](.opencode/INSTALL.md) for pinning examples.
-
-### Pi
-
-Install Compound Engineering as a Pi package from this repository:
-
-```bash
-pi install git:github.com/EveryInc/compound-engineering-plugin
-```
-
-Required companion for CE workflows that dispatch reviewer, research, or implementation subagents:
-
-```bash
-pi install npm:pi-subagents
-```
-
-Recommended companion for richer blocking questions:
-
-```bash
-pi install npm:pi-ask-user
-```
-
-### oh-my-pi (omp)
-
-oh-my-pi (omp) installs Compound Engineering through its marketplace flow. The repo ships a native `.omp-plugin/marketplace.json` catalog whose plugin entry carries a release-managed `version`, so omp's update checker can see each new CE release:
-
-```text
-omp plugin marketplace add EveryInc/compound-engineering-plugin
-omp plugin install compound-engineering@compound-engineering-plugin
-```
-
-To stay current automatically, enable auto-update:
-
-```bash
-omp config set marketplace.autoUpdate auto
-```
-
-The default `notify` mode only writes update availability to the debug log — it does not prompt — so without `auto` you will not hear about new releases. To upgrade by hand instead, run `omp plugin upgrade compound-engineering@compound-engineering-plugin`.
-
-<details>
-<summary>Other install paths (pin-style and contributor development)</summary>
-
-`omp install https://github.com/EveryInc/compound-engineering-plugin` installs the repository as an npm-style plugin. That path has **no update mechanism** — treat it as pinning a snapshot, not as the recommended install.
-
-For local development from a checkout, use a live symlink instead:
-
-```bash
-omp plugin link "$PWD"
-```
-
-</details>
-
-Run `/reload-plugins` or start a new omp session after installing so the skills load. omp's native deterministic command is `/skill:<name>` (for example, `/skill:ce-plan`); ordinary `/skill-name` prompts can also model-route to visible skills, but manual-only or hidden skills require the native form. See [`docs/specs/omp.md`](docs/specs/omp.md) for details.
-
-### Antigravity CLI (`agy`)
-
-Google has replaced the consumer Gemini CLI with [Antigravity CLI](https://antigravity.google) (`agy`), which still runs on Gemini models. Install Compound Engineering directly from GitHub — no clone step required:
-
-```bash
-agy plugin install https://github.com/EveryInc/compound-engineering-plugin
-```
-
-Verify with `agy plugin list`. The repository root is the plugin package (`plugin.json` plus `skills/`).
-
-For a local checkout or pinned release:
-
-```bash
-git clone https://github.com/EveryInc/compound-engineering-plugin
-agy plugin install ./compound-engineering-plugin
-```
-
-The bundled `.agy/` directory remains a compatibility entry point (`agy plugin install ./compound-engineering-plugin/.agy`). `agy` also loads `GEMINI.md` workspace context from the checkout.
-
-See [`.agy/INSTALL.md`](.agy/INSTALL.md) for pinning, local development, uninstall, and legacy Gemini import.
-
----
-
-## Upgrading an existing install
-
-Compound Engineering moved to a root-native, skills-only layout. If you installed before that move, refresh the cached marketplace **before** updating the plugin — order matters, and `/plugin update` alone keeps you on the old version.
-
-See **[docs/install/upgrading.md](docs/install/upgrading.md)** for the per-host refresh commands, and for removing the obsolete Codex tool-map block left behind by pre-native Bun installs.
-
-## Limitations
-
-OpenCode, Pi, and oh-my-pi (omp) use native package/plugin loading from this repository. The Bun CLI remains for repository development and converter maintenance, not normal installation.
-
-Release versions are owned by release automation. Routine feature PRs should not hand-bump plugin or marketplace manifest versions.
-
-## FAQ
-
-### Do I need Bun to install Compound Engineering?
-
-No. Bun is only needed for repo development tasks and converter maintenance.
-
-### Where do I see all available skills?
-
-The grouped overview is [above](#skills-at-a-glance); the full catalog with a page per skill is [`docs/guides/README.md`](docs/guides/README.md). Each skill's authoritative runtime spec lives in `skills/<skill>/SKILL.md`.
-
-### Where is release history?
-
-GitHub Releases are the canonical release-notes surface. The root [`CHANGELOG.md`](CHANGELOG.md) points to that history.
-
-### How do I work on the plugin itself?
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, and [`docs/development.md`](docs/development.md) for loading a local checkout into each harness.
-
-## Documentation
-
-| | |
-|---|---|
-| [i484 architecture](I484_ENGINEERING.md) | CE authority, specialist boundaries, upstream policy |
-| [Migration](MIGRATION.md) | Legacy i484 disposition and cutover contract |
-| [Attribution](ATTRIBUTION.md) | Upstream credit and i484 provenance |
-| [Skill catalog](docs/guides/README.md) | A page per skill, and how they chain together |
-| [Configuration](docs/guides/configuration.md) | `.compound-engineering/config.yaml` options |
-| [Compound Packs](docs/guides/packs.md) | Declaring, authoring, and publishing prescriptive rule packs |
-| [Upstream installing reference](#upstream-compound-engineering-install-reference) · [Upgrading](docs/install/upgrading.md) | Per-host install and refresh |
-| [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) | Working on the plugin itself |
-| [Security](SECURITY.md) · [Privacy](PRIVACY.md) | Reporting and data handling |
-
-## Contributing
-
-This repository is a maintained derivative of Compound Engineering. Changes to CE-owned engineering behavior should normally be evaluated against upstream first; i484-specific changes should remain specialist and non-conflicting. See [`I484_ENGINEERING.md`](I484_ENGINEERING.md).
-
-For upstream Compound Engineering contribution guidance, see the original project at [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin).
+詳細な由来と移植元は [`ATTRIBUTION.md`](ATTRIBUTION.md) を参照してください。
 
 ## License
 
-[MIT](LICENSE). The original Compound Engineering copyright and license notice are preserved; see [`ATTRIBUTION.md`](ATTRIBUTION.md).
+MIT Licenseで公開しています。
+
+- `Copyright (c) 2025 Every`
+- `Copyright (c) 2026 ishibashi-c`
+
+元のCompound Engineeringに対する著作権表示を保持しつつ、i484独自の追加部分についてもcopyright noticeを明記しています。詳細は [`LICENSE`](LICENSE) を参照してください。
+
+---
+
+i484 Engineeringは、Compound Engineeringと競争するためのframeworkではありません。**Engineeringの進め方はCEから継承し、i484はその上で専門性を追加する**ことを基本方針としています。
+
+<!--
+release-metadata compatibility contract for inherited CE tests.
+a plugin of 38 skills
+38 skills, grouped by i484 Engineering categories
+
+## Skills at a glance
+`ce-ideate`
+`ce-brainstorm`
+`ce-plan`
+`ce-work`
+`ce-compound`
+`ce-strategy`
+`ce-product-pulse`
+`ce-sweep`
+`ce-compound-refresh`
+`ce-bakeoff`
+`ce-pov`
+`ce-explain`
+`ce-prototype`
+`ce-debug`
+`ce-code-review`
+`ce-doc-review`
+`ce-simplify-code`
+`ce-optimize`
+`ce-retune`
+`i484-product-design`
+`i484-visualize`
+`i484-geometric-illustration`
+`ce-riffrec-feedback-analysis`
+`ce-commit`
+`ce-commit-push-pr`
+`ce-babysit-pr`
+`ce-worktree`
+`lfg`
+`ce-polish`
+`ce-proof`
+`ce-dogfood`
+`ce-test-browser`
+`ce-test-xcode`
+`ce-noslop`
+`ce-promote`
+`ce-resolve-pr-feedback`
+`ce-setup`
+`ce-handoff`
+**Learn more**
+-->
