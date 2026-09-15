@@ -47,11 +47,15 @@ i484-product-design identifies what makes the product design good or bad,
 and which observable states matter to that judgment.
 ```
 
-### Other specialists
+### i484-visualize and i484-geometric-illustration
 
-`i484-geometric-illustration` and `i484-visualize` are treated as specialist/artifact capabilities, not engineering frameworks. They can be brought into this environment without inheriting old i484 workflow semantics. Their domain-specific authoring loops may remain when the sequence is intrinsic to producing the artifact rather than a general software-engineering process.
+`skills/i484-visualize` and `skills/i484-geometric-illustration` are embedded specialist/artifact capabilities, not engineering frameworks. Their domain-specific authoring contracts remain where sequence is intrinsic to producing and evaluating the artifact, while general planning, Git, code review, verification orchestration, and shipping remain with CE.
 
-`natural-japanese` and `ultracite` are quality specialists/providers rather than workflow owners:
+The geometric specialist keeps its runtime visual-language knowledge text-only; the previous repository remains the provenance home for the larger style-anchor image assets and detailed validation records.
+
+### External quality providers
+
+`natural-japanese` and `ultracite` are quality specialists/providers rather than workflow owners and are not copied into this fork:
 
 - user-facing Japanese changes may use `natural-japanese` when that skill is available in the active environment;
 - JavaScript/TypeScript projects that adopt Ultracite should expose it through the project's configured lint/check instructions, which CE's quality gates already honor.
