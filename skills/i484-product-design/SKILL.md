@@ -39,6 +39,7 @@ description: プロダクトUIの設計判断を支える専門Knowledge Skill�
 | control、form、navigation、state、focus、accessibility | [interaction-content-accessibility.md](references/interaction-content-accessibility.md) |
 | UX、状態可視化、誤操作防止、入力、error recovery、help | [usability-checklist.md](references/usability-checklist.md) |
 | 長文、欠落データ、large collection、saving / failure、比較案 | [content-stress-and-alternatives.md](references/content-stress-and-alternatives.md) |
+| renderを根拠にしたdesign評価、component安定性、findingの優先度 | [design-evaluation.md](references/design-evaluation.md) |
 
 必要なReferenceだけ読む。Reference数を品質指標にせず、既に文脈にある知識を機械的に再読しない。
 
@@ -90,7 +91,7 @@ description: プロダクトUIの設計判断を支える専門Knowledge Skill�
 
 ## Evidenceを設計判断へ結び付ける
 
-このSkillはverification workflowを所有しないが、設計上の主張に必要な観測対象は示す。
+このSkillはverification workflowを所有しないが、設計上の主張に必要な観測対象は示す。詳しい評価基準が必要なときは[design-evaluation.md](references/design-evaluation.md)を使う。
 
 - 見た目の主張には実際にrenderされた表示が関係する。
 - 操作の主張には実際のstate transition、keyboard / focus、error recoveryが関係する。
