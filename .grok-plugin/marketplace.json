@@ -1,22 +1,22 @@
 {
-  "name": "compound-engineering",
-  "description": "Compound Engineering plugin for Grok Build",
+  "name": "i484-engineering-plugin",
+  "description": "i484 Engineering plugin for Grok Build",
   "owner": {
-    "name": "Kieran Klaassen and Trevin Chow"
+    "name": "ishibashi-c"
   },
   "plugins": [
     {
-      "name": "compound-engineering",
-      "description": "Brainstorm, plan, debug, review, and compound learnings with AI agents",
+      "name": "i484-engineering",
+      "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
       "category": "development",
       "source": {
         "source": "url",
-        "url": "https://github.com/EveryInc/compound-engineering-plugin.git"
+        "url": "https://github.com/ishibashi-c/i484-engineering.git"
       },
-      "homepage": "https://github.com/EveryInc/compound-engineering-plugin",
+      "homepage": "https://github.com/ishibashi-c/i484-engineering",
       "keywords": [
+        "i484-engineering",
         "compound-engineering",
-        "compound engineering",
         "ce-plan",
         "ce-work"
       ]
