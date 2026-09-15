@@ -1,4 +1,4 @@
-import { access, readFile } from "fs/promises"
+import { access, readdir, readFile } from "fs/promises"
 import path from "path"
 import { describe, expect, test } from "bun:test"
 
@@ -17,15 +17,28 @@ function localMarkdownLinks(markdown: string): string[] {
   return [...new Set(links)]
 }
 
+async function markdownFiles(root: string): Promise<string[]> {
+  const entries = await readdir(root, { withFileTypes: true })
+  const files: string[] = []
+  for (const entry of entries) {
+    const full = path.join(root, entry.name)
+    if (entry.isDirectory()) files.push(...(await markdownFiles(full)))
+    else if (entry.isFile() && entry.name.endsWith(".md")) files.push(full)
+  }
+  return files
+}
+
 describe("i484 specialist references", () => {
-  test("all local links from specialist entrypoints resolve", async () => {
-    for (const root of specialistRoots) {
-      const skillPath = path.join(process.cwd(), root, "SKILL.md")
-      const content = await readFile(skillPath, "utf8")
-      for (const target of localMarkdownLinks(content)) {
-        const resolved = path.resolve(path.dirname(skillPath), target)
-        expect(resolved.startsWith(path.resolve(process.cwd(), root) + path.sep)).toBe(true)
-        await expect(access(resolved)).resolves.toBeUndefined()
+  test("all local Markdown links inside specialist packages resolve", async () => {
+    for (const relativeRoot of specialistRoots) {
+      const root = path.resolve(process.cwd(), relativeRoot)
+      for (const markdownPath of await markdownFiles(root)) {
+        const content = await readFile(markdownPath, "utf8")
+        for (const target of localMarkdownLinks(content)) {
+          const resolved = path.resolve(path.dirname(markdownPath), target)
+          expect(resolved.startsWith(root + path.sep)).toBe(true)
+          await expect(access(resolved)).resolves.toBeUndefined()
+        }
       }
     }
   })
