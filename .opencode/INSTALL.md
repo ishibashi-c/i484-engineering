@@ -1,20 +1,20 @@
-# Installing Compound Engineering for OpenCode
+# Installing i484 Engineering for OpenCode
 
-Add Compound Engineering to the `plugin` array in your global or project `opencode.json`:
+Add i484 Engineering to the `plugin` array in your global or project `opencode.json`:
 
 ```json
 {
-  "plugin": ["compound-engineering@git+https://github.com/EveryInc/compound-engineering-plugin.git"]
+  "plugin": ["i484-engineering@git+https://github.com/ishibashi-c/i484-engineering.git"]
 }
 ```
 
-Restart OpenCode after changing the config. The OpenCode plugin registers the Compound Engineering skills directory directly; no Bun installer or generated skill copy is required.
+Restart OpenCode after changing the config. The OpenCode plugin registers this repository's shared skills directory directly; no Bun installer or generated skill copy is required. CE-derived skills keep names such as `ce-plan` and `ce-work`, while i484 specialist skills use the `i484-*` prefix.
 
-To pin a release, add a tag. Replace `X.Y.Z` with the release you want — see the [releases page](https://github.com/EveryInc/compound-engineering-plugin/releases) for available tags:
+To pin a release, add a tag. Replace `X.Y.Z` with the release you want from this repository's releases page:
 
 ```json
 {
-  "plugin": ["compound-engineering@git+https://github.com/EveryInc/compound-engineering-plugin.git#compound-engineering-vX.Y.Z"]
+  "plugin": ["i484-engineering@git+https://github.com/ishibashi-c/i484-engineering.git#i484-engineering-vX.Y.Z"]
 }
 ```
 
@@ -24,7 +24,7 @@ From this checkout, point OpenCode at the package path:
 
 ```json
 {
-  "plugin": ["/path/to/compound-engineering-plugin"]
+  "plugin": ["/path/to/i484-engineering"]
 }
 ```
 
