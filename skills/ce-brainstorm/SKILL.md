@@ -49,7 +49,7 @@ Phases run in this order. Each names the files it cannot run correctly without: 
 
 | Phase | Read first | What only those files carry |
 |---|---|---|
-| before the first question, and for the whole run — non-software route included | Read `references/interaction-rules.md` | the Core Principles, and the Interaction Rules: one question per turn, ask only decisions the environment cannot settle, the blocking-question-tool default and the visual-probe gate that overrides it, when a question is genuinely open-ended, and the one `ce-prototype` routing test this skill states in full there |
+| before the first question, and for the whole run — non-software route included | Read `references/interaction-rules.md` | the Core Principles, and the Interaction Rules: batch related questions that can be answered independently, serialize consequential or answer-dependent decisions, ask only decisions the environment cannot settle, the blocking-question-tool default and the visual-probe gate that overrides it, when a question is genuinely open-ended, and the one `ce-prototype` routing test this skill states in full there |
 | before treating a decision the conversation carries as settled | Read `references/settled-decisions.md` | the settlement test; skipping it re-asks a decided question or promotes an unexamined assertion |
 | 0.0 output mode | `references/output-mode.md` | the `OUTPUT_FORMAT` precedence; the token-parsing convention |
 | 0.1–0.4 resume, classify, route, scope | `references/phase-0.md` | resume scan; the stop-and-route classification; scope tiers; the coherent-work gate (is this one piece of work?); both tripwires (visual or spatial features; unfamiliar territory); the task list |

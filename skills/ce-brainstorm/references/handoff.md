@@ -52,7 +52,7 @@ current state and choose the rendering mode accordingly:
 Never silently skip the question.
 
 If `Resolve Before Planning` contains any items:
-- Ask the blocking questions now, one at a time, by default
+- Ask the blocking questions now under Interaction Rule 1: batch only independently answerable related items; serialize consequential or answer-dependent decisions
 - If the user explicitly wants to proceed anyway, first convert each remaining item into an explicit decision, assumption, or `Deferred to Planning` question
 - If the user chooses to pause instead, present the handoff as paused or blocked rather than complete
 - Do not offer the `Create the implementation plan` or `Ship it autonomously with lfg` options while `Resolve Before Planning` remains non-empty
@@ -139,7 +139,7 @@ open a PR from this artifact.
 
 Do not print the closing summary first.
 
-**If user selects "More clarifying questions to sharpen the scope":** Return to Phase 1.3 (Collaborative Dialogue) and continue asking the user clarifying questions one at a time to further refine scope, edge cases, constraints, and preferences. Continue until the user is satisfied, then return to Phase 4. Do not show the closing summary yet.
+**If user selects "More clarifying questions to sharpen the scope":** Return to Phase 1.3 (Collaborative Dialogue) and continue under Interaction Rule 1: batch related clarifying questions that are independently answerable, and serialize consequential or answer-dependent decisions while refining scope, edge cases, constraints, and preferences. Continue until the user is satisfied, then return to Phase 4. Do not show the closing summary yet.
 
 **If user selects "Prototype a remaining feel-question":**
 

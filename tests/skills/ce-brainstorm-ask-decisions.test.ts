@@ -30,8 +30,32 @@ const PHASE_0 = readFileSync(
   path.join(process.cwd(), "skills/ce-brainstorm/references/phase-0.md"),
   "utf8",
 )
+const HANDOFF = readFileSync(
+  path.join(process.cwd(), "skills/ce-brainstorm/references/handoff.md"),
+  "utf8",
+)
 
 describe("ce-brainstorm ask-only-decisions", () => {
+  test("Interaction Rule 1 batches independent related questions and serializes consequential or dependent decisions", () => {
+    const rulesStart = INTERACTION_RULES.indexOf("## Interaction Rules")
+    expect(rulesStart).toBeGreaterThan(-1)
+    const rules = INTERACTION_RULES.slice(rulesStart)
+
+    expect(SKILL_BODY).toContain("batch related questions that can be answered independently")
+    expect(rules).toContain("Batch independent related questions")
+    expect(rules).toContain("each can be answered independently from the same context")
+    expect(rules).toContain("materially depends on the previous answer")
+    expect(rules).toContain("consequential decision")
+    expect(UNIVERSAL).toContain(
+      "batching independent related questions while serializing consequential or answer-dependent decisions",
+    )
+    expect(PHASE_0).toContain(
+      "batching independent related questions while serializing consequential or answer-dependent decisions",
+    )
+    expect(HANDOFF).toContain("Ask the blocking questions now under Interaction Rule 1")
+    expect(HANDOFF).toContain("batch only independently answerable related items")
+  })
+
   test("Interaction Rule 8 forbids asking what the environment can settle", () => {
     const rulesStart = INTERACTION_RULES.indexOf("## Interaction Rules")
     expect(rulesStart).toBeGreaterThan(-1)

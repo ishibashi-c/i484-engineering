@@ -1,8 +1,8 @@
 # `ce-brainstorm`
 
-> Think through what something should become, one question at a time, then write a right-sized requirements-only unified plan.
+> Think through what something should become, batching independent related questions and slowing down for consequential or dependent decisions, then write a right-sized requirements-only unified plan.
 
-`ce-brainstorm` is the **definition** skill. Use it when you have a direction and the open question is "what does this need to be?" It asks one question per turn, pressure-tests your premises, lays out 2-3 concrete approaches before recommending one, and, for software, writes a requirements-only unified plan so planning does not have to invent product behavior.
+`ce-brainstorm` is the **definition** skill. Use it when you have a direction and the open question is "what does this need to be?" It batches related questions that can be answered independently, asks consequential or answer-dependent questions one at a time, pressure-tests your premises, lays out 2-3 concrete approaches before recommending one, and, for software, writes a requirements-only unified plan so planning does not have to invent product behavior.
 
 It handles software features, non-software topics (events, business decisions, travel, naming briefs), and everything between. Software runs write the plan file. Non-software runs stay in facilitation mode: a chat synthesis, then an optional handoff to `ce-plan`.
 
@@ -56,7 +56,7 @@ An empty invoke asks what to explore. A path to an existing requirements-only pl
 # rationale, and tradeoffs travel with it
 /ce-brainstorm the per-channel mute idea
 
-# Non-software work, same one-question discipline
+# Non-software work, same adaptive question discipline
 /ce-brainstorm plan a two-day customer advisory workshop
 
 # Unfamiliar territory: offers a blindspot map before questioning that area
@@ -81,17 +81,17 @@ Use `ce-ideate` when you do not yet have a direction. Use `ce-pov` when the cand
 
 Going straight from a vague idea to implementation produces work that solves the wrong problem, scope creep because boundaries were never written down, and plans that re-litigate product decisions every time someone touches them. The requirements end up either over-ceremonial PRDs nobody updates or one-line briefs that planning fills in by guessing.
 
-A typical "let's brainstorm" with an AI has shape problems too. It asks five questions in one message; you answer two and the rest get lost. It picks one approach immediately instead of showing alternatives. It bakes implementation into product discussion. The output is conversation, not an artifact you can hand off.
+A typical "let's brainstorm" with an AI has shape problems too. It either dumps a pile of unrelated questions into one message or stretches independent details across unnecessary turns. It picks one approach immediately instead of showing alternatives. It bakes implementation into product discussion. The output is conversation, not an artifact you can hand off.
 
-`ce-brainstorm` fixes both. The conversation is structured (one question per turn, gap lenses before approaches, alternatives before a recommendation), and it can end in a durable artifact with stable identifiers that planning consumes directly.
+`ce-brainstorm` fixes both. The conversation is structured (independent related questions may be batched, consequential or dependent decisions are serialized, gap lenses come before approaches, and alternatives come before a recommendation), and it can end in a durable artifact with stable identifiers that planning consumes directly.
 
 ---
 
 ## What makes it novel
 
-### 1. One question at a time
+### 1. Batch independent questions; serialize dependent decisions
 
-Stacking several questions in one message dilutes the answers. `ce-brainstorm` asks one per turn, defaulting to the platform's blocking question tool with single-select options when natural choices exist. Free-text is always available.
+Related questions may share a turn when each can be answered independently from the same context. `ce-brainstorm` slows down to one question at a time when a decision is consequential or when the next question depends on the previous answer. It still defaults to the platform's blocking question tool with single-select options when natural choices exist. Free-text is always available.
 
 It also asks only decisions. If the repo, the grounding dossier, or another reachable source can settle a question, it looks that up instead of putting it to you, and a lookup in flight does not stall questions that don't depend on it. When your wording conflicts with existing `CONCEPTS.md` or with verified code in a way that would change a product decision, it surfaces the conflict before treating the wording as settled.
 
@@ -129,7 +129,7 @@ On Standard and Deep software runs, a cheap scout gathers a grounding dossier (v
 
 When you flag unfamiliarity, or consecutive answers show you cannot weigh the options, the skill offers a blindspot pass before questioning that territory further: a map of 3-7 decisions and hazards, each with why it matters, the realistic options, and a recommended default. You pick which to walk through; the rest take defaults recorded as explicit assumptions. The pass works on both software and non-software routes.
 
-Non-software work uses a domain-agnostic facilitator with the same one-question discipline. It does not write a software unified-plan artifact.
+Non-software work uses a domain-agnostic facilitator with the same adaptive question-batching discipline. It does not write a software unified-plan artifact.
 
 ---
 
@@ -137,7 +137,7 @@ Non-software work uses a domain-agnostic facilitator with the same one-question 
 
 You start with "I want to add a way for users to pause notifications." The skill classifies the work as Standard and sends a background scout for repo evidence while you answer the first question.
 
-The pressure test finds a specificity gap (who are these "users"?) and an attachment gap ("pause" is already a solution shape). It probes both as prose, one at a time. You name the actual pain: support gets pinged at 3 AM for non-urgent stuff.
+The pressure test finds a specificity gap (who are these "users"?) and an attachment gap ("pause" is already a solution shape). It can probe both together when they are independently answerable; if one depends on the other, it asks them in sequence. You name the actual pain: support gets pinged at 3 AM for non-urgent stuff.
 
 Three approaches surface: per-notification-type mute with TTL, a global do-not-disturb schedule, mute on the rule rather than the channel. Tradeoffs and a recommendation follow. The synthesis reads back the shape ("per-channel mute on notification rules, 24h preset for the 3 AM support pings"), the trade-offs, what is deferred (presence-based mute, quiet-hours schedules), and a call-out about the rule-delete loss path. You confirm and add a 24h preset.
 
@@ -223,8 +223,8 @@ When `lfg` is the caller (it invokes this skill with `mode:return-to-caller` whe
 
 ## FAQ
 
-**Why one question at a time? Isn't that slow?**
-Stacking three questions per turn produces diluted answers. People pick the easy one and the rest get lost. One question per turn produces sharper answers and usually converges faster.
+**Why not always one question at a time?**
+Independent related questions can be answered efficiently together. `ce-brainstorm` uses one-at-a-time questioning only when a decision is consequential or when the next question depends on the previous answer, so batching does not collapse decisions that deserve separate thought.
 
 **Why does it pressure-test my premise? I just want to brainstorm.**
 The gap lenses catch the usual ways feature briefs fail downstream. They fire only when the gap is actually present. A concrete, well-framed prompt can earn zero probes.
