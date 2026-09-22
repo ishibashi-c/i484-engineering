@@ -32,6 +32,18 @@ const PHASE_0 = readFileSync(
 )
 
 describe("ce-brainstorm ask-only-decisions", () => {
+  test("Interaction Rule 1 batches independent related questions and serializes consequential or dependent decisions", () => {
+    const rulesStart = INTERACTION_RULES.indexOf("## Interaction Rules")
+    expect(rulesStart).toBeGreaterThan(-1)
+    const rules = INTERACTION_RULES.slice(rulesStart)
+
+    expect(SKILL_BODY).toContain("batch related questions that can be answered independently")
+    expect(rules).toContain("Batch independent related questions")
+    expect(rules).toContain("each can be answered independently from the same context")
+    expect(rules).toContain("materially depends on the previous answer")
+    expect(rules).toContain("consequential decision")
+  })
+
   test("Interaction Rule 8 forbids asking what the environment can settle", () => {
     const rulesStart = INTERACTION_RULES.indexOf("## Interaction Rules")
     expect(rulesStart).toBeGreaterThan(-1)
