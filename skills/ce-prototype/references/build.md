@@ -6,6 +6,8 @@ Required read before you write any prototype code, alongside `references/preview
 
 Fidelity is a different axis from size (`references/scoping.md` owns sizing, which the go-ahead depends on). Throwaway means unmaintained and unshipped, not thin — do not test, abstract, or harden past runnable, but take finish as far as the dimension under test needs. A flow or state model gets rich enough to drive; a visual direction gets finished enough to judge; a placement question stays thin. Fidelity may differ per avenue within one wide run. Do not stay low-fidelity on principle, and persist state only when persistence is the question.
 
+**UI copy baseline.** Unless the user or the active project explicitly calls for brand or marketing copy, do not invent marketing-style taglines, aspirational slogans, poetic headings, or decorative explanatory sentences that add no task-relevant information. Prefer literal, functional product language that names the content, state, action, or destination. If copy is unsettled, use neutral functional language; in throwaway mocks and probes, an explicit placeholder is preferable to plausible-sounding marketing copy.
+
 ## Yields from the web default
 
 It yields in exactly two cases: the user names a technology, or the dimension cannot be rendered in a browser without faking it. In that second case, build in the medium the dimension requires, and name that choice before you build. If a named technology also cannot render the dimension, say so rather than yielding silently. The rest of this file defines what the artifact may be on either path.
