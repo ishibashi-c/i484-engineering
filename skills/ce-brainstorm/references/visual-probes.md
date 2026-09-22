@@ -66,6 +66,8 @@ Avoid:
 - unnecessary animation
 - details that imply exact UI commitments
 
+**UI copy baseline.** Unless the user or the active project explicitly calls for brand or marketing copy, do not invent marketing-style taglines, aspirational slogans, poetic headings, or decorative explanatory sentences that add no task-relevant information. Prefer literal, functional product language that names the content, state, action, or destination. If copy is unsettled, use neutral functional language; in throwaway mocks and probes, an explicit placeholder is preferable to plausible-sounding marketing copy.
+
 Label the artifact as directional. State what the user should judge and what they should ignore.
 
 ## Display Helper
