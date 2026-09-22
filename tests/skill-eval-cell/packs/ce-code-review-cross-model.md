@@ -1,5 +1,7 @@
 # Cross-Model Adversarial Pass — Skill-Creator Eval Spec
 
+Paths in this pack are relative to `skills/ce-code-review/`.
+
 This is the required behavioral eval for ce-code-review's cross-model
 adversarial pass. Deterministic route tests cover the worker; these cases cover
 the SKILL.md/reference orchestration that only a fresh agent can execute. Inject
@@ -56,7 +58,8 @@ and Codex with fake peer CLIs first on PATH.
 8. **Mode-specific disclosure is honest.** Human-facing default mode announces
    the fixed route and egress before dispatch and calls it independent only when
    serving families differ attestably. Receiptless routes say "requested
-   <model>; serving model unverified on this route." `mode:agent` emits no
+   <model> at <effort>" with no serving caveat; a caveat appears only on a
+   receipt mismatch or a route that requested no model. `mode:agent` emits no
    user-facing prose but retains the worker's stderr audit record.
 
 9. **Oversized diffs recover without one giant prompt.** A fixture above the

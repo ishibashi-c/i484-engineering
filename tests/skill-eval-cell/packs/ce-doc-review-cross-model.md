@@ -1,5 +1,7 @@
 # Cross-Model Judgment Pass — Skill-Creator Eval Spec
 
+Paths in this pack are relative to `skills/ce-doc-review/`.
+
 This is the eval-case specification for the cross-model judgment pass. It is the
 **only check that proves the behavior**: `bun test` does
 not exercise SKILL.md/reference prose, and plugin skill definitions cache at
@@ -130,10 +132,12 @@ PATH — and cross-host per the repo's eval default: Claude Code AND Codex.
     while a lens that was never started (activation condition not met, or
     skipped) remains silently absent, as before.
 
-14. **Unverified-identity announce (lifecycle R8).** On a route that returns
-    no record of which model served, assert the announce/reconcile wording reads
-    "requested <model>; serving model unverified on this route" rather than
-    asserting the concrete model as serving.
+14. **Requested-not-served disclosure (lifecycle R8).** On a route that returns
+    no record of which model served, assert the announce/reconcile wording names
+    the peer as "requested <model>" and never as the model that served, and
+    carries no "unverified" or "unknown model" caveat. Assert the caveat appears
+    only when a served-model record disagrees with the request or the route
+    requested no model (Cursor default/Auto).
 
 15. **Preferred-first bounded adaptation (U8).** The declared mapping is tried
     first. Only after an observed unavailable, obsolete, or incompatible model
