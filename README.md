@@ -8,7 +8,7 @@
 
 [![Build Status](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-38-black.svg)](docs/guides/README.md)
+[![Skills](https://img.shields.io/badge/skills-39-black.svg)](docs/guides/README.md)
 
 </div>
 
@@ -110,9 +110,9 @@ JS / TS ProjectでUltraciteを採用している場合、Project固有のlint / 
 
 Compound Engineeringは「どの段階で品質確認を行うか」を所有し、Ultraciteは「JS / TSをどうlintするか」を担当します。
 
-## 38 Skills
+## 39 Skills
 
-i484 Engineeringには、Compound Engineering由来の35 Skillとi484独自の3 Specialist Skillがあります。
+i484 Engineeringには、Compound Engineering由来の36 Skillとi484独自の3 Specialist Skillがあります。
 
 ### 開発の中心
 
@@ -196,6 +196,7 @@ i484 Engineeringには、Compound Engineering由来の35 Skillとi484独自の3 
 | `ce-resolve-pr-feedback` | PR feedbackを評価・修正・replyする |
 | `ce-setup` | optional toolとProject configを診断・設定する |
 | `ce-handoff` | session handoffを作成・再開する |
+| `wtf` | 直前のメッセージや指定した内容を平易に説明するmanual-only Skill |
 
 各Skillの詳細は [`docs/guides/`](docs/guides/README.md) を参照してください。runtime上の正本は各 `skills/<skill>/SKILL.md` です。
 
@@ -272,8 +273,8 @@ i484 Engineeringは、Compound Engineeringと競争するためのframeworkで�
 
 <!--
 release-metadata compatibility contract for inherited CE tests.
-a plugin of 38 skills
-38 skills, grouped by i484 Engineering categories
+a plugin of 39 skills
+39 skills, grouped by i484 Engineering categories
 
 ## Skills at a glance
 `ce-ideate`
@@ -314,5 +315,6 @@ a plugin of 38 skills
 `ce-resolve-pr-feedback`
 `ce-setup`
 `ce-handoff`
+`wtf`
 **Learn more**
 -->
