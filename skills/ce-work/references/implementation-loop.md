@@ -148,6 +148,7 @@ For UI work with Figma designs:
 For UI tasks without a Figma design -- where the implementation touches view, template, component, layout, or page files, creates user-visible routes, or the plan contains explicit UI/frontend/design language:
 
 - Apply the frontend guidance embedded in this skill and the active repo instructions: preserve existing design-system conventions, use real UI controls and states, keep layouts responsive, and verify text does not overflow or overlap.
+- **UI copy baseline.** Unless the user or the active project explicitly calls for brand or marketing copy, do not invent marketing-style taglines, aspirational slogans, poetic headings, or decorative explanatory sentences that add no task-relevant information. Prefer literal, functional product language that names the content, state, action, or destination. If copy is unsettled, use neutral functional language; in throwaway mocks and probes, an explicit placeholder is preferable to plausible-sounding marketing copy.
 - When browser tooling is available, inspect the changed UI at desktop and mobile widths before final validation. If no browser access is available, do a code-level responsive/layout review and record that browser verification was unavailable.
 - Phase 4's screenshot capture still applies when the change is user-visible.
 
