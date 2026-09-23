@@ -61,7 +61,7 @@ i484 Skillは、固定されたstate machineを増やすためのものではあ
 
 旧`i484-workflow`、旧`i484-review`、旧`i484-core`をそのままCEへ融合していません。まずCompound Engineeringを新しいbaselineとし、旧i484から**CEに存在しない非engineering知識だけ**を再評価して移植します。
 
-詳しい移行方針は [`MIGRATION.md`](MIGRATION.md) を参照してください。
+旧i484からの移行判断、CEとの責務境界、upstreamとの差分台帳は [`I484_ENGINEERING.md`](I484_ENGINEERING.md) を参照してください。
 
 ## i484 Specialist Skills
 
@@ -245,7 +245,7 @@ ishibashi-c/i484-engineering
 
 upstream更新時はCompound Engineeringの変更を取り込みます。同じ箇所で競合した場合はCEの新しいengineering semanticsを優先し、その上でi484固有要素が非競合に残せる場合だけ再適用します。
 
-CE本体へのpatchを小さく保ち、i484固有の知識は原則として`i484-*` Skillやi484-owned documentへ分離することで、upstreamとのmerge conflictを抑えます。
+CE本体へのpatchを小さく保ち、i484固有の知識は原則として`i484-*` Skillやi484-owned documentへ分離することで、upstreamとのmerge conflictを抑えます。意図的なCE-native patchとそのretirement条件は [`I484_ENGINEERING.md`](I484_ENGINEERING.md) の差分台帳を正本とします。
 
 ## Attribution
 
