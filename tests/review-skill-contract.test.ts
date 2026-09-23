@@ -472,7 +472,7 @@ describe("ce-code-review contract", () => {
     expect(rubric).toMatch(/Do not use `review-fixer`/i)
   })
 
-  test("Stage 4 spawning restates model-override imperative at point of action", async () => {
+  test("Stage 4 spawning treats balanced mid-tier as a down-tier ceiling", async () => {
     const content = await readRepoFile(
       "skills/ce-code-review/references/dispatch-reviewers.md",
     )
@@ -480,11 +480,15 @@ describe("ce-code-review contract", () => {
     // Model tiering subsection still enumerates the three session-model exceptions
     expect(content).toMatch(/correctness-reviewer.*security-reviewer.*adversarial-reviewer/s)
 
-    // Imperative lives inside the Spawning subsection, not only in the rationale block.
-    // Extract the Spawning subsection and assert the model-override directive appears there
-    // with cross-platform dispatch primitives named at the call site.
-    expect(content).toMatch(/Model override at dispatch time/)
-    expect(content).toContain("platform's balanced mid-tier model")
+    // The policy lives inside the Spawning subsection, not only in the rationale block.
+    // A cost-saving override may down-tier, but must not promote a cheaper/lower session.
+    expect(content).toMatch(/Model choice at dispatch time/)
+    expect(content).toContain("balanced mid-tier")
+    expect(content).toContain("cost-saving ceiling")
+    expect(content).toMatch(/never upgrade/i)
+    expect(content).toMatch(/known down-tier from the session model/i)
+    expect(content).toMatch(/already at or below that tier/i)
+    expect(content).toMatch(/cannot establish the ordering/i)
     expect(content).toContain("omit the override")
     expect(content).toContain("Agent")
     expect(content).toContain("spawn_agent")
