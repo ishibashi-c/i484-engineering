@@ -18,7 +18,7 @@ Brainstorming answers **WHAT** to build through dialogue; `ce-plan` then enriche
 
 The feature description is what the invocation carries, whether the user wrote it or a calling skill passed it. If none came, ask the user what they want to explore and do not proceed until you have one.
 
-**i484 product-design knowledge is additive, never a second brainstorm workflow.** When this brainstorm includes decisions about a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before asking or resolving design-dependent questions. Use its product/design/surface context, surface-intent, UX, composition, interaction, accessibility, content-stress, and visual-language judgment as domain knowledge; this skill still owns dialogue, requirements scoping, artifact decisions, and handoff.
+**i484 product-design knowledge is additive, never a second brainstorm workflow.** When this brainstorm includes decisions about a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before asking or resolving design-dependent questions. Use it only for product-design domain judgment. This skill still owns dialogue, requirements scoping, artifact decisions, and handoff.
 
 **`mode:return-to-caller`** (a leading token a calling skill such as `lfg` sets): strip it, run the dialogue unchanged, and replace Phase 4 with the structured return `references/handoff.md` defines: no menu, no `lfg` or `ce-plan` invocation.
 
