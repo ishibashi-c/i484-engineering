@@ -27,6 +27,8 @@ Read `references/scoping.md` before you ask the user anything or touch the repo.
 
 Read `references/build.md` and `references/preview.md` before writing anything. Once an isolated web preview is up, load `references/annotation-loop.md`. Overlay runs and non-web runs stay on chat.
 
+**i484 product-design knowledge is additive, never a second prototype workflow.** When the prototype is settling how a user-facing product interface should work, feel, or read and the installed skill catalog exposes `i484-product-design`, load it before making the relevant design judgments. Use it only as product-design domain knowledge; this skill still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff.
+
 After they proceed, speak only when they can act on something new, in one short line naming what happened: a screen is up, the helper URL is live, or a blocker only they can lift. That annotation loop defines the line after an applied revision and silence while a wait is parked.
 
 A question is settled by seeing when the judgment lands on the rendered result: how a layout reads, what a palette does, how dense a screen feels. It is settled by driving when the judgment lands on what happens as the user moves through it: a flow, a state model, how a control answers. Load `references/craft-floor.md` for a seeing question. It carries the quality floor and the avenue-difference rule; neither lives here. A question settled by driving does not load it and gains no finish from it.
