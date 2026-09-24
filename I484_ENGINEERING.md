@@ -105,17 +105,21 @@ There are two classes:
 
 #### C1 — Specialist and quality-provider integration across CE
 
-**Purpose:** Let CE use i484 specialist judgment at the design-bearing point of brainstorming, planning, and implementation without transferring workflow authority away from CE. Configured quality providers remain inside `ce-work`'s quality gate.
+**Purpose:** Let CE use i484 specialist judgment at design-bearing points without transferring workflow authority away from CE. Configured quality providers remain inside `ce-work`'s quality gate.
 
 **Main surfaces:**
 - `skills/ce-brainstorm/SKILL.md`
 - `skills/ce-plan/SKILL.md`
+- `skills/ce-prototype/SKILL.md`
+- `skills/ce-polish/SKILL.md`
 - `skills/ce-work/SKILL.md`
 - `skills/ce-work/references/implementation-loop.md`
 
 **Behavior retained:**
 - `ce-brainstorm` loads `i484-product-design` before design-dependent product-UI questions or requirements decisions when the specialist is available.
 - `ce-plan` loads it before design-dependent UI planning decisions.
+- `ce-prototype` loads it when a prototype is settling product-UI behavior, feel, or reading experience.
+- `ce-polish` loads it for requested product-UI refinement without expanding the user-directed scope.
 - `ce-work` loads it before relevant product-UI implementation decisions.
 - The specialist contributes product/design/surface context, surface-intent, UX, composition, interaction, accessibility, content-stress, and visual-language judgment without owning CE workflow.
 - Other i484 specialists remain additive and domain-scoped.
