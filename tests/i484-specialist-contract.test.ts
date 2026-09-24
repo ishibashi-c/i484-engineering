@@ -18,9 +18,11 @@ describe("i484 Engineering specialist contract", () => {
 
     expect(architecture).toContain("Compound Engineering owns engineering workflow")
     expect(architecture).toContain("CE wins on conflict")
-    expect(architecture).toContain("The previous i484 skill family is not merged into CE as a second framework")
-    expect(architecture).toContain("`i484-workflow` is therefore not a required layer")
-    expect(architecture).toContain("`i484-review` is not imported by default")
+    expect(architecture).toContain("The previous i484 environment is treated as source material")
+    expect(architecture).toContain("`i484-workflow`")
+    expect(architecture).toContain("Retired from runtime architecture")
+    expect(architecture).toContain("`i484-review`")
+    expect(architecture).toContain("Not imported by default")
   })
 
   test("preserves explicit upstream attribution and MIT notice", async () => {
@@ -50,6 +52,9 @@ describe("i484 Engineering specialist contract", () => {
     expect(content).toContain("Planning、task decomposition、実装順序")
     expect(content).toContain("branch / worktree / commit / PR / deploy / shipping")
     expect(content).toContain("engineering workflowの統括はCEに残す")
+    expect(content).toContain("durableなproduct truth")
+    expect(content).toContain("surface intent")
+    expect(content).toContain("context-surface-intent.md")
     expect(content).toContain("**Data parity:**")
     expect(content).toContain("**Visual parity:**")
     expect(content).toContain("**Interaction parity:**")
@@ -64,13 +69,44 @@ describe("i484 Engineering specialist contract", () => {
     expect(geometric).toContain("software engineeringのplanning、test、review orchestration、Git、PR、shippingは所有しない")
   })
 
-  test("connects specialists without replacing ce-work", async () => {
-    const ceWork = await readRepoFile("skills/ce-work/SKILL.md")
+  test("routes product-design knowledge through CE without transferring authority", async () => {
+    const [brainstorm, plan, work] = await Promise.all([
+      readRepoFile("skills/ce-brainstorm/SKILL.md"),
+      readRepoFile("skills/ce-plan/SKILL.md"),
+      readRepoFile("skills/ce-work/SKILL.md"),
+    ])
 
-    expect(ceWork).toContain("i484 specialist knowledge is additive, never a second workflow")
-    expect(ceWork).toContain("`i484-product-design`")
-    expect(ceWork).toContain("i484 quality providers stay inside CE's quality gate")
-    expect(ceWork).toContain("`natural-japanese`")
-    expect(ceWork).toContain("Ultracite")
+    expect(brainstorm).toContain("i484 product-design knowledge is additive, never a second brainstorm workflow")
+    expect(brainstorm).toContain("`i484-product-design`")
+    expect(brainstorm).toContain("design-dependent questions")
+
+    expect(plan).toContain("i484 product-design knowledge is additive, never a second planning workflow")
+    expect(plan).toContain("`i484-product-design`")
+    expect(plan).toContain("design-dependent planning decisions")
+
+    expect(work).toContain("i484 specialist knowledge is additive, never a second workflow")
+    expect(work).toContain("`i484-product-design`")
+    expect(work).toContain("i484 quality providers stay inside CE's quality gate")
+    expect(work).toContain("`natural-japanese`")
+    expect(work).toContain("Ultracite")
+  })
+
+  test("keeps context and surface intent as design knowledge rather than workflow", async () => {
+    const context = await readRepoFile(
+      "skills/i484-product-design/references/context-surface-intent.md",
+    )
+    const sources = await readRepoFile("skills/i484-product-design/references/sources.md")
+
+    expect(context).toContain("Product truth")
+    expect(context).toContain("Design truth")
+    expect(context).toContain("Surface intent")
+    expect(context).toContain("**Persuasion:**")
+    expect(context).toContain("**Operation:**")
+    expect(context).toContain("**Comprehension:**")
+    expect(context).toContain("**Experience:**")
+    expect(context).toContain("engineering framework")
+    expect(sources).toContain("pbakaus/impeccable")
+    expect(sources).toContain("Apache-2.0")
+    expect(sources).toContain("does not import Impeccable's command workflow")
   })
 })
