@@ -70,9 +70,11 @@ describe("i484 Engineering specialist contract", () => {
   })
 
   test("routes product-design knowledge through CE without transferring authority", async () => {
-    const [brainstorm, plan, work] = await Promise.all([
+    const [brainstorm, plan, prototype, polish, work] = await Promise.all([
       readRepoFile("skills/ce-brainstorm/SKILL.md"),
       readRepoFile("skills/ce-plan/SKILL.md"),
+      readRepoFile("skills/ce-prototype/SKILL.md"),
+      readRepoFile("skills/ce-polish/SKILL.md"),
       readRepoFile("skills/ce-work/SKILL.md"),
     ])
 
@@ -83,6 +85,13 @@ describe("i484 Engineering specialist contract", () => {
     expect(plan).toContain("i484 product-design knowledge is additive, never a second planning workflow")
     expect(plan).toContain("`i484-product-design`")
     expect(plan).toContain("design-dependent planning decisions")
+
+    expect(prototype).toContain("i484 product-design knowledge is additive, never a second prototype workflow")
+    expect(prototype).toContain("`i484-product-design`")
+    expect(prototype).toContain("product-design domain knowledge")
+
+    expect(polish).toContain("`i484-product-design`")
+    expect(polish).toContain("does not authorize a broader audit")
 
     expect(work).toContain("i484 specialist knowledge is additive, never a second workflow")
     expect(work).toContain("`i484-product-design`")
