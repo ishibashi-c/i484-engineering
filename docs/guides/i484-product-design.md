@@ -27,7 +27,7 @@ Do not use it to decide engineering phases, test volume, reviewer activation, br
 
 ## Relationship to CE
 
-`ce-brainstorm`, `ce-plan`, and `ce-work` may load this skill as additive domain knowledge when their work reaches product-UI design decisions. CE continues to own dialogue/planning/execution, evidence strategy, verification, review, and shipping as applicable to each skill.
+`ce-brainstorm`, `ce-plan`, `ce-prototype`, `ce-work`, and `ce-polish` may load this skill as additive domain knowledge when their work reaches product-UI design decisions. CE continues to own dialogue, planning, prototyping, execution, user-directed polish scope, evidence strategy, verification, review, and shipping as applicable to each skill.
 
 ```text
 Compound Engineering -> engineering workflow and lifecycle authority
