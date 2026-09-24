@@ -127,6 +127,8 @@ There are two classes:
 
 **Introduced:** [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1)
 
+**Expanded:** [PR #8](https://github.com/ishibashi-c/i484-engineering/pull/8) extends product-design routing to `ce-brainstorm`, `ce-plan`, `ce-prototype`, and `ce-polish` while keeping CE as workflow owner.
+
 **Retire or shrink when:** upstream CE provides a generic specialist-routing and quality-provider integration contract that covers these needs without i484-specific routing.
 
 ---
