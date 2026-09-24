@@ -13,6 +13,8 @@ Put a working feature in front of the user and turn their live observations into
 
 **Boundaries:** the user drives what to inspect and change; do not invent an autonomous checklist or expand into general QA. Never work on the repository's default branch. This workflow may edit and locally commit the requested polish, but it never pushes or opens a PR.
 
+When the requested polish concerns a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it for product-design judgment inside the user's requested surface. Its knowledge does not authorize a broader audit, autonomous checklist, or scope expansion; this skill's user-directed boundary still governs the loop.
+
 ## Run
 
 1. **Get the live page ready.** Read `references/run.md` before resolving the requested ref or starting anything. It owns existing-worktree safety, dev-server discovery, the bundled-script calls, reachability, and the browser handoff.
