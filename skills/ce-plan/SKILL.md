@@ -24,7 +24,7 @@ Writing the file, checking confidence, and running or explicitly skipping `ce-do
 
 Ask one question at a time through the host's blocking question tool already in the current tool list. Match by capability; never probe a user-facing tool to discover it. If none is listed or a real question call errors, render numbered choices in chat; never silently skip a required question. If no feature description was supplied, ask what to plan and wait.
 
-**i484 product-design knowledge is additive, never a second planning workflow.** When the work changes a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before making design-dependent planning decisions. Use its product/design/surface context, surface-intent, UX, composition, interaction, accessibility, content-stress, and visual-language judgment as domain knowledge; this skill still owns technical planning, evidence gathering, plan structure, document review, and handoff.
+**i484 product-design knowledge is additive, never a second planning workflow.** When the work changes a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before making design-dependent planning decisions. Use it only for product-design domain judgment. This skill still owns technical planning, evidence gathering, plan structure, document review, and handoff.
 
 ## Output Contract
 
