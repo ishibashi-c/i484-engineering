@@ -1,6 +1,6 @@
 ---
 name: i484-product-design
-description: プロダクトUIの設計判断を支える専門Knowledge Skill。ユーザーの仕事、情報構造、composition、interaction、content、accessibility、visual hierarchy、状態と回復を評価し、設計上の制約・改善案・品質基準を与える。実装工程、作業分解、テスト量、レビュー起動、Gitやshippingはengineering frameworkに委ねる。
+description: プロダクトUIをdurableなproduct truth、design truth、surface intentに分けて判断する専門Knowledge Skill。Use when user-facing product UI is designed, changed, or evaluated and UX、composition、interaction、content、accessibility、visual hierarchyの判断が必要なとき。実装工程、作業分解、検証、Gitやshippingはengineering frameworkに委ねる。
 ---
 
 # i484 Product Design
@@ -13,7 +13,7 @@ description: プロダクトUIの設計判断を支える専門Knowledge Skill�
 
 **Done:** 主要taskと重要stateを損なう設計上の問題・制約・改善方向が明確で、見た目や操作についての主張が何を観測すれば支持または反証できるか説明できる。
 
-現在の依頼、Project仕様・DESIGN.md、既存UI、実データ契約、ユーザーが提示した参考を判断材料とする。既存UIは維持そのものを目的にせず、意味あるpatternとユーザーtaskに合うかで扱う。
+現在の依頼、Project仕様・DESIGN.md、既存UI、実データ契約、ユーザーが提示した参考を判断材料とする。設計判断に入るときは、durableなproduct truth、durableなdesign truth、今回のsurface intentを混同しない。これらの区別が判断を変える場合は[context-surface-intent.md](references/context-surface-intent.md)を読み、既存UIは維持そのものを目的にせず、意味あるpatternとユーザーtaskに合うかで扱う。
 
 ## 責務境界
 
@@ -33,6 +33,7 @@ Planning、task decomposition、実装順序、test / lint / build、reviewer起
 
 | 判断するもの | Reference |
 |---|---|
+| Product / Design / Surface context、surfaceの主要な成功条件 | [context-surface-intent.md](references/context-surface-intent.md) |
 | 視覚方向、文字組み、色、参考画像/URL | [design-language.md](references/design-language.md) |
 | layout、共通部品、一覧、responsive構造 | [composition-components.md](references/composition-components.md) |
 | control、form、navigation、state、accessibility | [interaction-content-accessibility.md](references/interaction-content-accessibility.md) |
