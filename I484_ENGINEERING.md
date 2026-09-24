@@ -103,22 +103,27 @@ There are two classes:
 
 ### CE-native patches
 
-#### C1 — Specialist and quality-provider integration in `ce-work`
+#### C1 — Specialist and quality-provider integration across CE
 
-**Purpose:** Let CE implementation use i484 specialist judgment and configured quality providers without transferring workflow authority away from CE.
+**Purpose:** Let CE use i484 specialist judgment at the design-bearing point of brainstorming, planning, and implementation without transferring workflow authority away from CE. Configured quality providers remain inside `ce-work`'s quality gate.
 
 **Main surfaces:**
+- `skills/ce-brainstorm/SKILL.md`
+- `skills/ce-plan/SKILL.md`
 - `skills/ce-work/SKILL.md`
 - `skills/ce-work/references/implementation-loop.md`
 
 **Behavior retained:**
-- User-facing product UI work loads `i484-product-design` when available.
+- `ce-brainstorm` loads `i484-product-design` before design-dependent product-UI questions or requirements decisions when the specialist is available.
+- `ce-plan` loads it before design-dependent UI planning decisions.
+- `ce-work` loads it before relevant product-UI implementation decisions.
+- The specialist contributes product/design/surface context, surface-intent, UX, composition, interaction, accessibility, content-stress, and visual-language judgment without owning CE workflow.
 - Other i484 specialists remain additive and domain-scoped.
-- `natural-japanese` and Ultracite may participate inside CE's quality gate when available/applicable.
+- `natural-japanese` and Ultracite may participate inside `ce-work`'s quality gate when available/applicable.
 
 **Introduced:** [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1)
 
-**Retire or shrink when:** upstream CE provides a generic specialist/quality-provider integration contract that covers these needs without i484-specific routing.
+**Retire or shrink when:** upstream CE provides a generic specialist-routing and quality-provider integration contract that covers these needs without i484-specific routing.
 
 ---
 
