@@ -201,6 +201,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | --- | --- | --- |
 | [PR #5](https://github.com/ishibashi-c/i484-engineering/pull/5) | CE 3.28.0 | First post-foundation upstream merge; retained i484 identity and runtime patches. |
 | [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6) | CE 3.28.2 | Pulled later CE model/review updates and added C4 reviewer-model ceiling. |
+| [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
