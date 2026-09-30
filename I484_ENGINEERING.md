@@ -113,6 +113,7 @@ There are two classes:
 | --- | --- | --- | --- | --- |
 | F1 | i484 specialist layer | `skills/i484-product-design/**`, `skills/i484-visualize/**`, `skills/i484-geometric-illustration/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
 | F2 | i484 distribution identity | plugin/package manifests, root README, i484 identity tests, attribution/license metadata | Ships the fork as **i484 Engineering** while preserving CE-derived skill names and upstream attribution. | [PR #2](https://github.com/ishibashi-c/i484-engineering/pull/2) |
+| F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
 
 ### CE-native patches
 
@@ -214,6 +215,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #5](https://github.com/ishibashi-c/i484-engineering/pull/5) | CE 3.28.0 | First post-foundation upstream merge; retained i484 identity and runtime patches. |
 | [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6) | CE 3.28.2 | Pulled later CE model/review updates and added C4 reviewer-model ceiling. |
 | [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
+| [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
