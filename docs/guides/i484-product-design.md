@@ -36,6 +36,18 @@ i484-product-design  -> product-design judgment and quality criteria
 
 The skill may identify which states or observations matter to a design claim, but it does not create a second completion gate.
 
+## UI Skills MCP
+
+UI Skills MCP is an optional external knowledge registry, not another workflow layer. When i484's built-in product-design knowledge and the specialist guidance already present in the run are insufficient for a material UI decision, `i484-product-design` may query the registry for one narrow, directly relevant skill.
+
+- Endpoint: `https://www.ui-skills.com/mcp`
+- Discovery: `list_skills` with an optional narrow `query`
+- Retrieval: `get_skill` by discovery name, slug, or pathSlug
+
+Fetched skills contribute only domain knowledge relevant to the current decision. Their install/init/build/review/routing/Git/shipping procedures do not replace CE or active project instructions. The registry is not queried for routine UI decisions that i484 can already judge, and `ui-skills-root` is not used as a second router.
+
+If the MCP is unavailable or no useful match exists, product-design judgment continues from i484 and project context rather than blocking the task. Fetched skill text is not persisted into i484 automatically; durable knowledge extraction is a separate provenance/license-reviewed change.
+
 ## Source
 
 Runtime behavior is defined in [`skills/i484-product-design/SKILL.md`](../../skills/i484-product-design/SKILL.md). The specialist was rebuilt from the earlier i484 Product Design work after removing its engineering-orchestration layer; see [`I484_ENGINEERING.md`](../../I484_ENGINEERING.md).
