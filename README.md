@@ -31,8 +31,9 @@ Compound Engineering
       ├── i484-visualize
       ├── i484-geometric-illustration
       │
-      ├── optional specialist registry
-      │   └── UI Skills MCP
+      ├── optional external specialists
+      │   ├── UI Skills MCP
+      │   └── Checklist Design (completeness audit)
       │
       └── optional quality providers
           ├── natural-japanese
@@ -112,6 +113,17 @@ UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registry�
 `i484-product-design`の内蔵知識だけでは重要なUI判断を十分に扱えず、現在のrunにも同等の専門知識がない場合だけ、最も狭く一致するSkillを取得します。取得したSkillのworkflowやrouterは採用せず、domain knowledgeだけをDesign判断へ加えます。
 
 このrepositoryにはUI Skills catalogを複製しません。Codexでは`.mcp.json`経由で`ui_skills`接続を配布しますが、MCPが無効・未接続でもi484 Engineeringの通常機能はblockされません。
+
+### Checklist Design
+
+Checklist Designは、具体化したscreen / flow / componentに対する**completeness audit**として利用します。一般的なdesign critiqueは`i484-product-design`が担当し、Checklist Designは「その種類の画面・flowとして重要なものが抜けていないか」を補助的に確認します。
+
+- upstream: `Checklist-Design/skills`
+- default mode: `audit`
+- `critique`: ユーザーがChecklist Design自身のcritiqueを明示的に求めた場合だけ
+- unavailable / no match: blockせず、i484 Product Designで継続
+
+Skill本体とchecklist corpusはこのrepositoryへ複製しません。利用するagent環境へ公式Skillを導入して使います。
 
 ## Quality Provider
 
