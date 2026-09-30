@@ -16,3 +16,15 @@ The context-layering and surface-intent additions were informed by research into
 - License observed during research: Apache-2.0
 - Relevant concepts studied: separation of durable product context from design context and surface-local direction; surface-purpose-dependent design judgment.
 - Excluded from migration: Impeccable command routing, approval/build state machine, browser iteration orchestration, finish-review workflow, and runtime state.
+
+## External runtime knowledge source: UI Skills
+
+UI Skills MCP is an optional runtime registry used to fetch narrow UI specialist knowledge without vendoring its catalog into i484 Engineering.
+
+- Registry project: https://github.com/ibelick/ui-skills
+- MCP endpoint: https://www.ui-skills.com/mcp
+- Registry project license observed during integration: MIT
+- Runtime tools: `list_skills`, `get_skill`
+- Integration rule: fetched skill content is external domain guidance, not CE workflow authority and not durable i484 source text.
+
+The registry can surface skills from other publishers. Those fetched skills may carry licenses or provenance different from the UI Skills registry itself. Runtime consultation does not copy them into this repository. Any future durable extraction into i484 must review the specific upstream source and license separately before rewriting or incorporating material.
