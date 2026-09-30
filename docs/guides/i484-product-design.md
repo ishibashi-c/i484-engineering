@@ -41,6 +41,7 @@ The skill may identify which states or observations matter to a design claim, bu
 UI Skills MCP is an optional external knowledge registry, not another workflow layer. When i484's built-in product-design knowledge and the specialist guidance already present in the run are insufficient for a material UI decision, `i484-product-design` may query the registry for one narrow, directly relevant skill.
 
 - Endpoint: `https://www.ui-skills.com/mcp`
+- Codex packaging: i484 Engineering ships a `.mcp.json` connection definition referenced by `.codex-plugin/plugin.json`; it does not vendor registry content.
 - Discovery: `list_skills` with an optional narrow `query`
 - Retrieval: `get_skill` by discovery name, slug, or pathSlug
 
