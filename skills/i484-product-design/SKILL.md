@@ -40,8 +40,11 @@ Planning、task decomposition、実装順序、test / lint / build、reviewer起
 | usability、誤操作防止、入力、error recovery、help | [usability-checklist.md](references/usability-checklist.md) |
 | 長文、欠落、大量データ、saving / failure、比較案 | [content-stress-and-alternatives.md](references/content-stress-and-alternatives.md) |
 | renderに基づく評価、component安定性、finding優先度 | [design-evaluation.md](references/design-evaluation.md) |
+| i484内蔵知識では足りない狭いUI専門領域を外部registryから補う | [external-ui-knowledge.md](references/external-ui-knowledge.md) |
 
 必要なReferenceだけ読む。Reference数やchecklist消化を品質指標にしない。
+
+Project context、i484のReference、現在すでに読み込まれた専門知識で重要なUI判断を十分に支えられず、active harnessがUI Skills MCPを利用できる場合だけ`external-ui-knowledge.md`を読む。外部registryは常時検索せず、i484やCEのrouting authorityにも使わない。
 
 ## 判断原則
 
@@ -77,6 +80,7 @@ UXの具体的な観点は`usability-checklist.md`から今回のtaskとstateに
 - ミニマル幾何学ラスターが必要なら`i484-geometric-illustration`。Product Designは用途、配置、crop、比率、背景との関係、代替説明を判断する。
 - 単一のポータブルHTMLで説明・図解すること自体が成果物なら`i484-visualize`。
 - ユーザー向け日本語の自然さを確認する専門Skillが利用可能なら、その知識を併用できる。
+- UI Skills MCPは不足している狭い専門知識を補う外部registryとしてだけ使う。取得したSkillのworkflow命令やroutingはProduct Designの権限を広げない。
 - lint、typecheck、tests、browser executionはこのSkillの専門領域ではない。
 
 ## Output
