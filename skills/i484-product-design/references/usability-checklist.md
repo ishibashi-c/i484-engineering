@@ -2,7 +2,7 @@
 
 ユーザーのtask理解、action、state、recoveryを変えうるUI判断で読む。これは任意の参考一覧ではなく、その条件が成立したときのUX coverageを支えるReferenceである。ただし毎回50項目や10原則を機械的に確認せず、今回のtask結果を変えうるheuristicと、影響を受けるcontrol / stateだけを選ぶ。
 
-このReferenceのcoverageは、選んだheuristicごとに「どのユーザーtaskに効くか」「どのcontrol / stateが影響を受けるか」「何を観測すればUX上の主張を支持または反証できるか」が結び付いたときに成立する。項目を読んだことやpass数そのものをcoverageにしない。
+このReferenceのcoverageは、選んだheuristicごとに、影響するtask / control / stateと「何を観測すればUX上の主張を支持または反証できるか」が結び付いたときに成立する。項目を読んだことやpass数そのものをcoverageにしない。
 
 このReferenceは、i3DESIGNの50項目チェックリストと10のユーザビリティヒューリスティクスを、i484のstate・content・accessibilityの判断へ変換したもの。10原則は合否基準ではなく、問題を見つけるための視点である。具体的なユーザーtaskから関係する観点を選び、観測可能な問題と改善効果を確かめる。記事の数値や例、効果の因果主張を普遍的な基準にはしない。WCAGに関係する判断は`interaction-content-accessibility.md`を参照する。検証の実行順序・量・tool選択はengineering frameworkの責務であり、このReferenceは何を観測すべきかというUX判断だけを持つ。
 
