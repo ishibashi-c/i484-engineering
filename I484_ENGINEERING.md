@@ -55,6 +55,7 @@ The geometric specialist keeps its runtime visual-language knowledge text-only. 
 UI Skills MCP is optional external knowledge infrastructure for `i484-product-design`, not a workflow or router owned by i484.
 
 - Endpoint: `https://www.ui-skills.com/mcp`
+- Codex packaging: `.codex-plugin/plugin.json` points to `./.mcp.json`, which declares the remote `ui_skills` HTTP server. This packages the connection, not the registry content.
 - Capabilities: `list_skills` for narrow discovery and `get_skill` for retrieval.
 - Query only when i484's built-in design knowledge and specialist guidance already present in the run are insufficient for a material UI decision.
 - Treat fetched skills as domain guidance only. CE and active project instructions continue to own workflow, tool execution, review, Git, and shipping.
@@ -113,7 +114,7 @@ There are two classes:
 | --- | --- | --- | --- | --- |
 | F1 | i484 specialist layer | `skills/i484-product-design/**`, `skills/i484-visualize/**`, `skills/i484-geometric-illustration/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
 | F2 | i484 distribution identity | plugin/package manifests, root README, i484 identity tests, attribution/license metadata | Ships the fork as **i484 Engineering** while preserving CE-derived skill names and upstream attribution. | [PR #2](https://github.com/ishibashi-c/i484-engineering/pull/2) |
-| F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
+| F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, `.codex-plugin/plugin.json`, `.mcp.json`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. Codex packages the remote MCP connection definition with the plugin. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
 
 ### CE-native patches
 
