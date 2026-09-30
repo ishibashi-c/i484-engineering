@@ -30,6 +30,8 @@ export const DOC_REVIEW_BASE_REF = "6f6c5779d31c0f847773e0cbc1e7e7fc7b11f272"
 export const HOLDABLE_OBJECTIVE_BASE_REF = "0e758b60b35cec165470443fde5acf60db8bdae9"
 const PLAN_CONTENT_BASE_REF = "5c32ef92339b95348d6a12000e814d4877902557"
 export const CE_OPTIMIZE_BASE_REF = "b159e1fa4c70efa995742269d38269bcc7524dd2"
+/** main before ce-optimize fed worst cases to workers and added a whole-run spend cap. */
+export const CE_OPTIMIZE_EVIDENCE_BASE_REF = "7b867109526165def0cc2a31b7c348b7308ae2c8"
 /** main before annotation waits became event-driven and symptom-only notes became a question. */
 const ANNOTATION_WAIT_BASE_REF = "d1734f7ed5341b6d0b683405da82895f0a0a25f7"
 /** main before streak interpretation accounted for estimated baselines and candidate selection (#1698). */
@@ -37,6 +39,12 @@ const RETUNE_STREAK_BASE_REF = "53af1a2eab6415be9881c1987dbc986dcb54465c"
 export const SUSTAINED_HANDOFF_BASE_REF = "153e605e1622154a0d7da095fceed13edcb68bf7"
 /** main before judgment-bound escalations were adjudicated through ce-pov instead of parking as needs-human. */
 export const ADJUDICATE_BASE_REF = "020c5e10d49aed19ee9354917780e94e665f5977"
+/** main before the resolver weighed whether an existing signal already bounds a true finding's failure. */
+export const PROPORTIONALITY_BASE_REF = "e80c5c40440b90672d78f032f6dfaedc0daeb292"
+/** main before ce-debug preferred removing a recurring bug pattern over layering runtime checks. */
+export const STRUCTURAL_FIX_BASE_REF = "2b4cacd32d3e8c19a91e1c50c318172ec1d2f160"
+/** main before the reliability reviewer judged a missing guard by how the code runs. */
+export const RELIABILITY_CONTEXT_BASE_REF = "8d9a236dc91b17e114562bd65e9e137d171f39ab"
 /** The working tree, not HEAD — the post arm exists to grade the edit you have not committed yet. */
 export const POST_SWEEP_REF = WORKTREE_REF
 
@@ -814,6 +822,67 @@ Include exactly one line \`NEXT: measure\` or \`NEXT: implement\` in your answer
     },
   },
   {
+    id: "ce-optimize/worker-failure-evidence",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_EVIDENCE_BASE_REF,
+    why: "An external comparison found workers improved prompts from score totals alone and re-read the corpus every experiment; a weaker orchestrator lost to an optimizer that showed failing cases.",
+    pre_contract: "The worker prompt carries the hypothesis, metrics, scope, constraints, dependencies, and a rolling window of recent experiment summaries; the worker reads the relevant mutable code itself.",
+    task: `Use ce-optimize for Phase 3.2 only. Return the complete filled experiment worker prompt you would dispatch for the next experiment; do not dispatch or write files.
+Spec writing-voice: optimize skills/voice/SKILL.md (mutable) so drafts match the author's real posts. Immutable: eval/ (harness, rubric) and data/posts/ (400 posts, 2.1 MB). Primary: judge mean_score on a 1-5 match rubric. No approved dependencies. Constraints: keep the skill under 400 lines.
+Baseline 2.6, no keeps yet, so the current best is the baseline. Experiments 1-3 reverted: tone adjectives (2.5), few-shot excerpts (2.6), shorter sentences (2.7, inconclusive).
+The baseline entry in experiment-log.yaml records these worst cases:
+- post-118, score 1: "Opens with a listicle where the real post opens with a personal anecdote."
+- post-042, score 1: "Generic motivational sign-off; the author ends on a concrete next step."
+- post-307, score 2: "Hedges every claim; the author states opinions flatly."
+Phase 2 finished normally. Next hypothesis (iteration 4, category structure): add explicit guidance on how the author opens a post.`,
+    // Both arms forward failure cases the task hands them; the old skill never produced them (judges returned no reasons).
+    // What discriminates here is the read-once digest replacing "read the corpus" in every worker prompt.
+    grade: { must_include: ["listicle", "source digest"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/judge-reasons-logged",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_EVIDENCE_BASE_REF,
+    why: "Judge reasons help later hypotheses only if the orchestrator records the worst ones on the experiment entry instead of keeping just the aggregate.",
+    pre_contract: "CP-3 appends the experiment entry with raw metrics, judge scores, outcome, and learnings.",
+    task: `Use ce-optimize for Phase 3.3 only, steps 5 through 7 for experiment 5. Return the experiment log entry you would write at CP-3 as YAML; do not dispatch or write files.
+Spec writing-voice, primary judge mean_score (1-5), current best 2.9 (baseline, no keeps). Degenerate gates passed. Hypothesis: describe how the author closes a post; category structure. decide.mjs returned decision revert, next_measurement none, primary delta -0.1. Judge cost for this experiment: $0.28.
+The two judge batches returned:
+[{"item_id":"post-011","score":4,"reason":"Opening and pacing match; one sentence runs long.","ambiguous":false},
+ {"item_id":"post-208","score":1,"reason":"Pivots to a product pitch in the last paragraph; the author never sells.","ambiguous":false},
+ {"item_id":"post-093","score":3,"reason":"Right structure but hedges the main claim.","ambiguous":false}]
+[{"item_id":"post-150","score":2,"reason":"Ends on a rhetorical question where the author ends on a concrete next step.","ambiguous":false},
+ {"item_id":"post-377","score":3,"reason":"Tone fits; the example is generic rather than personal.","ambiguous":true},
+ {"item_id":"post-264","score":2,"reason":"Closing paragraph restates the intro instead of adding anything.","ambiguous":false}]`,
+    // Pins the field the digest and worker prompt read. Handed reasons, the old skill also kept them (under judge scores and learnings);
+    // its gap was that judges returned no reasons and nothing downstream read them (2026-09-29, Claude and Codex).
+    grade: { must_include: ["worst_cases", "product pitch"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/run-spend-disclosure",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_EVIDENCE_BASE_REF,
+    why: "A user who set the judge cap read it as a run cap; experiment workers, not judges, drove most of a $53 run.",
+    pre_contract: "The approval gate states that spend is uncapped only when the primary is a judge and the judge cost cap is unset.",
+    task: `Use ce-optimize to write the user-facing approval message for this run state. Do not execute work or write files.
+Spec writing-voice has been saved and the baseline measured: judge mean_score 2.6 on a 1-5 match rubric, gates pass, the tree is clean, and serial execution is supported. metric.judge.max_total_cost_usd is 5, with expected scoring cost of $0.30 per experiment. The stopping section sets max_iterations 20 and max_hours 4 and nothing else. Each experiment worker is a fresh agent that edits the skill. The log is experiment-log.yaml. Approval is pending.`,
+    // Regression floor, not a discriminator: unprompted, both arms on both hosts (2026-09-29) said the judge cap leaves worker spend uncapped.
+    grade: {
+      must_include_any: [["no dollar cap", "uncapped", "not capped", "no cap on", "no overall cap", "no whole-run cap", "not counted against", "does not cover", "doesn't cover"]],
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
     id: "ce-optimize/result-accounting",
     skill: "ce-optimize",
     cohort: "untouched",
@@ -1178,6 +1247,44 @@ Return this tick's result to the coordinator and stop.`,
     },
   },
   {
+    id: "ce-debug/recurring-pattern-prefers-structure",
+    baseline_ref: STRUCTURAL_FIX_BASE_REF,
+    skill: "ce-debug",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/debug-recurring-date-parse`,
+    timeout_secs: 300,
+    why: "When the root-cause pattern recurs across internal files, layering runtime checks still lets the next caller write the same bug; removing the pattern is the stronger prevention.",
+    pre_contract: "The minimal fix covers the root cause only; defense-in-depth triggers on the pattern in 3+ other files or a catastrophic bug and chooses among four runtime layers.",
+    task: "Use ce-debug on this bug. Phases 1 and 2 are done: read DIAGNOSIS.md; the user chose to fix it now. Do not edit, create, or commit any file, and do not invoke another skill or dispatch. Following ce-debug's Phase 3 guidance, list every source file under src/ that this fix would change or create (tests excluded), then stop. End with exactly two lines: `OTHER_REPORTS: <changed | unchanged>`, saying whether the fix changes weekly.js, monthly.js, or export.js, and `SHARED_CODE: <yes | no>`, saying whether after the fix more than one report calls the same new function, type, or rule.",
+    grade: {
+      workspace_read: ["DIAGNOSIS.md"],
+      declared: { OTHER_REPORTS: "changed", SHARED_CODE: "yes" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-debug/one-off-bug-adds-nothing",
+    baseline_ref: STRUCTURAL_FIX_BASE_REF,
+    skill: "ce-debug",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/debug-one-off-date-parse`,
+    timeout_secs: 300,
+    why: "A one-off bug with no recurrence path gets the minimal fix and its test, with no structural change or added layers.",
+    pre_contract: "The minimal fix covers the root cause only; defense-in-depth triggers on the pattern in 3+ other files or a catastrophic bug and chooses among four runtime layers.",
+    task: "Use ce-debug on this bug. Phases 1 and 2 are done: read DIAGNOSIS.md; the user chose to fix it now. Do not edit, create, or commit any file, and do not invoke another skill or dispatch. Following ce-debug's Phase 3 guidance, list every source file under src/ that this fix would change or create (tests excluded), then stop. End with exactly one line `SRC_FILES: <count>`.",
+    grade: {
+      workspace_read: ["DIAGNOSIS.md"],
+      declared: { SRC_FILES: "1" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
     id: "ce-debug/pipeline-convergent-fix",
     skill: "ce-debug",
     cohort: "resized",
@@ -1392,6 +1499,26 @@ Include exactly one line \`FIX: asked\` or \`FIX: applied\` or \`FIX: skipped\` 
     grade: {
       files_read_post: ["references/pipeline-mode.md", "references/evaluation-rubric.md"],
       declared: { ROOT: "adjudicate" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-resolve-pr-feedback/bounded-failure-gets-no-more-code",
+    baseline_ref: PROPORTIONALITY_BASE_REF,
+    skill: "ce-resolve-pr-feedback",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/resolve-feedback-proportionality`,
+    timeout_secs: 300,
+    why: "A babysit run fixed every true, cheap bot edge case on a run-once, dry-run-first ops script, including ones the dry run or the next morning's #ops check already surfaces, and each fix added code the bots flagged again. Silent double-crediting, a human's consequence-backed ask for progress logging, and a real defect in an earlier review fix on the same script must still be fixed.",
+    pre_contract: "Default to fixing; a small real improvement is fixed because the skip bar is no benefit, not minor.",
+    task: "Use ce-resolve-pr-feedback on PR #41. The unresolved review threads are on disk at threads.json, the code is in this workspace, and git is unavailable, so the branch history is in history.txt; do not call gh or git, and do not invoke any other skill, dispatch, or edit anything. Apply the evaluation rubric to each thread in your own context and stop after judging. For each thread declare exactly one line `T<id>: <more-code | no-more-code | escalate>`, where more-code means the resolution adds or changes program logic, no-more-code means a reply or a change to docs, usage text, or message text only, and escalate means needs-human or a hand-off to ce-pov.",
+    grade: {
+      files_read_post: ["references/evaluation-rubric.md"],
+      workspace_read: ["threads.json", "history.txt", "docs/runbooks/grant-credits.md"],
+      declared: { T1: "no-more-code", T2: "more-code", T3: "more-code", T4: "no-more-code", T5: "more-code" },
       actions: "none",
       delegates: "none",
     },
@@ -1855,6 +1982,44 @@ Include exactly one line \`ROUTE: verdict\` or \`ROUTE: brainstorm\` in your ans
       workspace_read: ["src/greet.js"],
       // workspace_read only sees FILES_READ; the looked-up fact, in any phrasing, is that greet.js has no retry logic.
       must_include_any: [["does not retry", "no retry", "no retries", "no existing retries", "doesn't retry", "not retry"]],
+    },
+  },
+  {
+    id: "ce-code-review/reliability-run-once-script-no-timeout-finding",
+    baseline_ref: RELIABILITY_CONTEXT_BASE_REF,
+    skill: "ce-code-review",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/review-reliability-oneoff`,
+    timeout_secs: 300,
+    why: "A run-once script an on-call engineer runs from a laptop after a dry run, printing progress per ticket, with a rerun-safe PUT, still drew an actionable timeout finding that lfg can auto-apply. The context is only what a typical one-off PR states; a runbook spelling out the hang recovery made the case too easy to discriminate.",
+    pre_contract: "Every I/O operation can fail; an HTTP call with no timeout is anchor 100.",
+    task: "Use ce-code-review's reliability reviewer on the change described in PR.md. The changed file is scripts/relabel-tickets.ts, entirely new in this PR. Read the skill's references/subagent-template.md and references/personas/reliability-reviewer.md and review the change as that persona would. Do not dispatch, edit anything, or invoke another skill. Return the persona's findings JSON, then exactly one line `TIMEOUT: <flagged | not-flagged>`, saying whether any finding at confidence 75 or higher asks for a timeout on the fetch call.",
+    grade: {
+      workspace_read: ["PR.md"],
+      declared: { TIMEOUT: "not-flagged" },
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-code-review/reliability-service-handler-keeps-timeout-finding",
+    baseline_ref: RELIABILITY_CONTEXT_BASE_REF,
+    skill: "ce-code-review",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    fixture: `${FIX}/review-reliability-service`,
+    timeout_secs: 300,
+    why: "The same fetch with no timeout in a request handler on a shared worker pool must still be flagged.",
+    pre_contract: "Every I/O operation can fail; an HTTP call with no timeout is anchor 100.",
+    task: "Use ce-code-review's reliability reviewer on the change described in PR.md. The changed file is src/ticket-labels-handler.ts, entirely new in this PR. Read the skill's references/subagent-template.md and references/personas/reliability-reviewer.md and review the change as that persona would. Do not dispatch, edit anything, or invoke another skill. Return the persona's findings JSON, then exactly one line `TIMEOUT: <flagged | not-flagged>`, saying whether any finding at confidence 75 or higher asks for a timeout on the fetch call.",
+    grade: {
+      workspace_read: ["PR.md"],
+      declared: { TIMEOUT: "flagged" },
+      actions: "none",
+      delegates: "none",
     },
   },
   {

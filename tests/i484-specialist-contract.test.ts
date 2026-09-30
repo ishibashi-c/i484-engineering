@@ -55,10 +55,34 @@ describe("i484 Engineering specialist contract", () => {
     expect(content).toContain("durableなproduct truth")
     expect(content).toContain("surface intent")
     expect(content).toContain("context-surface-intent.md")
+    expect(content).toContain("external-ui-knowledge.md")
     expect(content).toContain("**Data parity:**")
     expect(content).toContain("**Visual parity:**")
     expect(content).toContain("**Interaction parity:**")
     expect(content).not.toContain("V0 / V1 / V2 / V3")
+  })
+
+  test("uses UI Skills MCP only as a bounded external knowledge fallback", async () => {
+    const [product, external, sources, architecture] = await Promise.all([
+      readRepoFile("skills/i484-product-design/SKILL.md"),
+      readRepoFile("skills/i484-product-design/references/external-ui-knowledge.md"),
+      readRepoFile("skills/i484-product-design/references/sources.md"),
+      readRepoFile("I484_ENGINEERING.md"),
+    ])
+
+    expect(product).toContain("UI Skills MCP")
+    expect(product).toContain("外部registryは常時検索せず")
+    expect(external).toContain("https://www.ui-skills.com/mcp")
+    expect(external).toContain("`list_skills`")
+    expect(external).toContain("`get_skill`")
+    expect(external).toContain("`ui-skills-root`をi484のrouterとして使ったりしない")
+    expect(external).toContain("workflow authorityではない")
+    expect(external).toContain("blockせず")
+    expect(external).toContain("自動的に保存・コピーしない")
+    expect(sources).toContain("ibelick/ui-skills")
+    expect(sources).toContain("other publishers")
+    expect(architecture).toContain("External specialist knowledge registry")
+    expect(architecture).toContain("Do not use `ui-skills-root` as a second routing layer")
   })
 
   test("keeps artifact specialists outside general engineering authority", async () => {

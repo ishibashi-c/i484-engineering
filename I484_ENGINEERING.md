@@ -50,6 +50,19 @@ and which observable states matter to that judgment.
 
 The geometric specialist keeps its runtime visual-language knowledge text-only. Larger historical style-anchor assets and detailed validation records remain in the previous repository as provenance.
 
+### External specialist knowledge registry
+
+UI Skills MCP is optional external knowledge infrastructure for `i484-product-design`, not a workflow or router owned by i484.
+
+- Endpoint: `https://www.ui-skills.com/mcp`
+- Capabilities: `list_skills` for narrow discovery and `get_skill` for retrieval.
+- Query only when i484's built-in design knowledge and specialist guidance already present in the run are insufficient for a material UI decision.
+- Treat fetched skills as domain guidance only. CE and active project instructions continue to own workflow, tool execution, review, Git, and shipping.
+- Do not use `ui-skills-root` as a second routing layer.
+- Do not vendor fetched skill text automatically. Durable extraction is a separate provenance/license-reviewed change.
+
+Individual registry entries may come from third-party publishers with their own licenses. The registry connection therefore does not make fetched content part of i484 Engineering.
+
 ### External quality providers
 
 `natural-japanese` and Ultracite remain external quality providers rather than workflow owners.
@@ -100,6 +113,7 @@ There are two classes:
 | --- | --- | --- | --- | --- |
 | F1 | i484 specialist layer | `skills/i484-product-design/**`, `skills/i484-visualize/**`, `skills/i484-geometric-illustration/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
 | F2 | i484 distribution identity | plugin/package manifests, root README, i484 identity tests, attribution/license metadata | Ships the fork as **i484 Engineering** while preserving CE-derived skill names and upstream attribution. | [PR #2](https://github.com/ishibashi-c/i484-engineering/pull/2) |
+| F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
 
 ### CE-native patches
 
@@ -113,7 +127,6 @@ There are two classes:
 - `skills/ce-prototype/SKILL.md`
 - `skills/ce-polish/SKILL.md`
 - `skills/ce-work/SKILL.md`
-- `skills/ce-work/references/implementation-loop.md`
 
 **Behavior retained:**
 - `ce-brainstorm` loads `i484-product-design` before design-dependent product-UI questions or requirements decisions when the specialist is available.
@@ -202,6 +215,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #5](https://github.com/ishibashi-c/i484-engineering/pull/5) | CE 3.28.0 | First post-foundation upstream merge; retained i484 identity and runtime patches. |
 | [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6) | CE 3.28.2 | Pulled later CE model/review updates and added C4 reviewer-model ceiling. |
 | [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
+| [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
@@ -259,6 +273,8 @@ A machine is on the intended architecture when:
 5. No second top-level i484 engineering workflow shadows CE.
 6. `natural-japanese` and Ultracite may remain independently installed as quality providers.
 7. CE's setup/health check passes for the active project, subject to any explicitly accepted local limitations.
+
+UI Skills MCP is optional. Connecting or disconnecting it does not determine whether the core i484 Engineering cutover is valid.
 
 The replacement global principle is intentionally small:
 

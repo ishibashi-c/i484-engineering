@@ -46,6 +46,7 @@ describe("i484 specialist references", () => {
   test("product-design references do not revive the retired engineering workflow", async () => {
     const files = [
       "context-surface-intent.md",
+      "external-ui-knowledge.md",
       "design-language.md",
       "composition-components.md",
       "interaction-content-accessibility.md",

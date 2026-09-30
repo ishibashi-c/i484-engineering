@@ -18,7 +18,7 @@
 
 エンジニアリングの基盤には [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) を採用しています。planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、一般的なソフトウェア開発の進め方はCompound Engineeringを正とします。
 
-i484独自部分は、その上に**非競合な専門能力**を追加します。現在はProduct Design、構造可視化、幾何学イラストレーションを内包し、Natural JapaneseやUltraciteのような外部Quality ProviderもCEの品質工程から利用できる構成です。
+i484独自部分は、その上に**非競合な専門能力**を追加します。現在はProduct Design、構造可視化、幾何学イラストレーションを内包し、UI Skills MCPのような外部専門知識registryやNatural Japanese・UltraciteのようなQuality Providerも、CEの権限境界を保ったまま利用できる構成です。
 
 ```text
 AI coding agent
@@ -30,6 +30,9 @@ Compound Engineering
       ├── i484-product-design
       ├── i484-visualize
       ├── i484-geometric-illustration
+      │
+      ├── optional specialist registry
+      │   └── UI Skills MCP
       │
       └── optional quality providers
           ├── natural-japanese
@@ -95,6 +98,20 @@ i484 Skillは、固定されたstate machineを増やすためのものではあ
 i484独自の幾何学的なvisual languageでイラストレーションを設計・生成・評価する専門Skillです。
 
 構図、面、余白、色、layer、series consistencyなどの視覚判断を担当し、software engineering全般はCompound Engineeringへ委ねます。
+
+## External Specialist Registry
+
+### UI Skills MCP
+
+UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registryとして利用します。
+
+- MCP: `https://www.ui-skills.com/mcp`
+- discovery: `list_skills`
+- fetch: `get_skill`
+
+`i484-product-design`の内蔵知識だけでは重要なUI判断を十分に扱えず、現在のrunにも同等の専門知識がない場合だけ、最も狭く一致するSkillを取得します。取得したSkillのworkflowやrouterは採用せず、domain knowledgeだけをDesign判断へ加えます。
+
+このrepositoryにはUI Skills catalogを複製しません。MCPが未接続でもi484 Engineeringの通常機能はblockされません。
 
 ## Quality Provider
 
