@@ -103,7 +103,7 @@ i484独自の幾何学的なvisual languageでイラストレーションを設�
 
 ### UI Skills MCP
 
-UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registryとして利用します。
+UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registryとして利用します。Codex向け配布には接続定義を同梱し、Skill本文やcatalog自体は複製しません。
 
 - MCP: `https://www.ui-skills.com/mcp`
 - discovery: `list_skills`
@@ -111,7 +111,7 @@ UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registry�
 
 `i484-product-design`の内蔵知識だけでは重要なUI判断を十分に扱えず、現在のrunにも同等の専門知識がない場合だけ、最も狭く一致するSkillを取得します。取得したSkillのworkflowやrouterは採用せず、domain knowledgeだけをDesign判断へ加えます。
 
-このrepositoryにはUI Skills catalogを複製しません。MCPが未接続でもi484 Engineeringの通常機能はblockされません。
+このrepositoryにはUI Skills catalogを複製しません。Codexでは`.mcp.json`経由で`ui_skills`接続を配布しますが、MCPが無効・未接続でもi484 Engineeringの通常機能はblockされません。
 
 ## Quality Provider
 
