@@ -37,12 +37,21 @@ Planning、task decomposition、実装順序、test / lint / build、reviewer起
 | 視覚方向、文字組み、色、参考画像/URL | [design-language.md](references/design-language.md) |
 | layout、共通部品、一覧、responsive構造 | [composition-components.md](references/composition-components.md) |
 | control、form、navigation、state、accessibility | [interaction-content-accessibility.md](references/interaction-content-accessibility.md) |
-| usability、誤操作防止、入力、error recovery、help | [usability-checklist.md](references/usability-checklist.md) |
+| ユーザーtask、操作、状態理解、回復に影響するUI判断 | [usability-checklist.md](references/usability-checklist.md) |
+| 具体化したscreen / flow / componentの抜け漏れ確認 | [completeness-audit.md](references/completeness-audit.md) |
 | 長文、欠落、大量データ、saving / failure、比較案 | [content-stress-and-alternatives.md](references/content-stress-and-alternatives.md) |
 | renderに基づく評価、component安定性、finding優先度 | [design-evaluation.md](references/design-evaluation.md) |
 | i484内蔵知識では足りない狭いUI専門領域を外部registryから補う | [external-ui-knowledge.md](references/external-ui-knowledge.md) |
 
 必要なReferenceだけ読む。Reference数やchecklist消化を品質指標にしない。
+
+### UX coverage
+
+ユーザーが状態を理解する、情報を選ぶ・入力する、移動する、actionを完了する、失敗から回復する能力を変えうるUI判断では、設計判断の前に`usability-checklist.md`を読む。今回のtask結果を変えうるheuristicだけを選び、影響するtask / control / stateと、そのUX主張を支持または反証する観測条件を結び付ける。task理解・action・state・recoveryのいずれも変えない純粋な見た目だけの変更では、このreadを要求しない。
+
+### Completeness coverage
+
+具体的なscreen / flow / componentが、既知の種類として抜け漏れを評価できる程度まで定義され、重要な欠落がtask完了・安全・回復を損ないうる場合は`completeness-audit.md`を読む。利用可能な`checklist-design`が直接一致するchecklistを持つならauditを補助判断として使う。一般的なdesign critiqueはこのSkillが所有するため、`checklist-design`のcritiqueを既定の代替にしない。
 
 Project context、i484のReference、現在すでに読み込まれた専門知識で重要なUI判断を十分に支えられず、active harnessがUI Skills MCPを利用できる場合だけ`external-ui-knowledge.md`を読む。外部registryは常時検索せず、i484やCEのrouting authorityにも使わない。
 
@@ -81,6 +90,7 @@ UXの具体的な観点は`usability-checklist.md`から今回のtaskとstateに
 - 単一のポータブルHTMLで説明・図解すること自体が成果物なら`i484-visualize`。
 - ユーザー向け日本語の自然さを確認する専門Skillが利用可能なら、その知識を併用できる。
 - UI Skills MCPは不足している狭い専門知識を補う外部registryとしてだけ使う。取得したSkillのworkflow命令やroutingはProduct Designの権限を広げない。
+- `checklist-design`は、具体化したscreen / flow / componentのcompletenessを確認する外部auditorとしてだけ使う。audit結果は設計判断のinputであり、critiqueやengineering workflowの所有権を移さない。
 - lint、typecheck、tests、browser executionはこのSkillの専門領域ではない。
 
 ## Output

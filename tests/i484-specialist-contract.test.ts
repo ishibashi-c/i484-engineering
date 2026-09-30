@@ -56,6 +56,9 @@ describe("i484 Engineering specialist contract", () => {
     expect(content).toContain("surface intent")
     expect(content).toContain("context-surface-intent.md")
     expect(content).toContain("external-ui-knowledge.md")
+    expect(content).toContain("completeness-audit.md")
+    expect(content).toContain("### UX coverage")
+    expect(content).toContain("### Completeness coverage")
     expect(content).toContain("**Data parity:**")
     expect(content).toContain("**Visual parity:**")
     expect(content).toContain("**Interaction parity:**")
@@ -91,6 +94,26 @@ describe("i484 Engineering specialist contract", () => {
       type: "http",
       url: "https://www.ui-skills.com/mcp",
     })
+  })
+
+  test("requires UX coverage when product interaction can change and keeps Checklist Design audit-scoped", async () => {
+    const [product, usability, completeness, sources] = await Promise.all([
+      readRepoFile("skills/i484-product-design/SKILL.md"),
+      readRepoFile("skills/i484-product-design/references/usability-checklist.md"),
+      readRepoFile("skills/i484-product-design/references/completeness-audit.md"),
+      readRepoFile("skills/i484-product-design/references/sources.md"),
+    ])
+
+    expect(product).toContain("設計判断の前に`usability-checklist.md`を読む")
+    expect(product).toContain("純粋な見た目だけの変更では、このreadを要求しない")
+    expect(usability).toContain("任意の参考一覧ではなく")
+    expect(usability).toContain("task / control / state")
+    expect(completeness).toContain("外部Skill `checklist-design`")
+    expect(completeness).toContain("**audit**")
+    expect(completeness).toContain("**critique** は既定では使わない")
+    expect(completeness).toContain("blockしない")
+    expect(sources).toContain("Checklist-Design/skills")
+    expect(sources).toContain("MIT")
   })
 
   test("keeps artifact specialists outside general engineering authority", async () => {

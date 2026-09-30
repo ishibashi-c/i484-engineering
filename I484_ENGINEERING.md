@@ -64,6 +64,16 @@ UI Skills MCP is optional external knowledge infrastructure for `i484-product-de
 
 Individual registry entries may come from third-party publishers with their own licenses. The registry connection therefore does not make fetched content part of i484 Engineering.
 
+### External completeness auditor
+
+Checklist Design is an optional external auditor for concrete screens, flows, and components.
+
+- Upstream: `Checklist-Design/skills`
+- Use its audit mode only when the surface maps directly to a known checklist and omission risk can affect task completion, safety, or recovery.
+- General product-design critique remains owned by `i484-product-design`; Checklist Design critique is not a default routing target.
+- The skill and checklist corpus are not vendored into i484 Engineering.
+- If unavailable or unmatched, engineering continues and checklist-specific completeness remains unverified.
+
 ### External quality providers
 
 `natural-japanese` and Ultracite remain external quality providers rather than workflow owners.
@@ -115,6 +125,7 @@ There are two classes:
 | F1 | i484 specialist layer | `skills/i484-product-design/**`, `skills/i484-visualize/**`, `skills/i484-geometric-illustration/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
 | F2 | i484 distribution identity | plugin/package manifests, root README, i484 identity tests, attribution/license metadata | Ships the fork as **i484 Engineering** while preserving CE-derived skill names and upstream attribution. | [PR #2](https://github.com/ishibashi-c/i484-engineering/pull/2) |
 | F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, `.codex-plugin/plugin.json`, `.mcp.json`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. Codex packages the remote MCP connection definition with the plugin. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
+| F4 | Risk-triggered UX coverage + Checklist Design completeness audit | `skills/i484-product-design/**`, product-design guide, README, specialist contract/eval tests | Makes UX heuristics a required read when interaction/state/recovery can change, while routing concrete category completeness to the external Checklist Design audit without transferring general critique or workflow authority. | [PR #13](https://github.com/ishibashi-c/i484-engineering/pull/13) |
 
 ### CE-native patches
 

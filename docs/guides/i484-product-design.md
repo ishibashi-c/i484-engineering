@@ -17,7 +17,11 @@ The skill contributes product-design judgment that a general engineering workflo
 - separate data, visual, and interaction parity judgments
 - design-evaluation criteria that tie claims to observable rendered states, repeated-component stability, and user-impact-first findings
 
-The usability checklist is selective rather than procedural: it chooses the heuristics that matter to the current user task and affected controls instead of forcing a fixed checklist pass. The design-evaluation reference preserves useful visual-QA knowledge without reviving the old V0–V3 workflow or taking ownership of browser/test sequencing.
+The usability checklist is selective rather than procedural, but it is no longer optional when the change can affect task comprehension, action, state, or recovery. In those UX-bearing cases the skill reads the reference, selects only the heuristics that can change the task outcome, and ties them to affected controls/states and observable evidence. Purely presentational changes do not trigger the read.
+
+For concrete screens, flows, and components, Checklist Design may add a separate completeness audit. It answers a different question: whether expected category-specific elements or states are missing. General critique remains owned by i484 Product Design; Checklist Design critique is not the default review path.
+
+The design-evaluation reference preserves useful visual-QA knowledge without reviving the old V0–V3 workflow or taking ownership of browser/test sequencing.
 
 ## When to use it
 
@@ -52,3 +56,20 @@ If the MCP is unavailable or no useful match exists, product-design judgment con
 ## Source
 
 Runtime behavior is defined in [`skills/i484-product-design/SKILL.md`](../../skills/i484-product-design/SKILL.md). The specialist was rebuilt from the earlier i484 Product Design work after removing its engineering-orchestration layer; see [`I484_ENGINEERING.md`](../../I484_ENGINEERING.md).
+
+## Checklist Design completeness audit
+
+Checklist Design is an optional external auditor, not a second product-design framework.
+
+- Upstream skill: `Checklist-Design/skills`
+- Default use: `audit` only, when a concrete screen / flow / component maps directly to a published checklist and omission risk matters.
+- Default non-use: general critique, early open-ended design exploration, or surfaces that do not map cleanly to a checklist.
+- Failure behavior: if the skill is unavailable or no checklist matches, continue from i484 Product Design and treat checklist-specific completeness as unverified.
+
+The external skill is not vendored into i484 Engineering, so its checklist corpus can continue to update independently. For Codex, the upstream-recommended Agent Skills installer can add it with:
+
+```bash
+npx skills add checklist-design/skills -a codex
+```
+
+Restart the agent once after the first install if the new skill is not discovered in the current session.
