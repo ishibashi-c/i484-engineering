@@ -17,6 +17,7 @@
     "workflows"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "i484 Engineering",
     "shortDescription": "Compound Engineering with i484 specialist skills",
