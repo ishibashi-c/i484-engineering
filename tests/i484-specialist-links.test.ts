@@ -47,6 +47,7 @@ describe("i484 specialist references", () => {
     const files = [
       "context-surface-intent.md",
       "external-ui-knowledge.md",
+      "completeness-audit.md",
       "design-language.md",
       "composition-components.md",
       "interaction-content-accessibility.md",
