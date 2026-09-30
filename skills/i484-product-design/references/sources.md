@@ -28,3 +28,13 @@ UI Skills MCP is an optional runtime registry used to fetch narrow UI specialist
 - Integration rule: fetched skill content is external domain guidance, not CE workflow authority and not durable i484 source text.
 
 The registry can surface skills from other publishers. Those fetched skills may carry licenses or provenance different from the UI Skills registry itself. Runtime consultation does not copy them into this repository. Any future durable extraction into i484 must review the specific upstream source and license separately before rewriting or incorporating material.
+
+## External runtime audit source: Checklist Design
+
+Checklist Design is an optional external completeness auditor for concrete screens, flows, and components. i484 Engineering does not vendor its checklist corpus.
+
+- Skill repository: https://github.com/Checklist-Design/skills
+- Product site: https://www.checklist.design
+- License observed during integration: MIT
+- Integration rule: use the external skill's audit mode when a concrete surface maps to a relevant checklist and omission risk matters; keep general critique and product-design judgment in i484-product-design.
+- Failure rule: if the skill is unavailable or no checklist matches, continue with i484 Product Design and leave checklist-specific completeness unverified rather than blocking the engineering workflow.
