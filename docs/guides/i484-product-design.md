@@ -66,4 +66,10 @@ Checklist Design is an optional external auditor, not a second product-design fr
 - Default non-use: general critique, early open-ended design exploration, or surfaces that do not map cleanly to a checklist.
 - Failure behavior: if the skill is unavailable or no checklist matches, continue from i484 Product Design and treat checklist-specific completeness as unverified.
 
-The external skill is not vendored into i484 Engineering, so its checklist corpus can continue to update independently. Install it in the active agent environment when you want this audit path available.
+The external skill is not vendored into i484 Engineering, so its checklist corpus can continue to update independently. For Codex, the upstream-recommended Agent Skills installer can add it with:
+
+```bash
+npx skills add checklist-design/skills -a codex
+```
+
+Restart the agent once after the first install if the new skill is not discovered in the current session.
