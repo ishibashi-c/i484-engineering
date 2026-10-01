@@ -1,11 +1,16 @@
 import { describe, expect, test } from "bun:test"
 import { promises as fs } from "fs"
-import path from "path"
 import os from "os"
-import { mergeCodexConfig, renderCodexConfig, writeCodexBundle, mergeCodexHooks } from "../src/targets/codex"
-import type { CodexBundle } from "../src/types/codex"
-import { loadClaudePlugin } from "../src/parsers/claude"
+import path from "path"
 import { convertClaudeToCodex } from "../src/converters/claude-to-codex"
+import { loadClaudePlugin } from "../src/parsers/claude"
+import {
+  mergeCodexConfig,
+  mergeCodexHooks,
+  renderCodexConfig,
+  writeCodexBundle,
+} from "../src/targets/codex"
+import type { CodexBundle } from "../src/types/codex"
 import { parseFrontmatter } from "../src/utils/frontmatter"
 
 async function exists(filePath: string): Promise<boolean> {
@@ -59,13 +64,17 @@ const HISTORICAL_AGENT_DESCRIPTIONS: Record<string, string> = {
 
 function historicalSkillDescription(name: string): string {
   const description = HISTORICAL_SKILL_DESCRIPTIONS[name]
-  if (!description) throw new Error(`Missing historical skill description for ${name}`)
+  if (!description) {
+    throw new Error(`Missing historical skill description for ${name}`)
+  }
   return description
 }
 
 function historicalAgentDescription(name: string): string {
   const description = HISTORICAL_AGENT_DESCRIPTIONS[name]
-  if (!description) throw new Error(`Missing historical agent description for ${name}`)
+  if (!description) {
+    throw new Error(`Missing historical agent description for ${name}`)
+  }
   return description
 }
 
@@ -100,9 +109,18 @@ describe("writeCodexBundle", () => {
     await writeCodexBundle(tempRoot, bundle)
 
     expect(await exists(path.join(tempRoot, ".codex", "prompts", "command-one.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".codex", "skills", "skill-one", "SKILL.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".codex", "skills", "agent-skill", "SKILL.md"))).toBe(true)
-    const agentPath = path.join(tempRoot, ".codex", "agents", "research-ce-repo-research-analyst.toml")
+    expect(await exists(path.join(tempRoot, ".codex", "skills", "skill-one", "SKILL.md"))).toBe(
+      true,
+    )
+    expect(await exists(path.join(tempRoot, ".codex", "skills", "agent-skill", "SKILL.md"))).toBe(
+      true,
+    )
+    const agentPath = path.join(
+      tempRoot,
+      ".codex",
+      "agents",
+      "research-ce-repo-research-analyst.toml",
+    )
     expect(await exists(agentPath)).toBe(true)
     const agentToml = await fs.readFile(agentPath, "utf8")
     expect(agentToml).toContain('name = "research-ce-repo-research-analyst"')
@@ -114,12 +132,12 @@ describe("writeCodexBundle", () => {
     expect(config).toContain("# BEGIN Compound Engineering plugin MCP -- do not edit this block")
     expect(config).toContain("# END Compound Engineering plugin MCP")
     expect(config).toContain("[mcp_servers.local]")
-    expect(config).toContain("command = \"echo\"")
-    expect(config).toContain("args = [\"hello\"]")
+    expect(config).toContain('command = "echo"')
+    expect(config).toContain('args = ["hello"]')
     expect(config).toContain("[mcp_servers.local.env]")
-    expect(config).toContain("KEY = \"VALUE\"")
+    expect(config).toContain('KEY = "VALUE"')
     expect(config).toContain("[mcp_servers.remote]")
-    expect(config).toContain("url = \"https://example.com/mcp\"")
+    expect(config).toContain('url = "https://example.com/mcp"')
     expect(config).toContain("http_headers")
   })
 
@@ -150,9 +168,7 @@ describe("writeCodexBundle", () => {
     // Verify neither agent was silently dropped: the first agent should not have
     // been written before the collision was detected (guard runs before writes).
     const agentsRoot = path.join(tempRoot, ".codex", "agents")
-    expect(
-      await exists(path.join(agentsRoot, "research-ce-learnings-researcher.toml")),
-    ).toBe(false)
+    expect(await exists(path.join(agentsRoot, "research-ce-learnings-researcher.toml"))).toBe(false)
   })
 
   test("writes directly into a .codex output root", async () => {
@@ -195,16 +211,18 @@ describe("writeCodexBundle", () => {
 
     await writeCodexBundle(tempRoot, bundle)
 
-    expect(await exists(
-      path.join(
-        tempRoot,
-        ".codex",
-        "skills",
-        "session-historian",
-        "session-history-scripts",
-        "discover-sessions.sh",
+    expect(
+      await exists(
+        path.join(
+          tempRoot,
+          ".codex",
+          "skills",
+          "session-historian",
+          "session-history-scripts",
+          "discover-sessions.sh",
+        ),
       ),
-    )).toBe(true)
+    ).toBe(true)
   })
 
   test("preserves same-named user prompts during stale prompt cleanup", async () => {
@@ -214,7 +232,7 @@ describe("writeCodexBundle", () => {
     await fs.mkdir(promptsDir, { recursive: true })
     await fs.writeFile(
       path.join(promptsDir, "ce-plan.md"),
-      "---\ndescription: \"Project-local ce-plan helper\"\n---\n\nCustom prompt body\n",
+      '---\ndescription: "Project-local ce-plan helper"\n---\n\nCustom prompt body\n',
     )
 
     await writeCodexBundle(codexRoot, { prompts: [], skillDirs: [], generatedSkills: [] })
@@ -237,7 +255,7 @@ describe("writeCodexBundle", () => {
     const promptsDir = path.join(codexRoot, "prompts")
     await fs.mkdir(promptsDir, { recursive: true })
     const userPromptBody =
-      "---\ndescription: \"Project-local ce-plan helper\"\n---\n\nCustom prompt body\n"
+      '---\ndescription: "Project-local ce-plan helper"\n---\n\nCustom prompt body\n'
     await fs.writeFile(path.join(promptsDir, "ce-plan.md"), userPromptBody)
 
     await writeCodexBundle(codexRoot, {
@@ -283,13 +301,17 @@ describe("writeCodexBundle", () => {
     })
 
     expect(await exists(path.join(agentsDir, "ce-repo-research-analyst.toml"))).toBe(true)
-    expect(await fs.readFile(path.join(agentsDir, "ce-repo-research-analyst.toml"), "utf8")).toBe(userAgentBody)
+    expect(await fs.readFile(path.join(agentsDir, "ce-repo-research-analyst.toml"), "utf8")).toBe(
+      userAgentBody,
+    )
     const backupRoot = path.join(codexRoot, "compound-engineering", "legacy-backup")
     if (await exists(backupRoot)) {
       const timestamps = await fs.readdir(backupRoot)
       for (const timestamp of timestamps) {
         const agentsBackup = path.join(backupRoot, timestamp, "agents")
-        if (!(await exists(agentsBackup))) continue
+        if (!(await exists(agentsBackup))) {
+          continue
+        }
         const backedUp = await fs.readdir(agentsBackup)
         expect(backedUp).not.toContain("ce-repo-research-analyst.toml")
       }
@@ -321,7 +343,9 @@ describe("writeCodexBundle", () => {
     expect(await exists(path.join(managedAgentsRoot, "old-agent.toml"))).toBe(true)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "skill-one"))).toBe(false)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "old-agent"))).toBe(false)
-    expect(await exists(path.join(codexRoot, "compound-engineering", "install-manifest.json"))).toBe(true)
+    expect(
+      await exists(path.join(codexRoot, "compound-engineering", "install-manifest.json")),
+    ).toBe(true)
 
     await writeCodexBundle(codexRoot, {
       pluginName: "compound-engineering",
@@ -351,7 +375,12 @@ describe("writeCodexBundle", () => {
     await fs.mkdir(path.join(previousManagedSkillsRoot, "reproduce-bug"), { recursive: true })
     await fs.writeFile(
       path.join(codexRoot, "compound-engineering", "install-manifest.json"),
-      JSON.stringify({ version: 1, pluginName: "compound-engineering", skills: ["old-agent"], prompts: [] }),
+      JSON.stringify({
+        version: 1,
+        pluginName: "compound-engineering",
+        skills: ["old-agent"],
+        prompts: [],
+      }),
     )
     await fs.mkdir(agentsSkillsDir, { recursive: true })
     await fs.symlink(previousManagedSkillsRoot, path.join(agentsSkillsDir, "compound-engineering"))
@@ -383,7 +412,9 @@ describe("writeCodexBundle", () => {
     expect(await entryExists(path.join(agentsSkillsDir, "compound-engineering"))).toBe(false)
     expect(await entryExists(path.join(agentsSkillsDir, "old-agent"))).toBe(false)
     expect(await entryExists(path.join(agentsSkillsDir, "reproduce-bug"))).toBe(false)
-    expect(await fs.realpath(path.join(agentsSkillsDir, "skill-one"))).toBe(await fs.realpath(unrelatedRoot))
+    expect(await fs.realpath(path.join(agentsSkillsDir, "skill-one"))).toBe(
+      await fs.realpath(unrelatedRoot),
+    )
     expect(await exists(previousManagedSkillsRoot)).toBe(false)
   })
 
@@ -391,20 +422,46 @@ describe("writeCodexBundle", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codex-legacy-skill-"))
     const codexRoot = path.join(tempRoot, ".codex")
     await fs.mkdir(path.join(codexRoot, "skills", "ce-plan"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce-plan", "SKILL.md"), skillContent("ce-plan", await pluginDescription("skills/ce-plan/SKILL.md")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce-plan", "SKILL.md"),
+      skillContent("ce-plan", await pluginDescription("skills/ce-plan/SKILL.md")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "ce:plan"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce:plan", "SKILL.md"), skillContent("ce:plan", await pluginDescription("skills/ce-plan/SKILL.md")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce:plan", "SKILL.md"),
+      skillContent("ce:plan", await pluginDescription("skills/ce-plan/SKILL.md")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "ce:plan-beta"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce:plan-beta", "SKILL.md"), skillContent("ce:plan-beta", historicalSkillDescription("ce:plan-beta")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce:plan-beta", "SKILL.md"),
+      skillContent("ce:plan-beta", historicalSkillDescription("ce:plan-beta")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "repo-research-analyst"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "repo-research-analyst", "SKILL.md"), skillContent("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "repo-research-analyst", "SKILL.md"),
+      skillContent("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
-    await fs.mkdir(path.join(codexRoot, "skills", "bug-reproduction-validator"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "bug-reproduction-validator", "SKILL.md"), skillContent("bug-reproduction-validator", historicalAgentDescription("bug-reproduction-validator")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
+    await fs.mkdir(path.join(codexRoot, "skills", "bug-reproduction-validator"), {
+      recursive: true,
+    })
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "bug-reproduction-validator", "SKILL.md"),
+      skillContent(
+        "bug-reproduction-validator",
+        historicalAgentDescription("bug-reproduction-validator"),
+      ),
+    )
     await fs.mkdir(path.join(codexRoot, "prompts"), { recursive: true })
     await fs.writeFile(path.join(codexRoot, "prompts", "reproduce-bug.md"), "legacy removed prompt")
-    await fs.writeFile(path.join(codexRoot, "prompts", "report-bug.md"), "legacy deleted command prompt")
+    await fs.writeFile(
+      path.join(codexRoot, "prompts", "report-bug.md"),
+      "legacy deleted command prompt",
+    )
 
     const plugin = await loadClaudePlugin(path.join(import.meta.dir, ".."))
     const bundle = convertClaudeToCodex(plugin, {
@@ -422,7 +479,7 @@ describe("writeCodexBundle", () => {
     expect(await exists(path.join(codexRoot, "skills", "bug-reproduction-validator"))).toBe(false)
     expect(await exists(path.join(codexRoot, "prompts", "reproduce-bug.md"))).toBe(false)
     expect(await exists(path.join(codexRoot, "prompts", "report-bug.md"))).toBe(false)
-    expect(await exists(path.join(codexRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(codexRoot, plugin.manifest.name, "legacy-backup"))).toBe(true)
   })
 
   test("sweeps removed CE flat skills while preserving unrelated user skills", async () => {
@@ -433,10 +490,19 @@ describe("writeCodexBundle", () => {
     // cleanup should back them up when the names are no longer in the bundle.
     const demoReelDir = path.join(codexRoot, "skills", "ce-demo-reel")
     await fs.mkdir(demoReelDir, { recursive: true })
-    await fs.writeFile(path.join(demoReelDir, "SKILL.md"), skillContent("ce-demo-reel", historicalSkillDescription("ce-demo-reel")))
+    await fs.writeFile(
+      path.join(demoReelDir, "SKILL.md"),
+      skillContent("ce-demo-reel", historicalSkillDescription("ce-demo-reel")),
+    )
     const agentNativeDir = path.join(codexRoot, "skills", "ce-agent-native-architecture")
     await fs.mkdir(agentNativeDir, { recursive: true })
-    await fs.writeFile(path.join(agentNativeDir, "SKILL.md"), skillContent("ce-agent-native-architecture", historicalSkillDescription("ce-agent-native-architecture")))
+    await fs.writeFile(
+      path.join(agentNativeDir, "SKILL.md"),
+      skillContent(
+        "ce-agent-native-architecture",
+        historicalSkillDescription("ce-agent-native-architecture"),
+      ),
+    )
 
     // Same for ce-debug — current CE skill name, never in the historical
     // flat-path allow-list, so a same-named user skill must be preserved.
@@ -465,14 +531,16 @@ describe("writeCodexBundle", () => {
     expect(await exists(path.join(userDebugDir, "SKILL.md"))).toBe(true)
     expect(await exists(path.join(userCleanBranchesDir, "SKILL.md"))).toBe(true)
 
-    const backupRoot = path.join(codexRoot, "compound-engineering", "legacy-backup")
+    const backupRoot = path.join(codexRoot, plugin.manifest.name, "legacy-backup")
     expect(await exists(backupRoot)).toBe(true)
     let backedNames: string[] = []
     if (await exists(backupRoot)) {
       const timestamps = await fs.readdir(backupRoot)
       for (const ts of timestamps) {
         const skillsBackup = path.join(backupRoot, ts, "skills")
-        if (!(await exists(skillsBackup))) continue
+        if (!(await exists(skillsBackup))) {
+          continue
+        }
         backedNames = backedNames.concat(await fs.readdir(skillsBackup))
       }
     }
@@ -517,7 +585,9 @@ describe("writeCodexBundle", () => {
     })
 
     // The current install writes the nested-layout agent, not a same-named skill dir.
-    expect(await exists(path.join(codexRoot, "agents", pluginName, "review-ce-foo.toml"))).toBe(true)
+    expect(await exists(path.join(codexRoot, "agents", pluginName, "review-ce-foo.toml"))).toBe(
+      true,
+    )
 
     // The orphan flat-alias skill dir should have been relocated.
     expect(await exists(path.join(managedSkillsRoot, "ce-foo"))).toBe(false)
@@ -529,9 +599,13 @@ describe("writeCodexBundle", () => {
     let foundBackup = false
     for (const ts of timestamps) {
       const skillsBackup = path.join(backupRoot, ts, "skills")
-      if (!(await exists(skillsBackup))) continue
+      if (!(await exists(skillsBackup))) {
+        continue
+      }
       const backed = await fs.readdir(skillsBackup)
-      if (backed.includes("ce-foo")) foundBackup = true
+      if (backed.includes("ce-foo")) {
+        foundBackup = true
+      }
     }
     expect(foundBackup).toBe(true)
   })
@@ -586,7 +660,9 @@ describe("writeCodexBundle", () => {
       const timestamps = await fs.readdir(backupRoot)
       for (const ts of timestamps) {
         const skillsBackup = path.join(backupRoot, ts, "skills")
-        if (!(await exists(skillsBackup))) continue
+        if (!(await exists(skillsBackup))) {
+          continue
+        }
         const backed = await fs.readdir(skillsBackup)
         expect(backed).not.toContain("ce-plan")
         expect(backed).not.toContain("ce-debug")
@@ -602,7 +678,7 @@ describe("writeCodexBundle", () => {
 
     // Create existing config with user settings
     await fs.mkdir(codexRoot, { recursive: true })
-    const originalContent = "# My original config\n[custom]\nkey = \"value\"\n"
+    const originalContent = '# My original config\n[custom]\nkey = "value"\n'
     await fs.writeFile(configPath, originalContent)
 
     const bundle: CodexBundle = {
@@ -639,7 +715,7 @@ describe("writeCodexBundle", () => {
     const configPath = path.join(codexRoot, "config.toml")
 
     await fs.mkdir(codexRoot, { recursive: true })
-    await fs.writeFile(configPath, "[user]\nmodel = \"gpt-4.1\"\n")
+    await fs.writeFile(configPath, '[user]\nmodel = "gpt-4.1"\n')
 
     const bundle: CodexBundle = {
       prompts: [],
@@ -663,15 +739,18 @@ describe("writeCodexBundle", () => {
     const configPath = path.join(codexRoot, "config.toml")
 
     await fs.mkdir(codexRoot, { recursive: true })
-    await fs.writeFile(configPath, [
-      "[user]",
-      'model = "gpt-4.1"',
-      "",
-      "# BEGIN compound-plugin Claude Code MCP",
-      "[mcp_servers.old]",
-      'command = "old"',
-      "# END compound-plugin Claude Code MCP",
-    ].join("\n"))
+    await fs.writeFile(
+      configPath,
+      [
+        "[user]",
+        'model = "gpt-4.1"',
+        "",
+        "# BEGIN compound-plugin Claude Code MCP",
+        "[mcp_servers.old]",
+        'command = "old"',
+        "# END compound-plugin Claude Code MCP",
+      ].join("\n"),
+    )
 
     const bundle: CodexBundle = {
       prompts: [],
@@ -697,13 +776,10 @@ describe("writeCodexBundle", () => {
 
     // Simulate old writer output: entire file was just the generated config
     await fs.mkdir(codexRoot, { recursive: true })
-    await fs.writeFile(configPath, [
-      "# Generated by compound-plugin",
-      "",
-      "[mcp_servers.old]",
-      'command = "old"',
-      "",
-    ].join("\n"))
+    await fs.writeFile(
+      configPath,
+      ["# Generated by compound-plugin", "", "[mcp_servers.old]", 'command = "old"', ""].join("\n"),
+    )
 
     const bundle: CodexBundle = {
       prompts: [],
@@ -729,15 +805,18 @@ describe("writeCodexBundle", () => {
     const configPath = path.join(codexRoot, "config.toml")
 
     await fs.mkdir(codexRoot, { recursive: true })
-    await fs.writeFile(configPath, [
-      "[user]",
-      'model = "gpt-4.1"',
-      "",
-      "# BEGIN Compound Engineering plugin MCP -- do not edit this block",
-      "[mcp_servers.stale]",
-      'command = "should-be-removed"',
-      "# END Compound Engineering plugin MCP",
-    ].join("\n"))
+    await fs.writeFile(
+      configPath,
+      [
+        "[user]",
+        'model = "gpt-4.1"',
+        "",
+        "# BEGIN Compound Engineering plugin MCP -- do not edit this block",
+        "[mcp_servers.stale]",
+        'command = "should-be-removed"',
+        "# END Compound Engineering plugin MCP",
+      ].join("\n"),
+    )
 
     await writeCodexBundle(codexRoot, { prompts: [], skillDirs: [], generatedSkills: [] })
 
@@ -1033,7 +1112,7 @@ describe("renderCodexConfig", () => {
 
 describe("mergeCodexConfig", () => {
   test("returns managed block when no existing content", () => {
-    const result = mergeCodexConfig("", "[mcp_servers.test]\ncommand = \"echo\"")
+    const result = mergeCodexConfig("", '[mcp_servers.test]\ncommand = "echo"')
     expect(result).toContain("# BEGIN Compound Engineering plugin MCP")
     expect(result).toContain("[mcp_servers.test]")
     expect(result).toContain("# END Compound Engineering plugin MCP")
@@ -1053,7 +1132,7 @@ describe("mergeCodexConfig", () => {
       'key = "value"',
     ].join("\n")
 
-    const result = mergeCodexConfig(existing, "[mcp_servers.new]\ncommand = \"new\"")!
+    const result = mergeCodexConfig(existing, '[mcp_servers.new]\ncommand = "new"')!
     expect(result).toContain("[user]")
     expect(result).toContain("[after]")
     expect(result).not.toContain("[mcp_servers.old]")
@@ -1071,7 +1150,7 @@ describe("mergeCodexConfig", () => {
       "# END compound-plugin Claude Code MCP",
     ].join("\n")
 
-    const result = mergeCodexConfig(existing, "[mcp_servers.new]\ncommand = \"new\"")!
+    const result = mergeCodexConfig(existing, '[mcp_servers.new]\ncommand = "new"')!
     expect(result).not.toContain("# BEGIN compound-plugin Claude Code MCP")
     expect(result).not.toContain("[mcp_servers.old]")
     expect(result).toContain("# BEGIN Compound Engineering plugin MCP")
@@ -1104,7 +1183,7 @@ describe("mergeCodexConfig", () => {
       "",
     ].join("\n")
 
-    const result = mergeCodexConfig(existing, "[mcp_servers.new]\ncommand = \"new\"")!
+    const result = mergeCodexConfig(existing, '[mcp_servers.new]\ncommand = "new"')!
     expect(result).not.toContain("# Generated by compound-plugin")
     expect(result).not.toContain("[mcp_servers.old]")
     expect(result).toContain("# BEGIN Compound Engineering plugin MCP")
@@ -1169,7 +1248,7 @@ describe("mergeCodexConfig", () => {
       'command = "old"',
     ].join("\n")
 
-    const result = mergeCodexConfig(existing, "[mcp_servers.new]\ncommand = \"new\"")!
+    const result = mergeCodexConfig(existing, '[mcp_servers.new]\ncommand = "new"')!
     expect(result).toContain("[user]")
     expect(result).not.toContain("# Generated by compound-plugin")
     expect(result).not.toContain("[mcp_servers.old]")
@@ -1195,9 +1274,13 @@ describe("mergeCodexConfig", () => {
 
 describe("mergeCodexHooks", () => {
   test("writes hooks with _managed index for a new plugin", () => {
-    const result = mergeCodexHooks(null, {
-      SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "my-hook" }] }],
-    }, "my-plugin")
+    const result = mergeCodexHooks(
+      null,
+      {
+        SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "my-hook" }] }],
+      },
+      "my-plugin",
+    )
 
     const hooks = result.hooks as Record<string, unknown[]>
     expect(hooks.SessionStart).toHaveLength(1)
@@ -1217,9 +1300,13 @@ describe("mergeCodexHooks", () => {
       _managed: { "other-plugin": { SessionStart: [0] } },
     }
 
-    const result = mergeCodexHooks(existing, {
-      Stop: [{ matcher: "*", hooks: [{ type: "command", command: "my-stop" }] }],
-    }, "my-plugin")
+    const result = mergeCodexHooks(
+      existing,
+      {
+        Stop: [{ matcher: "*", hooks: [{ type: "command", command: "my-stop" }] }],
+      },
+      "my-plugin",
+    )
 
     const hooks = result.hooks as Record<string, unknown[]>
     // Other plugin's hook preserved
@@ -1232,22 +1319,24 @@ describe("mergeCodexHooks", () => {
   test("re-install replaces managed entries idempotently", () => {
     const existing = {
       hooks: {
-        SessionStart: [
-          { matcher: "*", hooks: [{ type: "command", command: "old-hook" }] },
-        ],
+        SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "old-hook" }] }],
       },
       _managed: { "my-plugin": { SessionStart: [0] } },
     }
 
-    const result = mergeCodexHooks(existing, {
-      SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "new-hook" }] }],
-    }, "my-plugin")
+    const result = mergeCodexHooks(
+      existing,
+      {
+        SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "new-hook" }] }],
+      },
+      "my-plugin",
+    )
 
     const hooks = result.hooks as Record<string, unknown[]>
     expect(hooks.SessionStart).toHaveLength(1)
     // Old hook replaced with new
     const entry = hooks.SessionStart[0] as Record<string, unknown>
-    const entryHooks = entry.hooks as Array<Record<string, unknown>>
+    const entryHooks = entry.hooks as Record<string, unknown>[]
     expect(entryHooks[0].command).toBe("new-hook")
   })
 
@@ -1267,25 +1356,30 @@ describe("mergeCodexHooks", () => {
     const hooks = result.hooks as Record<string, unknown[]>
     // Manual hook preserved, plugin hook removed
     expect(hooks.SessionStart).toHaveLength(1)
-    const entryHooks = (hooks.SessionStart[0] as Record<string, unknown>).hooks as Array<Record<string, unknown>>
+    const entryHooks = (hooks.SessionStart[0] as Record<string, unknown>).hooks as Record<
+      string,
+      unknown
+    >[]
     expect(entryHooks[0].command).toBe("manual-hook")
     // Managed index cleaned
-    expect((result._managed as Record<string, unknown>)?.["my-plugin"]).toBeUndefined()
+    expect((result._managed as Record<string, unknown> | undefined)?.["my-plugin"]).toBeUndefined()
   })
 
   test("preserves untagged manual hook entries", () => {
     const existing = {
       hooks: {
-        SessionStart: [
-          { matcher: "*", hooks: [{ type: "command", command: "manual" }] },
-        ],
+        SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "manual" }] }],
       },
       // No _managed — all entries are manual
     }
 
-    const result = mergeCodexHooks(existing, {
-      Stop: [{ matcher: "*", hooks: [{ type: "command", command: "plugin-stop" }] }],
-    }, "my-plugin")
+    const result = mergeCodexHooks(
+      existing,
+      {
+        Stop: [{ matcher: "*", hooks: [{ type: "command", command: "plugin-stop" }] }],
+      },
+      "my-plugin",
+    )
 
     const hooks = result.hooks as Record<string, unknown[]>
     expect(hooks.SessionStart).toHaveLength(1)
@@ -1302,9 +1396,13 @@ describe("mergeCodexHooks", () => {
       },
     }
 
-    const result = mergeCodexHooks(existing, {
-      SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "new" }] }],
-    }, "my-plugin")
+    const result = mergeCodexHooks(
+      existing,
+      {
+        SessionStart: [{ matcher: "*", hooks: [{ type: "command", command: "new" }] }],
+      },
+      "my-plugin",
+    )
 
     const hooks = result.hooks as Record<string, unknown[]>
     // Legacy _source entry removed, manual preserved, new added
@@ -1340,7 +1438,9 @@ async function probeSymlinkSupport(): Promise<{ canDirSymlink: boolean; canFileS
 const { canDirSymlink, canFileSymlink } = await probeSymlinkSupport()
 
 describe("writeCodexBundle preserves user-managed skill and agent paths", () => {
-  async function readInstallManifest(codexRoot: string): Promise<{ skills: string[]; agents: string[] }> {
+  async function readInstallManifest(
+    codexRoot: string,
+  ): Promise<{ skills: string[]; agents: string[] }> {
     const raw = await fs.readFile(
       path.join(codexRoot, "compound-engineering", "install-manifest.json"),
       "utf8",
@@ -1367,7 +1467,13 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -1377,7 +1483,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
 
       const linkStat = await fs.lstat(path.join(skillsRoot, "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifest = await readInstallManifest(codexRoot)
       expect(manifest.skills).not.toContain("skill-one")
@@ -1434,7 +1542,13 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
     }
 
     await writeCodexBundle(codexRoot, bundle)
-    const skillPath = path.join(codexRoot, "skills", "compound-engineering", "skill-one", "SKILL.md")
+    const skillPath = path.join(
+      codexRoot,
+      "skills",
+      "compound-engineering",
+      "skill-one",
+      "SKILL.md",
+    )
     // Simulate drift between two installs: same managed dir, different upstream content.
     await fs.writeFile(skillPath, "stale managed content")
 
@@ -1482,7 +1596,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
   test.skipIf(!canDirSymlink)(
     "a preserved skill symlink survives a later install run where the skill is dropped from the bundle",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codex-preserve-skill-symlink-second-run-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "codex-preserve-skill-symlink-second-run-"),
+      )
       const codexRoot = path.join(tempRoot, ".codex")
 
       const bundleWithSkill: CodexBundle = {
@@ -1491,7 +1607,13 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -1523,7 +1645,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
 
       const linkStat = await fs.lstat(path.join(skillsRoot, "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifestAfterSecondRun = await readInstallManifest(codexRoot)
       expect(manifestAfterSecondRun.skills).not.toContain("skill-one")
@@ -1533,7 +1657,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
   test.skipIf(!canDirSymlink)(
     "a legacy-named skill symlinked to a user fork is not swept into legacy-backup",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codex-preserve-legacy-skill-symlink-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "codex-preserve-legacy-skill-symlink-"),
+      )
       const codexRoot = path.join(tempRoot, ".codex")
 
       // Worst case: the fork keeps the CE fingerprint (name + description), so
@@ -1562,7 +1688,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
       if (await exists(legacyBackupRoot)) {
         for (const timestamp of await fs.readdir(legacyBackupRoot)) {
           const skillsBackup = path.join(legacyBackupRoot, timestamp, "skills")
-          if (!(await exists(skillsBackup))) continue
+          if (!(await exists(skillsBackup))) {
+            continue
+          }
           expect(await fs.readdir(skillsBackup)).not.toContain("reproduce-bug")
         }
       }
@@ -1572,7 +1700,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
   test.skipIf(!canDirSymlink)(
     "preserves a dangling skill symlink whose target no longer exists",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codex-preserve-skill-symlink-dangling-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "codex-preserve-skill-symlink-dangling-"),
+      )
       const codexRoot = path.join(tempRoot, ".codex")
 
       // Create the symlink against a real target, then remove the target so
@@ -1591,7 +1721,13 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -1610,7 +1746,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
   test.skipIf(!canDirSymlink)(
     "preserves a symlinked agent sidecar dir when the agent drops its sidecars",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "codex-preserve-agent-sidecar-symlink-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "codex-preserve-agent-sidecar-symlink-"),
+      )
       const codexRoot = path.join(tempRoot, ".codex")
       const sidecarSource = await fs.mkdtemp(path.join(os.tmpdir(), "codex-sidecar-src-"))
       await fs.writeFile(path.join(sidecarSource, "script.sh"), "#!/bin/sh\necho hi\n", "utf8")
@@ -1658,7 +1796,9 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
 
       const linkStat = await fs.lstat(path.join(agentsRoot, "ce-foo"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "notes.md"), "utf8")).toBe("# user fork sidecar content\n")
+      expect(await fs.readFile(path.join(forkDir, "notes.md"), "utf8")).toBe(
+        "# user fork sidecar content\n",
+      )
       // The managed TOML itself is still owned and rewritten as normal.
       expect(await exists(path.join(agentsRoot, "ce-foo.toml"))).toBe(true)
     },
@@ -1666,15 +1806,25 @@ describe("writeCodexBundle preserves user-managed skill and agent paths", () => 
 })
 
 describe("writeCodexBundle guards against ancestor-symlink traversal", () => {
-  async function readInstallManifest(codexRoot: string): Promise<{ skills: string[]; agents: string[] }> {
-    const raw = await fs.readFile(path.join(codexRoot, "compound-engineering", "install-manifest.json"), "utf8")
+  async function readInstallManifest(
+    codexRoot: string,
+  ): Promise<{ skills: string[]; agents: string[] }> {
+    const raw = await fs.readFile(
+      path.join(codexRoot, "compound-engineering", "install-manifest.json"),
+      "utf8",
+    )
     return JSON.parse(raw) as { skills: string[]; agents: string[] }
   }
 
   const skillBundle = (): CodexBundle => ({
     pluginName: "compound-engineering",
     prompts: [],
-    skillDirs: [{ name: "skill-one", sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one") }],
+    skillDirs: [
+      {
+        name: "skill-one",
+        sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+      },
+    ],
     generatedSkills: [],
   })
 
@@ -1688,7 +1838,11 @@ describe("writeCodexBundle guards against ancestor-symlink traversal", () => {
       await fs.mkdir(forkStore, { recursive: true })
       await fs.writeFile(path.join(forkStore, "MARKER.md"), "# user store\n")
       await fs.mkdir(path.join(codexRoot, "skills"), { recursive: true })
-      await fs.symlink(forkStore, path.join(codexRoot, "skills", "compound-engineering"), "junction")
+      await fs.symlink(
+        forkStore,
+        path.join(codexRoot, "skills", "compound-engineering"),
+        "junction",
+      )
 
       await writeCodexBundle(codexRoot, skillBundle())
 
@@ -1718,7 +1872,9 @@ describe("writeCodexBundle guards against ancestor-symlink traversal", () => {
       const linkStat = await fs.lstat(path.join(codexRoot, "skills"))
       expect(linkStat.isSymbolicLink()).toBe(true)
       expect(await exists(path.join(forkSkills, "compound-engineering"))).toBe(false)
-      expect(await fs.readFile(path.join(forkSkills, "MARKER.md"), "utf8")).toBe("# user skills root\n")
+      expect(await fs.readFile(path.join(forkSkills, "MARKER.md"), "utf8")).toBe(
+        "# user skills root\n",
+      )
       expect((await readInstallManifest(codexRoot)).skills).not.toContain("skill-one")
     },
   )

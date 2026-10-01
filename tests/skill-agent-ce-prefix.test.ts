@@ -1,12 +1,18 @@
+import { describe, expect, test } from "bun:test"
 import { existsSync, readdirSync, readFileSync, statSync } from "fs"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 import { parseFrontmatter } from "../src/utils/frontmatter"
 
 const PLUGIN_ROOT = process.cwd()
 const SKILLS_DIR = path.join(PLUGIN_ROOT, "skills")
 const AGENTS_DIR = path.join(PLUGIN_ROOT, "agents")
 const PREFIX = "ce-"
+// The fork keeps its specialist namespace distinct from CE workflow skills.
+const SPECIALISTS = new Set([
+  "i484-product-design",
+  "i484-visualize",
+  "i484-geometric-illustration",
+])
 const REF = `AGENTS.md "Naming Convention"`
 
 // Exemptions from the ce- prefix rule. Add entries here only with a written
@@ -23,7 +29,9 @@ function frontmatterName(filePath: string): string {
 }
 
 function collectMarkdownFiles(root: string): string[] {
-  if (!existsSync(root)) return []
+  if (!existsSync(root)) {
+    return []
+  }
   const files: string[] = []
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const fullPath = path.join(root, entry.name)
@@ -38,26 +46,27 @@ function collectMarkdownFiles(root: string): string[] {
 
 describe("compound-engineering skill ce- prefix", () => {
   const skillDirs = readdirSync(SKILLS_DIR, { withFileTypes: true })
-    .filter((entry) =>
-      entry.isDirectory()
-      && existsSync(path.join(SKILLS_DIR, entry.name, "SKILL.md"))
-      && !SKILL_EXEMPTIONS.has(entry.name)
+    .filter(
+      (entry) =>
+        entry.isDirectory() &&
+        existsSync(path.join(SKILLS_DIR, entry.name, "SKILL.md")) &&
+        !SKILL_EXEMPTIONS.has(entry.name),
     )
     .map((entry) => entry.name)
 
   for (const dirName of skillDirs) {
     test(`skill directory "${dirName}" uses ce- prefix`, () => {
       expect(
-        dirName.startsWith(PREFIX),
+        dirName.startsWith(SPECIALISTS.has(dirName) ? "i484-" : PREFIX),
         `Skill directory "${dirName}" must start with "${PREFIX}" — see ${REF}`,
       ).toBe(true)
     })
 
     test(`skill "${dirName}" frontmatter name uses ce- prefix`, () => {
       const name = frontmatterName(path.join(SKILLS_DIR, dirName, "SKILL.md"))
-      expect(name, `SKILL.md must declare a frontmatter name`).not.toBe("")
+      expect(name, "SKILL.md must declare a frontmatter name").not.toBe("")
       expect(
-        name.startsWith(PREFIX),
+        name.startsWith(SPECIALISTS.has(dirName) ? "i484-" : PREFIX),
         `Skill frontmatter name "${name}" must start with "${PREFIX}" — see ${REF}`,
       ).toBe(true)
     })
@@ -71,7 +80,9 @@ describe("compound-engineering local prompt assets", () => {
 
   const promptFiles = collectMarkdownFiles(SKILLS_DIR).filter((file) => {
     const normalized = file.split(path.sep).join("/")
-    return normalized.includes("/references/agents/") || normalized.includes("/references/personas/")
+    return (
+      normalized.includes("/references/agents/") || normalized.includes("/references/personas/")
+    )
   })
 
   for (const filePath of promptFiles) {

@@ -27,13 +27,11 @@ Read `references/scoping.md` before you ask the user anything or touch the repo.
 
 Read `references/build.md` and `references/preview.md` before writing anything. Once an isolated web preview is up, load `references/annotation-loop.md`. Overlay runs and non-web runs stay on chat.
 
-**i484 product-design knowledge is additive, never a second prototype workflow.** When the prototype is settling how a user-facing product interface should work, feel, or read and the installed skill catalog exposes `i484-product-design`, load it before making the relevant design judgments. Use it only as product-design domain knowledge; this skill still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff.
+**i484 product-design knowledge is additive, never a second prototype workflow.** The required build read governs `i484-product-design` as product-design domain knowledge before design judgments.
 
 After they proceed, speak only when they can act on something new, in one short line naming what happened: a screen is up, the helper URL is live, or a blocker only they can lift. That annotation loop defines the line after an applied revision and silence while a wait is parked.
 
 A question is settled by seeing when the judgment lands on the rendered result: how a layout reads, what a palette does, how dense a screen feels. It is settled by driving when the judgment lands on what happens as the user moves through it: a flow, a state model, how a control answers. Load `references/craft-floor.md` for a seeing question. It carries the quality floor and the avenue-difference rule; neither lives here. A question settled by driving does not load it and gains no finish from it.
-
-Default substrate: the web, whatever the product is written in — a native app's navigation feel gets a web approximation, not SwiftUI. `references/build.md` defines yields and artifacts.
 
 Build under `.context/compound-engineering/ce-prototype/<date>-<slug>/`, so the prototype survives for the implementation that follows. Fall back to `/tmp/compound-engineering-<uid>/ce-prototype/<date>-<slug>/`, where survival is best-effort. `references/build.md` names every case that forces the fallback root.
 
@@ -45,7 +43,7 @@ Scale into the existing app as a throwaway overlay when the user asks, or when t
 
 ## Keep the decisions
 
-Keep a run capsule at `decisions.md` in this run's directory, so the next skill does not need this session. `references/build.md` lists what it carries. Point at the prototype; do not reproduce it. Include only what changes later planning. Do not treat `decisions.md` as a plan: applying writes the Product Contract or the recap, and the capsule is only continuity.
+Keep a run capsule at `decisions.md` in this run's directory. Follow `references/build.md` for its contents and continuity role. Do not treat `decisions.md` as a plan.
 
 Update the capsule when you are confident a choice has settled — the user judged the artifact and chose, including any adjustments they attached. If you are not confident, do not write. Do not pause to confirm every write. Keep the winner and those adjustments in the prototype.
 

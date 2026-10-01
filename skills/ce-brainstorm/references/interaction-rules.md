@@ -1,5 +1,7 @@
 # Core Principles, Interaction Rules, and Output Guidance
 
+**i484 product-design knowledge is additive, never a second brainstorm workflow.** When this brainstorm includes decisions about a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before asking or resolving design-dependent questions. Use it only for product-design domain judgment. This skill still owns dialogue, requirements scoping, artifact decisions, and handoff.
+
 Read this before the first question of any brainstorm, including the non-software route.
 
 ## Core Principles

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { promises as fs } from "fs"
-import path from "path"
 import os from "os"
+import path from "path"
+import { convertClaudeToPi } from "../src/converters/claude-to-pi"
+import { loadClaudePlugin } from "../src/parsers/claude"
 import { writePiBundle } from "../src/targets/pi"
 import type { PiBundle } from "../src/types/pi"
-import { loadClaudePlugin } from "../src/parsers/claude"
-import { convertClaudeToPi } from "../src/converters/claude-to-pi"
 
 async function exists(filePath: string): Promise<boolean> {
   try {
@@ -70,7 +70,9 @@ describe("writePiBundle", () => {
 
     expect(await exists(path.join(agentsRoot, "repo-research-analyst.md"))).toBe(false)
     expect(await exists(path.join(agentsRoot, "ce-repo-research-analyst.md"))).toBe(true)
-    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(userAgentBody)
+    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(
+      userAgentBody,
+    )
 
     const backupRoot = path.join(outputRoot, "compound-engineering", "legacy-backup")
     expect(await exists(backupRoot)).toBe(true)
@@ -78,9 +80,13 @@ describe("writePiBundle", () => {
     let foundAgentBackup = false
     for (const timestamp of timestamps) {
       const agentsBackup = path.join(backupRoot, timestamp, "agents")
-      if (!(await exists(agentsBackup))) continue
+      if (!(await exists(agentsBackup))) {
+        continue
+      }
       const backedUp = await fs.readdir(agentsBackup)
-      if (backedUp.includes("repo-research-analyst.md")) foundAgentBackup = true
+      if (backedUp.includes("repo-research-analyst.md")) {
+        foundAgentBackup = true
+      }
       expect(backedUp).not.toContain("ce-repo-research-analyst.md")
     }
     expect(foundAgentBackup).toBe(true)
@@ -96,7 +102,10 @@ describe("writePiBundle", () => {
       `---\nname: session-historian\ndescription: ${JSON.stringify(SESSION_HISTORIAN_DESCRIPTION)}\n---\n\nLegacy agent\n`,
     )
     await fs.mkdir(path.join(outputRoot, "prompts"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "prompts", "session-historian.md"), "user-owned prompt")
+    await fs.writeFile(
+      path.join(outputRoot, "prompts", "session-historian.md"),
+      "user-owned prompt",
+    )
 
     const bundle: PiBundle = {
       prompts: [],
@@ -126,8 +135,12 @@ describe("writePiBundle", () => {
         },
       ],
       generatedSkills: [],
-      agents: [{ name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" }],
-      extensions: [{ name: "compound-engineering-compat.ts", content: "export default function () {}" }],
+      agents: [
+        { name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" },
+      ],
+      extensions: [
+        { name: "compound-engineering-compat.ts", content: "export default function () {}" },
+      ],
       mcporterConfig: {
         mcpServers: {
           context7: { baseUrl: "https://mcp.context7.com/mcp" },
@@ -142,9 +155,13 @@ describe("writePiBundle", () => {
     // Claude agents are written as Pi agent files (.pi/agents/<name>.md), not
     // skill directories, for runtimes and tools that read Pi agent files.
     expect(await exists(path.join(outputRoot, "agents", "repo-research-analyst.md"))).toBe(true)
-    expect(await exists(path.join(outputRoot, "extensions", "compound-engineering-compat.ts"))).toBe(true)
+    expect(
+      await exists(path.join(outputRoot, "extensions", "compound-engineering-compat.ts")),
+    ).toBe(true)
     expect(await exists(path.join(outputRoot, "compound-engineering", "mcporter.json"))).toBe(true)
-    expect(await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json"))).toBe(true)
+    expect(
+      await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json")),
+    ).toBe(true)
 
     const agentsPath = path.join(outputRoot, "AGENTS.md")
     const agentsContent = await fs.readFile(agentsPath, "utf8")
@@ -188,8 +205,12 @@ Run these research agents:
       "utf8",
     )
 
-    expect(installedSkill).toContain('Run subagent with agent="repo-research-analyst" and task="feature_description".')
-    expect(installedSkill).toContain('Run subagent with agent="learnings-researcher" and task="feature_description".')
+    expect(installedSkill).toContain(
+      'Run subagent with agent="repo-research-analyst" and task="feature_description".',
+    )
+    expect(installedSkill).toContain(
+      'Run subagent with agent="learnings-researcher" and task="feature_description".',
+    )
     expect(installedSkill).toContain('Run subagent with agent="code-simplicity-reviewer".')
     expect(installedSkill).not.toContain("Task compound-engineering:")
   })
@@ -239,7 +260,9 @@ Run these research agents:
     const backupFileName = files.find((file) => file.startsWith("mcporter.json.bak."))
     expect(backupFileName).toBeDefined()
 
-    const currentConfig = JSON.parse(await fs.readFile(configPath, "utf8")) as { mcpServers: Record<string, unknown> }
+    const currentConfig = JSON.parse(await fs.readFile(configPath, "utf8")) as {
+      mcpServers: Record<string, unknown>
+    }
     expect(currentConfig.mcpServers.linear).toBeDefined()
   })
 
@@ -258,7 +281,9 @@ Run these research agents:
       ],
       generatedSkills: [],
       agents: [{ name: "old-agent", content: "---\nname: old-agent\n---\n\nBody" }],
-      extensions: [{ name: "compound-engineering-compat.ts", content: "export default function first() {}" }],
+      extensions: [
+        { name: "compound-engineering-compat.ts", content: "export default function first() {}" },
+      ],
     })
 
     await writePiBundle(outputRoot, {
@@ -275,7 +300,9 @@ Run these research agents:
     expect(await exists(path.join(outputRoot, "skills", "skill-one", "SKILL.md"))).toBe(false)
     expect(await exists(path.join(outputRoot, "agents", "old-agent.md"))).toBe(false)
     expect(await exists(path.join(outputRoot, "agents", "new-agent.md"))).toBe(true)
-    expect(await exists(path.join(outputRoot, "extensions", "compound-engineering-compat.ts"))).toBe(false)
+    expect(
+      await exists(path.join(outputRoot, "extensions", "compound-engineering-compat.ts")),
+    ).toBe(false)
   })
 
   test("namespaces managed install manifests per plugin so installs do not collide", async () => {
@@ -307,13 +334,17 @@ Run these research agents:
           sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
         },
       ],
-      generatedSkills: [{ name: "tutor-gen-skill", content: "---\nname: tutor-gen-skill\n---\n\nBody" }],
+      generatedSkills: [
+        { name: "tutor-gen-skill", content: "---\nname: tutor-gen-skill\n---\n\nBody" },
+      ],
       agents: [],
       extensions: [{ name: "tutor-ext.ts", content: "export default function () {}" }],
     })
 
     // Both plugins must keep their own namespaced manifest
-    expect(await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json"))).toBe(true)
+    expect(
+      await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json")),
+    ).toBe(true)
     expect(await exists(path.join(outputRoot, "coding-tutor", "install-manifest.json"))).toBe(true)
 
     // Reinstall plugin A with no artifacts — it must clean up only its own
@@ -348,7 +379,11 @@ Run these research agents:
     await fs.mkdir(path.dirname(staleConfigPath), { recursive: true })
     await fs.writeFile(
       staleConfigPath,
-      JSON.stringify({ mcpServers: { stale: { baseUrl: "https://example.invalid/mcp" } } }, null, 2),
+      JSON.stringify(
+        { mcpServers: { stale: { baseUrl: "https://example.invalid/mcp" } } },
+        null,
+        2,
+      ),
     )
 
     const bundle: PiBundle = {
@@ -384,7 +419,7 @@ Run these research agents:
     const backedUp = JSON.parse(await fs.readFile(mcporterBackup!, "utf8")) as {
       mcpServers: Record<string, { baseUrl?: string }>
     }
-    expect(backedUp.mcpServers.stale?.baseUrl).toBe("https://example.invalid/mcp")
+    expect(backedUp.mcpServers.stale.baseUrl).toBe("https://example.invalid/mcp")
   })
 
   test("moves legacy flat Pi CE artifacts to a namespaced backup", async () => {
@@ -392,12 +427,26 @@ Run these research agents:
     const outputRoot = path.join(tempRoot, ".pi")
 
     await fs.mkdir(path.join(outputRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", REPRODUCE_BUG_DESCRIPTION))
-    await fs.mkdir(path.join(outputRoot, "skills", "bug-reproduction-validator"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "skills", "bug-reproduction-validator", "SKILL.md"), skillContent("bug-reproduction-validator", BUG_REPRODUCTION_VALIDATOR_DESCRIPTION))
+    await fs.writeFile(
+      path.join(outputRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", REPRODUCE_BUG_DESCRIPTION),
+    )
+    await fs.mkdir(path.join(outputRoot, "skills", "bug-reproduction-validator"), {
+      recursive: true,
+    })
+    await fs.writeFile(
+      path.join(outputRoot, "skills", "bug-reproduction-validator", "SKILL.md"),
+      skillContent("bug-reproduction-validator", BUG_REPRODUCTION_VALIDATOR_DESCRIPTION),
+    )
     await fs.mkdir(path.join(outputRoot, "prompts"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "prompts", "reproduce-bug.md"), "legacy removed prompt")
-    await fs.writeFile(path.join(outputRoot, "prompts", "report-bug.md"), "legacy deleted command prompt")
+    await fs.writeFile(
+      path.join(outputRoot, "prompts", "reproduce-bug.md"),
+      "legacy removed prompt",
+    )
+    await fs.writeFile(
+      path.join(outputRoot, "prompts", "report-bug.md"),
+      "legacy deleted command prompt",
+    )
 
     const plugin = await loadClaudePlugin(path.join(import.meta.dir, ".."))
     const bundle = convertClaudeToPi(plugin, {
@@ -415,7 +464,7 @@ Run these research agents:
     // Compound Engineering no longer ships standalone agents; specialist
     // prompts live inside the consuming skill directories.
     expect(await exists(path.join(outputRoot, "agents", "ce-repo-research-analyst.md"))).toBe(false)
-    expect(await exists(path.join(outputRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(outputRoot, plugin.manifest.name, "legacy-backup"))).toBe(true)
   })
 })
 
@@ -447,7 +496,9 @@ async function probeSymlinkSupport(): Promise<{ canDirSymlink: boolean; canFileS
 const { canDirSymlink, canFileSymlink } = await probeSymlinkSupport()
 
 describe("writePiBundle preserves user-managed skill paths", () => {
-  async function readInstallManifest(outputRoot: string): Promise<{ skills: string[]; agents: string[] }> {
+  async function readInstallManifest(
+    outputRoot: string,
+  ): Promise<{ skills: string[]; agents: string[] }> {
     const raw = await fs.readFile(
       path.join(outputRoot, "compound-engineering", "install-manifest.json"),
       "utf8",
@@ -473,7 +524,13 @@ describe("writePiBundle preserves user-managed skill paths", () => {
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -485,7 +542,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
 
       const linkStat = await fs.lstat(path.join(outputRoot, "skills", "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifest = await readInstallManifest(outputRoot)
       expect(manifest.skills).not.toContain("skill-one")
@@ -518,9 +577,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
 
     await writePiBundle(outputRoot, bundle)
 
-    expect(await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8")).toBe(
-      "# hand-authored, never installed by this tool\n",
-    )
+    expect(
+      await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8"),
+    ).toBe("# hand-authored, never installed by this tool\n")
 
     const manifest = await readInstallManifest(outputRoot)
     expect(manifest.skills).not.toContain("skill-one")
@@ -546,11 +605,17 @@ describe("writePiBundle preserves user-managed skill paths", () => {
 
     await writePiBundle(outputRoot, bundle)
     // Simulate drift between two installs: same managed dir, different upstream content.
-    await fs.writeFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "stale managed content")
+    await fs.writeFile(
+      path.join(outputRoot, "skills", "skill-one", "SKILL.md"),
+      "stale managed content",
+    )
 
     await writePiBundle(outputRoot, bundle)
 
-    const content = await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8")
+    const content = await fs.readFile(
+      path.join(outputRoot, "skills", "skill-one", "SKILL.md"),
+      "utf8",
+    )
     expect(content).not.toBe("stale managed content")
     expect(content).toContain("Skill body")
 
@@ -561,7 +626,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
   test.skipIf(!canDirSymlink)(
     "a preserved skill symlink survives a later install run where the skill is dropped from the bundle",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-skill-symlink-second-run-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "pi-preserve-skill-symlink-second-run-"),
+      )
       const outputRoot = path.join(tempRoot, ".pi")
 
       const bundleWithSkill: PiBundle = {
@@ -570,7 +637,13 @@ describe("writePiBundle preserves user-managed skill paths", () => {
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -605,40 +678,50 @@ describe("writePiBundle preserves user-managed skill paths", () => {
 
       const linkStat = await fs.lstat(path.join(outputRoot, "skills", "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifestAfterSecondRun = await readInstallManifest(outputRoot)
       expect(manifestAfterSecondRun.skills).not.toContain("skill-one")
     },
   )
 
-  test.skipIf(!canFileSymlink)("preserves a symlinked agent file and leaves its target content untouched", async () => {
-    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-agent-symlink-"))
-    const outputRoot = path.join(tempRoot, ".pi")
-    const forkAgentPath = path.join(tempRoot, "user-fork-agent.md")
-    await fs.writeFile(forkAgentPath, "# user fork agent content\n")
+  test.skipIf(!canFileSymlink)(
+    "preserves a symlinked agent file and leaves its target content untouched",
+    async () => {
+      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-agent-symlink-"))
+      const outputRoot = path.join(tempRoot, ".pi")
+      const forkAgentPath = path.join(tempRoot, "user-fork-agent.md")
+      await fs.writeFile(forkAgentPath, "# user fork agent content\n")
 
-    await fs.mkdir(path.join(outputRoot, "agents"), { recursive: true })
-    await fs.symlink(forkAgentPath, path.join(outputRoot, "agents", "repo-research-analyst.md"))
+      await fs.mkdir(path.join(outputRoot, "agents"), { recursive: true })
+      await fs.symlink(forkAgentPath, path.join(outputRoot, "agents", "repo-research-analyst.md"))
 
-    const bundle: PiBundle = {
-      pluginName: "compound-engineering",
-      prompts: [],
-      skillDirs: [],
-      generatedSkills: [],
-      agents: [{ name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" }],
-      extensions: [],
-    }
+      const bundle: PiBundle = {
+        pluginName: "compound-engineering",
+        prompts: [],
+        skillDirs: [],
+        generatedSkills: [],
+        agents: [
+          {
+            name: "repo-research-analyst",
+            content: "---\nname: repo-research-analyst\n---\n\nBody",
+          },
+        ],
+        extensions: [],
+      }
 
-    await writePiBundle(outputRoot, bundle)
+      await writePiBundle(outputRoot, bundle)
 
-    const linkStat = await fs.lstat(path.join(outputRoot, "agents", "repo-research-analyst.md"))
-    expect(linkStat.isSymbolicLink()).toBe(true)
-    expect(await fs.readFile(forkAgentPath, "utf8")).toBe("# user fork agent content\n")
+      const linkStat = await fs.lstat(path.join(outputRoot, "agents", "repo-research-analyst.md"))
+      expect(linkStat.isSymbolicLink()).toBe(true)
+      expect(await fs.readFile(forkAgentPath, "utf8")).toBe("# user fork agent content\n")
 
-    const manifest = await readInstallManifest(outputRoot)
-    expect(manifest.agents).not.toContain("repo-research-analyst.md")
-  })
+      const manifest = await readInstallManifest(outputRoot)
+      expect(manifest.agents).not.toContain("repo-research-analyst.md")
+    },
+  )
 
   test("preserves an unmanaged real agent file (not previously owned by this tool)", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-agent-unmanaged-"))
@@ -655,15 +738,17 @@ describe("writePiBundle preserves user-managed skill paths", () => {
       prompts: [],
       skillDirs: [],
       generatedSkills: [],
-      agents: [{ name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" }],
+      agents: [
+        { name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" },
+      ],
       extensions: [],
     }
 
     await writePiBundle(outputRoot, bundle)
 
-    expect(await fs.readFile(path.join(outputRoot, "agents", "repo-research-analyst.md"), "utf8")).toBe(
-      "# hand-authored, never installed by this tool\n",
-    )
+    expect(
+      await fs.readFile(path.join(outputRoot, "agents", "repo-research-analyst.md"), "utf8"),
+    ).toBe("# hand-authored, never installed by this tool\n")
 
     const manifest = await readInstallManifest(outputRoot)
     expect(manifest.agents).not.toContain("repo-research-analyst.md")
@@ -678,17 +763,25 @@ describe("writePiBundle preserves user-managed skill paths", () => {
       prompts: [],
       skillDirs: [],
       generatedSkills: [],
-      agents: [{ name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" }],
+      agents: [
+        { name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" },
+      ],
       extensions: [],
     }
 
     await writePiBundle(outputRoot, bundle)
     // Simulate drift between two installs: same managed file, different upstream content.
-    await fs.writeFile(path.join(outputRoot, "agents", "repo-research-analyst.md"), "stale managed content")
+    await fs.writeFile(
+      path.join(outputRoot, "agents", "repo-research-analyst.md"),
+      "stale managed content",
+    )
 
     await writePiBundle(outputRoot, bundle)
 
-    const content = await fs.readFile(path.join(outputRoot, "agents", "repo-research-analyst.md"), "utf8")
+    const content = await fs.readFile(
+      path.join(outputRoot, "agents", "repo-research-analyst.md"),
+      "utf8",
+    )
     expect(content).not.toBe("stale managed content")
     expect(content).toContain("Body")
 
@@ -699,7 +792,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
   test.skipIf(!canFileSymlink)(
     "a preserved agent symlink survives a later install run where the agent is dropped from the bundle",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-agent-symlink-second-run-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "pi-preserve-agent-symlink-second-run-"),
+      )
       const outputRoot = path.join(tempRoot, ".pi")
 
       const bundleWithAgent: PiBundle = {
@@ -707,7 +802,12 @@ describe("writePiBundle preserves user-managed skill paths", () => {
         prompts: [],
         skillDirs: [],
         generatedSkills: [],
-        agents: [{ name: "repo-research-analyst", content: "---\nname: repo-research-analyst\n---\n\nBody" }],
+        agents: [
+          {
+            name: "repo-research-analyst",
+            content: "---\nname: repo-research-analyst\n---\n\nBody",
+          },
+        ],
         extensions: [],
       }
 
@@ -779,7 +879,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
       if (await exists(legacyBackupRoot)) {
         for (const timestamp of await fs.readdir(legacyBackupRoot)) {
           const skillsBackup = path.join(legacyBackupRoot, timestamp, "skills")
-          if (!(await exists(skillsBackup))) continue
+          if (!(await exists(skillsBackup))) {
+            continue
+          }
           expect(await fs.readdir(skillsBackup)).not.toContain("reproduce-bug")
         }
       }
@@ -789,7 +891,9 @@ describe("writePiBundle preserves user-managed skill paths", () => {
   test.skipIf(!canDirSymlink)(
     "preserves a dangling skill symlink whose target no longer exists",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pi-preserve-skill-symlink-dangling-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "pi-preserve-skill-symlink-dangling-"),
+      )
       const outputRoot = path.join(tempRoot, ".pi")
 
       // Create the symlink against a real target, then remove the target so
@@ -807,7 +911,13 @@ describe("writePiBundle preserves user-managed skill paths", () => {
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
         generatedSkills: [],
@@ -828,7 +938,10 @@ describe("writePiBundle preserves user-managed skill paths", () => {
 
 describe("writePiBundle guards against ancestor-symlink traversal", () => {
   async function readInstallManifest(outputRoot: string): Promise<{ skills: string[] }> {
-    const raw = await fs.readFile(path.join(outputRoot, "compound-engineering", "install-manifest.json"), "utf8")
+    const raw = await fs.readFile(
+      path.join(outputRoot, "compound-engineering", "install-manifest.json"),
+      "utf8",
+    )
     return JSON.parse(raw) as { skills: string[] }
   }
 
@@ -846,7 +959,18 @@ describe("writePiBundle guards against ancestor-symlink traversal", () => {
       const bundle: PiBundle = {
         pluginName: "compound-engineering",
         prompts: [],
-        skillDirs: [{ name: "skill-one", sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one") }],
+        skillDirs: [
+          {
+            name: "skill-one",
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
+          },
+        ],
         generatedSkills: [],
         agents: [],
         extensions: [],

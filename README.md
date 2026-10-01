@@ -187,93 +187,99 @@ Compound Engineeringは「どの段階で品質確認を行うか」を所有し
 
 ## 39 Skills
 
-i484 Engineeringには、Compound Engineering由来の36 Skillとi484独自の3 Specialist Skillがあります。
+i484 Engineeringは39個のSkillを提供します。Compound Engineering由来の36個と、i484独自の3個です。次の表を、各Skillを含める理由と期待する成果の正本とします。詳しい使い方は[Skillガイド](docs/guides/README.md)、実行時の契約は各Skillの`SKILL.md`を参照してください。
+
+「明示呼び出し」は`disable-model-invocation: true`のSkillです。9個が該当し、自動選択の候補には入りません。残る30個も毎回まとめて実行するものではありません。依頼と各Skillの説明が一致したときに選びます。上流由来の能力を同梱していることは、外部サービスの接続や継続監視の開始を意味しません。
 
 ### 開発の中心
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-ideate` | 何に取り組む価値があるかを探索する |
-| `ce-brainstorm` | 要求やProductの形を明確にする |
-| `ce-plan` | 実装可能な計画へ落とし込む |
-| `ce-work` | 計画を実装し、品質Gateを通して完了させる |
-| `ce-compound` | 得られた知識を次の作業で再利用可能にする |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-ideate` | 取り組む価値のある案を、根拠と比較軸を添えて見つける | 方向がまだ決まっていないとき | 説明に応じて選択 |
+| `ce-brainstorm` | 要求と未決定事項を整理し、実装前の認識をそろえる | 何を作るかが曖昧なとき | 説明に応じて選択 |
+| `ce-plan` | 範囲、制約、検証方法をそろえた実装可能な計画を作る | 複数工程や重要な判断があるとき | 説明に応じて選択 |
+| `ce-work` | 具体的な依頼を実装し、必要な検証まで完了する | 計画または明確な実装依頼があるとき | 説明に応じて選択 |
+| `ce-compound` | 再発防止や再調査の削減につながる知識を残す | 最終コードから読み取れない学びがあるとき | 説明に応じて選択 |
 
 ### 戦略・継続的改善
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-strategy` | Projectの戦略的な前提を管理する |
-| `ce-product-pulse` | 利用状況・performance・errorなどを定期的に観測する |
-| `ce-sweep` | 外部feedbackを継続的に取り込む |
-| `ce-compound-refresh` | 蓄積されたsolution knowledgeを保守する |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-strategy` | 製品の目的、対象、判断の前提を保つ | 戦略の作成・更新 | 説明に応じて選択 |
+| `ce-product-pulse` | 利用状況、性能、障害から次の改善を判断する | 観測期間と対象を指定した定期評価 | 明示呼び出し |
+| `ce-sweep` | 外部のフィードバックを実行可能な作業へ整理する | 取得元と対象を指定した継続的な整理 | 明示呼び出し |
+| `ce-compound-refresh` | 蓄積した知識を現在の実装に合わせて保守する | 学習文書の陳腐化や重複を整理するとき | 説明に応じて選択 |
 
 ### 調査・設計・改善
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-bakeoff` | 複数案を独立に比較する |
-| `ce-pov` | Project contextに基づく判断を返す |
-| `ce-explain` | 実装や設計がどう動くかを根拠付きで説明する |
-| `ce-prototype` | 体験可能なthrowaway prototypeを作る |
-| `ce-debug` | 症状からroot causeまで因果を追う |
-| `ce-code-review` | diff / PRを構造的にreviewする |
-| `ce-doc-review` | 要求・計画文書をreviewする |
-| `ce-simplify-code` | 挙動を保ったまま最近の実装を整理する |
-| `ce-optimize` | 測定可能な対象を改善する |
-| `ce-retune` | 新しいmodelに合わせてSkill corpusを再調整する |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-bakeoff` | 独立した複数案を同じ条件で比較して選ぶ | 重要な技術選択が残るとき、または比較の依頼 | 説明に応じて選択 |
+| `ce-pov` | プロジェクトの根拠と制約に沿って採否を判断する | 提案、技術、文書の評価 | 説明に応じて選択 |
+| `ce-explain` | 現在の実装や設計の理由を根拠付きで説明する | 仕組みや経緯の理解 | 説明に応じて選択 |
+| `ce-prototype` | 試作品で使い方や体験を確かめ、決定事項へ戻す | 実装前に体験を確かめたいとき | 説明に応じて選択 |
+| `ce-debug` | 症状と原因を切り分け、原因に対応した修正へつなぐ | 不具合調査の既定 | 説明に応じて選択 |
+| `ce-code-review` | 差分の不具合、回帰、検証不足を根拠付きで指摘する | コードレビューの既定 | 説明に応じて選択 |
+| `ce-doc-review` | 要求や計画の欠落、矛盾、実行上の問題を見つける | 仕様・計画のレビュー | 説明に応じて選択 |
+| `ce-simplify-code` | 挙動を保って最近の実装を読みやすく整理する | 実装が落ち着いた後の整理 | 説明に応じて選択 |
+| `ce-optimize` | 測定結果で改善の効果を判断する | 性能や費用など測定可能な対象の改善 | 説明に応じて選択 |
+| `ce-retune` | モデル変更に伴うSkillの効果を測って調整する | 現在のモデルと対象を指定した再評価 | 明示呼び出し |
 
 ### i484 Specialists
 
-| Skill | 役割 |
-| --- | --- |
-| `i484-product-design` | Product Design固有の判断基準を提供する |
-| `i484-visualize` | portable HTMLによる構造可視化を行う |
-| `i484-geometric-illustration` | i484の幾何学visual languageでイラストを設計する |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `i484-product-design` | UX、構成、操作、アクセシビリティの設計判断を補う | 製品UIの判断が必要なとき。工程はCEが担当 | 説明に応じて選択 |
+| `i484-visualize` | 説明や比較を持ち運べる単一HTMLへまとめる | 説明用HTML自体が成果物のとき | 説明に応じて選択 |
+| `i484-geometric-illustration` | i484の幾何学表現で図版を生成・評価する | その視覚表現のイラストが必要なとき | 説明に応じて選択 |
 
-### Research / Context
+### 調査資料
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-riffrec-feedback-analysis` | Riffrec recordingを構造化されたfeedbackへ変換する |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-riffrec-feedback-analysis` | 録画された製品フィードバックを問題と要求へ整理する | Riffrec録画の分析 | 説明に応じて選択 |
 
-### Git / Delivery
+### Git・作業分離
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-commit` | local commitを作る |
-| `ce-commit-push-pr` | 変更をpushしPRまで持っていく |
-| `ce-babysit-pr` | PRのreview / CIを継続監視する |
-| `ce-worktree` | 作業をworktreeへ分離する |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-commit` | 今回の対象差分だけを明確な単位でコミットする | ローカルコミットの依頼または権限があるとき | 説明に応じて選択 |
+| `ce-commit-push-pr` | 検証済み差分をPRとしてレビュー可能にする | push・PR作成または説明更新の依頼 | 説明に応じて選択 |
+| `ce-babysit-pr` | CIとレビューの変化を追い、必要な対応を進める | 特定PRの継続監視の依頼 | 説明に応じて選択 |
+| `ce-worktree` | 既存変更を保護しながら作業を分離する | 作業分離が必要なとき | 説明に応じて選択 |
 
-### Autonomous Pipeline
+### 自律実行
 
-| Skill | 役割 |
-| --- | --- |
-| `lfg` | planから実装・review・PR監視までを自律的に進める |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `lfg` | 依頼から実装、レビュー、PRまで工程をまとめて進める | 工程全体を任せる依頼。外部操作は有効な権限に従う | 説明に応じて選択 |
 
-### UI / QA / Collaboration
+### UI・検証・共同編集
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-polish` | 動作済みUIをbrowser上でpolishする |
-| `ce-proof` | MarkdownをProofへpublish / pullする |
-| `ce-dogfood` | branchをbrowserでQAする |
-| `ce-test-browser` | current diffのE2E browser testを行う |
-| `ce-test-xcode` | iOS appをsimulatorでbuild / testする |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-polish` | 動作するUIを実画面で確認しながら磨く | 対象機能を指定したUI調整 | 明示呼び出し |
+| `ce-proof` | ProofでMarkdownを公開・取得・コメントする | Proof上の対象操作の依頼 | 説明に応じて選択 |
+| `ce-dogfood` | 利用者の操作を通して画面の問題を見つけ、修正する | 対象ブランチのブラウザQA | 明示呼び出し |
+| `ce-test-browser` | 変更した画面と操作をブラウザで検証する | Web UIの変更検証の既定 | 説明に応じて選択 |
+| `ce-test-xcode` | iOSアプリのビルドとシミュレーター動作を確かめる | iOSアプリの検証 | 明示呼び出し |
 
-### Workflow Utilities
+### 補助機能
 
-| Skill | 役割 |
-| --- | --- |
-| `ce-noslop` | 不自然なAI文体を避けて文章を整える |
-| `ce-promote` | shipped featureの告知文案を作る |
-| `ce-resolve-pr-feedback` | PR feedbackを評価・修正・replyする |
-| `ce-setup` | optional toolとProject configを診断・設定する |
-| `ce-handoff` | session handoffを作成・再開する |
-| `wtf` | 直前のメッセージや指定した内容を平易に説明するmanual-only Skill |
+| Skill | 導入して期待する成果 | 使用する場面 | 選択 |
+| --- | --- | --- | --- |
+| `ce-noslop` | 事実を保ちながら読みやすい文章に整える | 文案・文書の整理。日本語品質はNatural Japaneseを併用 | 説明に応じて選択 |
+| `ce-promote` | 公開済み機能の告知文案を作る | 告知の下書き作成 | 明示呼び出し |
+| `ce-resolve-pr-feedback` | PRの指摘を評価し、妥当な修正と返信を行う | 特定PRへのフィードバック対応 | 説明に応じて選択 |
+| `ce-setup` | 必要なツールとプロジェクト設定を診断・整備する | 対象プロジェクトの設定確認・修復 | 明示呼び出し |
+| `ce-handoff` | 次の担当が再開できる状態と根拠を引き継ぐ | 引き継ぎの作成・読取。読取だけで自動再開しない | 説明に応じて選択 |
+| `wtf` | 指定された内容を平易に説明する | 直前の説明や指定資料を読み解く依頼 | 明示呼び出し |
 
-各Skillの詳細は [`docs/guides/`](docs/guides/README.md) を参照してください。runtime上の正本は各 `skills/<skill>/SKILL.md` です。
+### 能力を追加・削除するときに、この表も更新する
+
+Skill、MCP、プラグインを追加・削除した場合や責務を変えた場合は、同じ変更で対応する表の期待、使用条件、境界を更新します。配布に含めるSkillはこのREADME、環境固有の接続・外部Skillは利用環境のREADMEで管理します。登録済み、選択可能、実際に利用した、検証済みの状態を区別し、READMEへの記載だけで実動作を保証しません。
+
+Behavior Studioによる環境管理は終了し、READMEを維持する方式に移行します。旧構成や旧モデルでの評価を現在の合格根拠に使わず、必要な評価は現在の対象で実施します。由来、ライセンス、上流との差分は既存の正本で保持します。
 
 ## 導入
 
@@ -297,6 +303,12 @@ codex plugin add i484-engineering@i484-engineering-plugin
 ```
 
 配布上のMarketplace IDは`i484-engineering-plugin`、Plugin IDは`i484-engineering`です。CE由来のSkill名（`ce-*`）はupstreamとの意味・由来を保つため変更しません。
+
+### Skillの呼び出しと実装担当
+
+一般的な呼び出しは`/skill-name`、Codexでは`$skill-name`を使います。たとえば`$ce-plan`と`$lfg`です。oh-my-piで自動選択に公開されない明示呼び出しSkillは`/skill:<name>`で直接呼び出します。`/goal`はCodexの組み込み機能です。
+
+実装を別モデルへ委任する場合は、利用可能で能力条件を満たす実装担当（qualified author）を選び、呼び出し元が差分と検証を統合します。詳細は[ce-workガイド](docs/guides/ce-work.md)を参照してください。
 
 ### Optional external specialists
 
@@ -358,50 +370,13 @@ MIT Licenseで公開しています。
 
 i484 Engineeringは、Compound Engineeringと競争するためのframeworkではありません。**Engineeringの進め方はCEから継承し、i484はその上で専門性を追加する**ことを基本方針としています。
 
-<!--
-release-metadata compatibility contract for inherited CE tests.
-a plugin of 39 skills
-39 skills, grouped by i484 Engineering categories
+## 品質設定と差分検査
 
-## Skills at a glance
-`ce-ideate`
-`ce-brainstorm`
-`ce-plan`
-`ce-work`
-`ce-compound`
-`ce-strategy`
-`ce-product-pulse`
-`ce-sweep`
-`ce-compound-refresh`
-`ce-bakeoff`
-`ce-pov`
-`ce-explain`
-`ce-prototype`
-`ce-debug`
-`ce-code-review`
-`ce-doc-review`
-`ce-simplify-code`
-`ce-optimize`
-`ce-retune`
-`i484-product-design`
-`i484-visualize`
-`i484-geometric-illustration`
-`ce-riffrec-feedback-analysis`
-`ce-commit`
-`ce-commit-push-pr`
-`ce-babysit-pr`
-`ce-worktree`
-`lfg`
-`ce-polish`
-`ce-proof`
-`ce-dogfood`
-`ce-test-browser`
-`ce-test-xcode`
-`ce-noslop`
-`ce-promote`
-`ce-resolve-pr-feedback`
-`ce-setup`
-`ce-handoff`
-`wtf`
-**Learn more**
--->
+JS/TSのlint・format・checkはUltracite（Biome）に統一します。既存のコードやテストfixtureを一括変更せず、まとまった変更を一度確認します。
+
+- `bun run check`: 基準履歴からの変更、未commitの変更、新規ファイルを検査します。
+- `bun run format`: 同じ対象を整形します。
+- `bun run quality:doctor`: 導入と設定の整合を確認します。
+- `bun run check:all`: 既存コード全体を診断します。既存の指摘も出るため、現在のmerge gateには使いません。
+
+既定の基準は`origin/main`です。CIではPRのbaseまたはpush前の履歴を`QUALITY_BASE`で指定します。基準が見つからない場合は失敗させ、検査対象が消えたように扱いません。意図的に不正な入力を含む`tests/fixtures/`と、生成物は対象外です。逐次的なファイル操作、型alias、キー順序、テストfixture構築の例外は`biome.jsonc`に明示します。新規プロジェクトでは既存コード向けの例外を無条件に引き継ぎません。

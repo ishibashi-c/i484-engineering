@@ -1,8 +1,8 @@
+import { afterEach, describe, expect, test } from "bun:test"
 import { existsSync } from "fs"
-import { mkdtemp, mkdir, writeFile } from "fs/promises"
+import { mkdir, mkdtemp, writeFile } from "fs/promises"
 import os from "os"
 import path from "path"
-import { afterEach, describe, expect, test } from "bun:test"
 import {
   buildCompoundEngineeringDescription,
   getCompoundEngineeringCounts,
@@ -32,22 +32,13 @@ async function makeFixtureRoot(): Promise<string> {
   await mkdir(path.join(root, ".devin-plugin"), { recursive: true })
   await mkdir(path.join(root, ".agents", "plugins"), { recursive: true })
 
-  await writeFile(
-    path.join(root, "agents", "review", "agent.md"),
-    "# Review Agent\n",
-  )
-  await writeFile(
-    path.join(root, "skills", "ce-plan", "SKILL.md"),
-    "# ce-plan\n",
-  )
+  await writeFile(path.join(root, "agents", "review", "agent.md"), "# Review Agent\n")
+  await writeFile(path.join(root, "skills", "ce-plan", "SKILL.md"), "# ce-plan\n")
   await writeFile(
     path.join(root, ".mcp.json"),
     JSON.stringify({ mcpServers: { context7: { command: "ctx7" } } }, null, 2),
   )
-  await writeFile(
-    path.join(root, "package.json"),
-    JSON.stringify({ version: "2.42.0" }, null, 2),
-  )
+  await writeFile(path.join(root, "package.json"), JSON.stringify({ version: "2.42.0" }, null, 2))
   await writeFile(
     path.join(root, ".claude-plugin", "plugin.json"),
     JSON.stringify({ version: "2.42.0", description: "old" }, null, 2),
@@ -184,9 +175,7 @@ async function makeFixtureRoot(): Promise<string> {
     JSON.stringify(
       {
         metadata: { version: "1.0.0", description: "marketplace" },
-        plugins: [
-          { name: "compound-engineering", version: "2.41.0", description: "old" },
-        ],
+        plugins: [{ name: "compound-engineering", version: "2.41.0", description: "old" }],
       },
       null,
       2,
@@ -197,9 +186,7 @@ async function makeFixtureRoot(): Promise<string> {
     JSON.stringify(
       {
         metadata: { version: "1.0.0", description: "marketplace" },
-        plugins: [
-          { name: "compound-engineering", version: "2.41.0", description: "old" },
-        ],
+        plugins: [{ name: "compound-engineering", version: "2.41.0", description: "old" }],
       },
       null,
       2,
@@ -216,33 +203,29 @@ describe("release metadata", () => {
     expect(counts).toEqual({
       agents: 0,
       skills: 39,
-      mcpServers: 0,
+      mcpServers: 1,
     })
   })
 
-  // The root README carries skill *names* in its grouped overview while
-  // docs/guides/README.md owns the descriptions. That split only holds if the
-  // names and the stated count cannot drift, so both are pinned here rather
-  // than left to convention -- the three-way prose sync this replaced had
-  // already drifted before anyone noticed.
-  test("the README grouped overview names every skill, and only real skills", async () => {
+  // Validate the visible adoption inventory rather than a hidden copy. Guides
+  // own mechanics; the README owns expected outcomes and activation boundaries.
+  test("the README adoption inventory names every skill, and only real skills", async () => {
     const readme = await Bun.file(path.join(process.cwd(), "README.md")).text()
-    const section = readme.slice(
-      readme.indexOf("## Skills at a glance"),
-      readme.indexOf("**Learn more**"),
-    )
+    const section = readme.slice(readme.search(/^## \d+ Skills$/m), readme.indexOf("## 導入"))
     expect(section.length).toBeGreaterThan(0)
 
     const { readdir } = await import("fs/promises")
     const skillsRoot = path.join(process.cwd(), "skills")
     const skills = (await readdir(skillsRoot, { withFileTypes: true }))
-      .filter((entry) =>
-        entry.isDirectory() && existsSync(path.join(skillsRoot, entry.name, "SKILL.md"))
+      .filter(
+        (entry) => entry.isDirectory() && existsSync(path.join(skillsRoot, entry.name, "SKILL.md")),
       )
       .map((entry) => entry.name)
       .sort()
 
-    const listed = [...section.matchAll(/`(ce-[a-z0-9-]+|i484-[a-z0-9-]+|lfg|wtf)`/g)].map((match) => match[1])
+    const listed = [...section.matchAll(/`(ce-[a-z0-9-]+|i484-[a-z0-9-]+|lfg|wtf)`/g)].map(
+      (match) => match[1],
+    )
     const listedSet = new Set(listed)
 
     expect(skills.filter((skill) => !listedSet.has(skill))).toEqual([])
@@ -252,25 +235,39 @@ describe("release metadata", () => {
     // move reads as correct in a set-membership check. Which group a skill
     // belongs in stays an author judgment -- deriving that here would mean
     // maintaining a second canonical inventory, which is what this PR removed.
-    const duplicated = [...listedSet].filter(
-      (name) => listed.filter((entry) => entry === name).length > 1,
-    ).sort()
+    const duplicated = [...listedSet]
+      .filter((name) => listed.filter((entry) => entry === name).length > 1)
+      .sort()
     expect(duplicated).toEqual([])
+
+    const inventoryRows = [
+      ...section.matchAll(
+        /^\| `(ce-[a-z0-9-]+|i484-[a-z0-9-]+|lfg|wtf)` \| (.+?) \| (.+?) \| (.+?) \|$/gm,
+      ),
+    ]
+    expect(inventoryRows).toHaveLength(skills.length)
+    for (const [, name, expectation, activation, selection] of inventoryRows) {
+      expect(expectation.trim().length).toBeGreaterThan(0)
+      expect(activation.trim().length).toBeGreaterThan(0)
+      const spec = await Bun.file(path.join(skillsRoot, name, "SKILL.md")).text()
+      const frontmatter = spec.split("---", 3)[1] ?? ""
+      const manualOnly = /^disable-model-invocation:\s*true\s*$/m.test(frontmatter)
+      expect(selection).toBe(manualOnly ? "明示呼び出し" : "説明に応じて選択")
+    }
   })
 
   test("every skill count stated in the README matches the skills directory", async () => {
     const readme = await Bun.file(path.join(process.cwd(), "README.md")).text()
     const { readdir } = await import("fs/promises")
     const skillsRoot = path.join(process.cwd(), "skills")
-    const skillCount = (await readdir(skillsRoot, { withFileTypes: true }))
-      .filter((entry) =>
-        entry.isDirectory() && existsSync(path.join(skillsRoot, entry.name, "SKILL.md"))
-      ).length
+    const skillCount = (await readdir(skillsRoot, { withFileTypes: true })).filter(
+      (entry) => entry.isDirectory() && existsSync(path.join(skillsRoot, entry.name, "SKILL.md")),
+    ).length
 
     const stated = [
       readme.match(/badge\/skills-(\d+)-/)?.[1],
-      readme.match(/a plugin of (\d+) skills/)?.[1],
-      readme.match(/^(\d+) skills, grouped by/m)?.[1],
+      readme.match(/i484 Engineeringは(\d+)個のSkill/)?.[1],
+      readme.match(/^## (\d+) Skills$/m)?.[1],
     ]
 
     expect(stated.every((value) => value !== undefined)).toBe(true)
@@ -284,8 +281,9 @@ describe("release metadata", () => {
     const { readdir } = await import("fs/promises")
     const skillsRoot = path.join(process.cwd(), "skills")
     const extras = (await readdir(skillsRoot, { withFileTypes: true }))
-      .filter((entry) =>
-        entry.isDirectory() && !existsSync(path.join(skillsRoot, entry.name, "SKILL.md"))
+      .filter(
+        (entry) =>
+          entry.isDirectory() && !existsSync(path.join(skillsRoot, entry.name, "SKILL.md")),
       )
       .map((entry) => entry.name)
       .sort()
@@ -303,7 +301,9 @@ describe("release metadata", () => {
   test("detects cross-surface version drift even without explicit override versions", async () => {
     const root = await makeFixtureRoot()
     const result = await syncReleaseMetadata({ root, write: false })
-    const changedPaths = result.updates.filter((update) => update.changed).map((update) => update.path)
+    const changedPaths = result.updates
+      .filter((update) => update.changed)
+      .map((update) => update.path)
 
     expect(changedPaths).toContain(path.join(root, ".cursor-plugin", "plugin.json"))
     expect(changedPaths).toContain(path.join(root, ".claude-plugin", "marketplace.json"))
@@ -359,8 +359,7 @@ describe("release metadata", () => {
     const root = await makeFixtureRoot()
     await writeFile(
       path.join(root, ".devin-plugin", "plugin.json"),
-      JSON.stringify(
-        { name: "compound-engineering", version: "2.41.0" }, null, 2),
+      JSON.stringify({ name: "compound-engineering", version: "2.41.0" }, null, 2),
     )
     const result = await syncReleaseMetadata({ root, write: true })
     const devinPath = path.join(root, ".devin-plugin", "plugin.json")
@@ -400,7 +399,9 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(result.errors.some((err) => err.includes(".grok-plugin/plugin.json is missing"))).toBe(true)
+    expect(result.errors.some((err) => err.includes(".grok-plugin/plugin.json is missing"))).toBe(
+      true,
+    )
   })
 
   test("reports self-referential Grok marketplace source as a structural error", async () => {
@@ -411,9 +412,7 @@ describe("release metadata", () => {
         {
           name: "compound-engineering",
           owner: { name: "Kieran Klaassen and Trevin Chow" },
-          plugins: [
-            { name: "compound-engineering", source: { type: "local", path: "." } },
-          ],
+          plugins: [{ name: "compound-engineering", source: { type: "local", path: "." } }],
         },
         null,
         2,
@@ -466,9 +465,7 @@ describe("release metadata", () => {
       JSON.stringify(
         {
           name: "compound-engineering-plugin",
-          plugins: [
-            { name: "compound-engineering", source: { source: "local", path: "./" } },
-          ],
+          plugins: [{ name: "compound-engineering", source: { source: "local", path: "./" } }],
         },
         null,
         2,
@@ -477,17 +474,14 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(
-      result.errors.some((err) => err.includes(".agents/plugins/marketplace.json")),
-    ).toBe(false)
+    expect(result.errors.some((err) => err.includes(".agents/plugins/marketplace.json"))).toBe(
+      false,
+    )
   })
 
   test("reports package.json version drift without auto-correcting", async () => {
     const root = await makeFixtureRoot()
-    await writeFile(
-      path.join(root, "package.json"),
-      JSON.stringify({ version: "2.41.0" }, null, 2),
-    )
+    await writeFile(path.join(root, "package.json"), JSON.stringify({ version: "2.41.0" }, null, 2))
 
     const result = await syncReleaseMetadata({ root, write: true })
     const packagePath = path.join(root, "package.json")
@@ -569,7 +563,9 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(result.errors.some((err) => err.includes(".codex-plugin/plugin.json is missing"))).toBe(true)
+    expect(result.errors.some((err) => err.includes(".codex-plugin/plugin.json is missing"))).toBe(
+      true,
+    )
   })
 
   test("reports missing Kimi manifest as a structural error", async () => {
@@ -578,7 +574,9 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(result.errors.some((err) => err.includes(".kimi-plugin/plugin.json is missing"))).toBe(true)
+    expect(result.errors.some((err) => err.includes(".kimi-plugin/plugin.json is missing"))).toBe(
+      true,
+    )
   })
 
   test("reports missing Devin manifest as a structural error", async () => {
@@ -587,7 +585,9 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(result.errors.some((err) => err.includes(".devin-plugin/plugin.json is missing"))).toBe(true)
+    expect(result.errors.some((err) => err.includes(".devin-plugin/plugin.json is missing"))).toBe(
+      true,
+    )
 
     // The missing manifest short-circuits (Codex semantics): exactly one
     // unchanged update entry, never a drift entry for a nonexistent file.
@@ -603,7 +603,9 @@ describe("release metadata", () => {
 
     const result = await syncReleaseMetadata({ root, write: false })
 
-    expect(result.errors.some((err) => err.includes(".omp-plugin/marketplace.json is missing"))).toBe(true)
+    expect(
+      result.errors.some((err) => err.includes(".omp-plugin/marketplace.json is missing")),
+    ).toBe(true)
   })
 
   test("flags omp catalog plugin-version drift without rewriting the version", async () => {
@@ -735,11 +737,7 @@ describe("release metadata", () => {
     const root = await makeFixtureRoot()
     await writeFile(
       path.join(root, ".codex-plugin", "plugin.json"),
-      JSON.stringify(
-        { name: "wrong-name", version: "2.42.0", skills: "./skills/" },
-        null,
-        2,
-      ),
+      JSON.stringify({ name: "wrong-name", version: "2.42.0", skills: "./skills/" }, null, 2),
     )
     const result = await syncReleaseMetadata({ root, write: false })
 
@@ -796,7 +794,9 @@ describe("release metadata", () => {
     expect(
       result.errors.some(
         (err) =>
-          err.includes(".codex-plugin/plugin.json") && err.includes("skills:") && err.includes("does not exist"),
+          err.includes(".codex-plugin/plugin.json") &&
+          err.includes("skills:") &&
+          err.includes("does not exist"),
       ),
     ).toBe(true)
   })
@@ -831,10 +831,7 @@ describe("release metadata", () => {
       JSON.stringify(
         {
           name: "compound-engineering-plugin",
-          plugins: [
-            { name: "compound-engineering" },
-            { name: "rogue-plugin" },
-          ],
+          plugins: [{ name: "compound-engineering" }, { name: "rogue-plugin" }],
         },
         null,
         2,
@@ -888,7 +885,8 @@ describe("release metadata", () => {
 
     expect(
       result.errors.some(
-        (err) => err.includes(".kimi-plugin/marketplace.json") && err.includes('schema version "2"'),
+        (err) =>
+          err.includes(".kimi-plugin/marketplace.json") && err.includes('schema version "2"'),
       ),
     ).toBe(true)
   })
@@ -978,10 +976,8 @@ describe("release metadata", () => {
 })
 
 /** Agent Plugins v1.0.0 root-manifest authoring rules (pinned locally; no schema fetch). */
-const AGENT_PLUGINS_SCHEMA =
-  "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-const AGENT_PLUGINS_NAME_PATTERN =
-  /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/
+const AGENT_PLUGINS_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+const AGENT_PLUGINS_NAME_PATTERN = /^(?!.*(?:--|\.\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/
 const AGENT_PLUGINS_PERMITTED_KEYS = new Set([
   "$schema",
   "name",
@@ -1052,13 +1048,12 @@ function agentPluginsManifestErrors(manifest: Record<string, unknown>): string[]
     }
   }
 
-  if (manifest.keywords !== undefined) {
-    if (
-      !Array.isArray(manifest.keywords) ||
-      manifest.keywords.some((item) => typeof item !== "string")
-    ) {
-      errors.push("keywords must be an array of strings")
-    }
+  if (
+    manifest.keywords !== undefined &&
+    (!Array.isArray(manifest.keywords) ||
+      manifest.keywords.some((item) => typeof item !== "string"))
+  ) {
+    errors.push("keywords must be an array of strings")
   }
 
   if (manifest.extensions !== undefined) {
@@ -1069,9 +1064,7 @@ function agentPluginsManifestErrors(manifest: Record<string, unknown>): string[]
     ) {
       errors.push("extensions must be an object")
     } else {
-      for (const [ns, value] of Object.entries(
-        manifest.extensions as Record<string, unknown>,
-      )) {
+      for (const [ns, value] of Object.entries(manifest.extensions as Record<string, unknown>)) {
         if (typeof value !== "object" || value === null || Array.isArray(value)) {
           errors.push(`extensions.${ns} must be an object`)
         }

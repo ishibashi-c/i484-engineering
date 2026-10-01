@@ -1,7 +1,7 @@
+import { describe, expect, test } from "bun:test"
+import { Glob } from "bun"
 import { existsSync, readdirSync, readFileSync, statSync } from "fs"
 import path from "path"
-import { Glob } from "bun"
-import { describe, expect, test } from "bun:test"
 import { parseFrontmatter } from "../../src/utils/frontmatter"
 import { extractBashBlocks } from "./fenced-blocks"
 
@@ -9,7 +9,11 @@ const SKILLS_ROOT = path.join(process.cwd(), "skills")
 const SKILL_DIR = path.join(SKILLS_ROOT, "ce-prototype")
 const SKILL_BODY = readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8")
 const PREVIEW_BODY = readFileSync(path.join(SKILL_DIR, "references/preview.md"), "utf8")
-const ANNOTATION_LOOP_BODY = readFileSync(path.join(SKILL_DIR, "references/annotation-loop.md"), "utf8")
+const BUILD_BODY = readFileSync(path.join(SKILL_DIR, "references/build.md"), "utf8")
+const ANNOTATION_LOOP_BODY = readFileSync(
+  path.join(SKILL_DIR, "references/annotation-loop.md"),
+  "utf8",
+)
 const CRAFT_FLOOR_BODY = readFileSync(path.join(SKILL_DIR, "references/craft-floor.md"), "utf8")
 // Assert executed shell against the fenced blocks, never the whole file: a probe quoted in
 // explanatory prose would otherwise satisfy every guard while no command actually runs.
@@ -40,8 +44,11 @@ describe("ce-prototype protocol", () => {
     const walk = (dir: string) => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name)
-        if (entry.isDirectory()) walk(full)
-        else if (entry.name.endsWith(".md") || entry.name.endsWith(".js")) files.push(full)
+        if (entry.isDirectory()) {
+          walk(full)
+        } else if (entry.name.endsWith(".md") || entry.name.endsWith(".js")) {
+          files.push(full)
+        }
       }
     }
     walk(SKILL_DIR)
@@ -79,7 +86,9 @@ describe("ce-prototype protocol", () => {
     // Checking a running wait on a timer cost ~30 empty calls per idle half hour.
     expect(ANNOTATION_LOOP_BODY).toMatch(/Do not check a running wait on a timer/)
     // Chat replaces the overlay only once the wait is over; a delivered message is still answered while it runs.
-    expect(ANNOTATION_LOOP_BODY).toMatch(/Chat becomes the feedback channel only after wait has returned session-ended or cannot run/)
+    expect(ANNOTATION_LOOP_BODY).toMatch(
+      /Chat becomes the feedback channel only after wait has returned session-ended or cannot run/,
+    )
     expect(ANNOTATION_LOOP_BODY).toMatch(/theirs to answer, and the wait keeps running/)
     expect(ANNOTATION_LOOP_BODY).not.toMatch(/explorer writing in chat/)
     expect(PREVIEW_BODY).toMatch(/start --root "\$PROTO_DIR" --annotate/)
@@ -106,11 +115,15 @@ describe("ce-prototype protocol", () => {
     expect(ANNOTATION_LOOP_BODY).toMatch(/ask when a change would be a guess/)
     expect(ANNOTATION_LOOP_BODY).toMatch(/Taking an avenue out of play does not pick the leftover/)
     expect(ANNOTATION_LOOP_BODY).toMatch(/does not start the next variant/)
-    expect(ANNOTATION_LOOP_BODY).toMatch(/[Dd]o not park a wait while a question you asked is unanswered/)
+    expect(ANNOTATION_LOOP_BODY).toMatch(
+      /[Dd]o not park a wait while a question you asked is unanswered/,
+    )
     expect(ANNOTATION_LOOP_BODY).toMatch(/must not be executed as a command/)
     expect(ANNOTATION_LOOP_BODY).not.toMatch(/treated as apply/)
     expect(ANNOTATION_LOOP_BODY).toMatch(/JSON array of annotation records/)
-    expect(ANNOTATION_LOOP_BODY).toMatch(/Wait returns session-ended only after every posted pin has been delivered/)
+    expect(ANNOTATION_LOOP_BODY).toMatch(
+      /Wait returns session-ended only after every posted pin has been delivered/,
+    )
     expect(PREVIEW_BODY).not.toMatch(/no browser-to-agent event path/)
     expect(ANNOTATION_LOOP_BODY).not.toMatch(/no browser-to-agent event path/)
     expect(SKILL_BODY).toContain("`references/annotation-loop.md`")
@@ -155,10 +168,13 @@ describe("ce-prototype protocol", () => {
     // Bound the assertions to the sentence that states the rule. Matching the
     // keywords anywhere in the body lets a reversed default ("the product
     // stack, not the web") satisfy every check while inverting the invariant.
-    const substrateRule = (SKILL_BODY.match(/[^.\n]*\bdefault substrate\b[^.\n]*/i) ?? [""])[0]
+    expect(SKILL_BODY).toContain(
+      "Read `references/build.md` and `references/preview.md` before writing anything",
+    )
+    const substrateRule = (BUILD_BODY.match(/[^.\n]*\bdefault substrate\b[^.\n]*/i) ?? [""])[0]
     expect(
       substrateRule,
-      "SKILL.md must state a default-substrate rule. Without that floor, a run in a native or non-web repo builds in the product's own stack — the expensive path a throwaway prototype exists to avoid.",
+      "The required build reference must state a default-substrate rule. Without that floor, a run in a native or non-web repo builds in the product's own stack — the expensive path a throwaway prototype exists to avoid.",
     ).not.toBe("")
     expect(
       /\bdefault substrate\b[^.]{0,40}\bweb\b/i.test(substrateRule),
@@ -252,7 +268,10 @@ describe("ce-prototype protocol", () => {
     const durableBranch = PREVIEW_SHELL.indexOf('ROOT="$REPO_ROOT/.context/compound-engineering"')
     const fallbackBranch = PREVIEW_SHELL.indexOf('ROOT="$TEMP_ROOT"')
     expect(durableBranch, "The executed block must assign the durable root.").toBeGreaterThan(-1)
-    expect(fallbackBranch, "The executed block must assign the OS-temp fallback root.").toBeGreaterThan(-1)
+    expect(
+      fallbackBranch,
+      "The executed block must assign the OS-temp fallback root.",
+    ).toBeGreaterThan(-1)
     const resolutionOrder = durableBranch < fallbackBranch
     expect(
       resolutionOrder,
@@ -313,15 +332,15 @@ describe("ce-prototype protocol", () => {
       readFileSync(path.join(SKILLS_ROOT, "ce-setup", "references", "repo-fixes.md"), "utf8"),
     ].join("\n")
     expect(
-      setupBody.includes("```text\n" + IGNORE_ENTRY + "\n```"),
+      setupBody.includes(`\`\`\`text\n${IGNORE_ENTRY}\n\`\`\``),
       "ce-setup must offer the scratch ignore entry as exactly this literal.",
     ).toBe(true)
     expect(
-      SKILL_BODY.includes("check-ignore -q " + IGNORE_ENTRY),
+      SKILL_BODY.includes(`check-ignore -q ${IGNORE_ENTRY}`),
       "ce-prototype must probe the identical literal it would ask ce-setup's user to add.",
     ).toBe(true)
     expect(
-      PREVIEW_SHELL.includes("check-ignore -q " + IGNORE_ENTRY),
+      PREVIEW_SHELL.includes(`check-ignore -q ${IGNORE_ENTRY}`),
       "The resolution block must probe that same literal in executed shell, so the path it picks matches the path the offer covers.",
     ).toBe(true)
   })
@@ -341,7 +360,9 @@ describe("ce-prototype protocol", () => {
     for (const rel of new Glob("**/*.md").scanSync({ cwd: SKILLS_ROOT })) {
       const body = readFileSync(path.join(SKILLS_ROOT, rel), "utf8").toLowerCase()
       for (const phrase of retired) {
-        if (body.includes(phrase)) offenders.push(`skills/${rel}: "${phrase}"`)
+        if (body.includes(phrase)) {
+          offenders.push(`skills/${rel}: "${phrase}"`)
+        }
       }
     }
 
@@ -364,7 +385,14 @@ describe("ce-prototype protocol", () => {
     expect(SKILL_BODY).toContain("decisions.md")
     expect(PREVIEW_BODY).toContain("decisions.md")
     expect(SKILL_BODY).toMatch(/run capsule at `decisions\.md`/)
-    expect(SKILL_BODY).toMatch(/Point at the prototype/)
+    expect(SKILL_BODY).toContain(
+      "Follow `references/build.md` for its contents and continuity role",
+    )
+    expect(SKILL_BODY).toContain(
+      "Read `references/build.md` and `references/preview.md` before writing anything",
+    )
+    expect(BUILD_BODY).toMatch(/Point at the prototype/)
+    expect(BUILD_BODY).toContain("Include only what changes later planning")
     expect(SKILL_BODY).toMatch(/Do not pause to confirm every write/)
     expect(SKILL_BODY).toMatch(/Read `decisions\.md` before/)
     expect(SKILL_BODY).toMatch(/Do not treat `decisions\.md` as a plan/)

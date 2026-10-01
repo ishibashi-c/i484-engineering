@@ -10,7 +10,7 @@ Keep the root documentation split by purpose:
 
 | Document | Owns |
 | --- | --- |
-| [README.md](README.md) | User-facing overview, installation, skill inventory, and the high-level relationship to CE |
+| [README.md](README.md) | User-facing overview, installation, per-skill adoption expectations and activation boundaries, and the high-level relationship to CE |
 | [I484_ENGINEERING.md](I484_ENGINEERING.md) | Maintainer architecture, legacy migration decisions, intentional upstream differences, and upstream-sync policy |
 | [ATTRIBUTION.md](ATTRIBUTION.md) | Provenance, upstream credit, extraction sources, and licensing context |
 | [LICENSE](LICENSE) | License text and copyright notices |
@@ -98,7 +98,7 @@ The previous i484 environment is treated as source material, not as a second fra
 | `natural-japanese` | External provider | Language-quality specialist, not a router. |
 | Ultracite | External provider | Project lint/check provider, not a second CE phase. |
 | `i484-core` runtime routing | Not migrated | Do not retain a second top-level engineering authority. |
-| Behavior Studio | Separate maintainer-tool evaluation | It may analyze instructions/skills, but is not part of runtime routing by default. |
+| Behavior Studio | Retired | Maintain the README adoption inventory when adding, removing, or changing an environment capability; no replacement routing or inventory application. |
 
 ### What was extracted
 
@@ -107,7 +107,15 @@ The previous i484 environment is treated as source material, not as a second fra
 - **Review:** falsification and adjudication ideas remain provenance candidates only. They are not copied into a parallel review framework.
 - **Core / Workflow:** generic planning, verification, recovery, routing, integration, Git, and handoff machinery is not migrated because CE owns those concerns.
 
-The old repositories remain provenance and research sources. They do not need to be deleted merely because the runtime cutover is complete.
+Retired workflow-era runtime tooling and obsolete evaluations are not current acceptance evidence and may be removed as an explicitly scoped maintenance change. Preserve original attribution, license notices, extraction sources needed by current specialists, and the upstream patch registry.
+
+## README maintenance replaces Behavior Studio
+
+The public README records the expected outcome and activation boundary for every shipped skill. A local environment README records external skills, plugins, and MCP connections, including why each is present and how overlaps are resolved. Additions, removals, and responsibility changes update their corresponding row in the same change. Installed or registered capabilities must not be reported as used or verified without execution evidence.
+
+CE remains the default owner for implementation, debugging, code review, and browser verification. Generic review/debug/QA skills are explicit-request alternatives or narrow knowledge providers; do not stack their full workflows onto CE. `i484-product-design` supplies normal product-UI judgment. Official Product Design skills may handle image-based alternatives, remixing, and implementing a selected image or URL when that specific deliverable is requested; they do not replace CE's repository verification or delivery.
+
+README maintenance is documentation, not another workflow or runtime router. Historical model-dependent measurements do not establish the performance of the current environment.
 
 ## Intentional divergence from upstream CE
 

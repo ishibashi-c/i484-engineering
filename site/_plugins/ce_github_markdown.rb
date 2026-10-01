@@ -17,7 +17,7 @@ require "pathname"
 # `CeGithubMarkdown.rewrite` is a pure function over strings so it can be unit
 # tested without a Jekyll site; the hook at the bottom wires it to adopted sources.
 module CeGithubMarkdown
-  GITHUB_REPO = "https://github.com/EveryInc/compound-engineering-plugin"
+  GITHUB_REPO = "https://github.com/ishibashi-c/i484-engineering"
   GUIDES_DIRS = ["skills/guides", "docs/guides"].freeze
   ALERT_TYPES = %w[note tip important warning caution].freeze
 

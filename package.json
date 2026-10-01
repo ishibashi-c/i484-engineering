@@ -1,10 +1,49 @@
 {
   "name": "i484-engineering",
   "version": "3.30.1",
-  "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
-  "type": "module",
   "private": true,
+  "description": "Compound Engineering with i484 specialist skills for product design and visual artifacts",
+  "homepage": "https://github.com/ishibashi-c/i484-engineering",
+  "repository": "https://github.com/ishibashi-c/i484-engineering",
+  "type": "module",
   "main": "index.js",
+  "scripts": {
+    "check": "bun run scripts/quality.ts check",
+    "check:all": "ultracite check",
+    "cleanup": "bun run src/index.ts cleanup",
+    "cli:install": "bun run src/index.ts install",
+    "codex:dev": "bun run scripts/codex-dev.ts",
+    "convert": "bun run src/index.ts convert",
+    "dev": "bun run src/index.ts",
+    "format": "bun run scripts/quality.ts fix",
+    "list": "bun run src/index.ts list",
+    "plugin:validate": "claude plugin validate --strict .claude-plugin/marketplace.json && claude plugin validate --strict .claude-plugin/plugin.json",
+    "quality:doctor": "ultracite doctor",
+    "release:preview": "bun run scripts/release/preview.ts",
+    "release:sync-metadata": "bun run scripts/release/sync-metadata.ts --write",
+    "release:validate": "bun run scripts/release/validate.ts",
+    "site:build": "cd site && bundle exec jekyll build --strict_front_matter",
+    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https --swap-urls '^/i484-engineering/:/'",
+    "site:serve": "cd site && bundle exec jekyll serve --livereload",
+    "site:test": "cd site && bundle exec rake test",
+    "test": "bun run scripts/run-tests.ts",
+    "test:skill-eval-cell": "bun tests/skill-eval-cell/run.ts",
+    "test:skill-eval-judge": "bun tests/skill-eval-cell/judge.ts",
+    "test:skill-eval-pack": "bun tests/skill-eval-cell/pack.ts"
+  },
+  "dependencies": {
+    "citty": "^0.1.6",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/js-yaml": "^4.0.9",
+    "bun-types": "^1.0.0",
+    "semantic-release": "^25.0.3",
+    "ultracite": "^7.12.2"
+  },
   "pi": {
     "extensions": [
       "./.pi/extensions/compound-engineering.ts"
@@ -12,38 +51,5 @@
     "skills": [
       "./skills"
     ]
-  },
-  "homepage": "https://github.com/ishibashi-c/i484-engineering",
-  "repository": "https://github.com/ishibashi-c/i484-engineering",
-  "scripts": {
-    "codex:dev": "bun run scripts/codex-dev.ts",
-    "dev": "bun run src/index.ts",
-    "convert": "bun run src/index.ts convert",
-    "cleanup": "bun run src/index.ts cleanup",
-    "list": "bun run src/index.ts list",
-    "cli:install": "bun run src/index.ts install",
-    "test": "bun run scripts/run-tests.ts",
-    "test:skill-eval-cell": "bun tests/skill-eval-cell/run.ts",
-    "test:skill-eval-pack": "bun tests/skill-eval-cell/pack.ts",
-    "test:skill-eval-judge": "bun tests/skill-eval-cell/judge.ts",
-    "plugin:validate": "claude plugin validate --strict .claude-plugin/marketplace.json && claude plugin validate --strict .claude-plugin/plugin.json",
-    "release:preview": "bun run scripts/release/preview.ts",
-    "release:sync-metadata": "bun run scripts/release/sync-metadata.ts --write",
-    "release:validate": "bun run scripts/release/validate.ts",
-    "site:build": "cd site && bundle exec jekyll build --strict_front_matter",
-    "site:serve": "cd site && bundle exec jekyll serve --livereload",
-    "site:test": "cd site && bundle exec rake test",
-    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https --swap-urls '^/compound-engineering/:/'"
-  },
-  "dependencies": {
-    "citty": "^0.1.6",
-    "js-yaml": "^4.1.0"
-  },
-  "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@types/js-yaml": "^4.0.9",
-    "bun-types": "^1.0.0",
-    "semantic-release": "^25.0.3"
   }
 }

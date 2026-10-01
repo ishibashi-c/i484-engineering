@@ -15,18 +15,18 @@ require "open3"
 require "time"
 
 module CeSources
-  REPO_URL = "https://github.com/EveryInc/compound-engineering-plugin"
+  REPO_URL = "https://github.com/ishibashi-c/i484-engineering"
   GUIDES_COLLECTION = "guides"
   ROOT_PAGES = {
     "install.md" => {
       "title" => "Install",
       "permalink" => "/install/",
-      "ce_fallback_description" => "Install Compound Engineering in Claude Code, Cursor, Codex, and every other supported agent host."
+      "ce_fallback_description" => "Install i484 Engineering in your agent host."
     },
     "upgrading.md" => {
       "title" => "Upgrading",
       "permalink" => "/upgrading/",
-      "ce_fallback_description" => "Refresh an existing Compound Engineering install on each agent host."
+      "ce_fallback_description" => "Refresh an existing i484 Engineering install on each agent host."
     }
   }.freeze
   CATALOG_BASENAME = "README.md"
@@ -140,7 +140,8 @@ module CeSources
   module Readme
     module_function
 
-    INSTALL_SECTIONS = ["Install", "More Install Options"].freeze
+    INSTALL_SECTIONS = ["Install", "More Install Options", "導入"].freeze
+    NON_HOST_SECTIONS = ["Skillの呼び出しと実装担当", "Optional external specialists", "その他のhost"].freeze
 
     # H3 headings under the install sections, in order, de-duplicated, with a
     # trailing parenthetical such as "(`grok`)" removed.
@@ -149,6 +150,7 @@ module CeSources
               .select { |heading, _| INSTALL_SECTIONS.include?(heading) }
               .flat_map { |_, body| body.scan(/^###[ \t]+(.+?)[ \t]*$/).flatten }
               .map { |name| name.sub(/\s*\([^)]*\)\s*\z/, "").strip }
+              .reject { |name| NON_HOST_SECTIONS.include?(name) }
               .uniq
     end
   end
@@ -318,7 +320,7 @@ module CeSources
           "permalink" => "/guides/#{group[:slug]}/",
           "layout" => "default",
           "ce_group" => true,
-          "ce_fallback_description" => "Compound Engineering skills in the #{group[:title]} group, with the guide for each.",
+          "ce_fallback_description" => "i484 Engineering skills in the #{group[:title]} group, with the guide for each.",
           "ce_source_path" => catalog&.data&.dig("ce_source_path"),
           "last_updated_at" => catalog&.data&.dig("last_updated_at")
         )
