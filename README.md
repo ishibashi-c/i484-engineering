@@ -18,7 +18,11 @@
 
 planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、**開発をどう進めるかはCompound Engineeringが所有**します。i484は第二のworkflowを作らず、Product Design・構造可視化・幾何学イラストレーションなど、CEが一般化して所有すべきでないdomain judgmentを追加します。
 
-外部能力も同じ原則で接続します。UI Skills MCPは不足したUI専門知識を補うregistry、Checklist Designは具体化したscreen / flow / componentの抜け漏れを調べるauditor、Natural JapaneseとUltraciteはquality providerです。いずれもCEのworkflow authorityを置き換えません。
+外部能力も同じ原則で接続します。UI Skills MCPは不足したUI専門知識を補うregistry、Checklist Designは具体化したscreen / flow / componentの抜け漏れを調べるauditor、yomiyasuとUltraciteはquality providerです。いずれもCEのworkflow authorityを置き換えません。
+
+## 個人用開発環境の導入書
+
+別のPCで採用環境を再構築するAI向けに、[個人用開発環境の導入書](docs/guides/personal-environment.md)を用意しています。導入元、採用する外部SkillとMCP、目的・使用条件、Global指示、確認方法を記載しています。これは個人の採用構成であり、i484 Engineering全利用者の必須設定ではありません。
 
 ## Architecture
 
@@ -33,7 +37,7 @@ flowchart TB
     PD -. "必要な専門知識だけ取得" .-> UIS["UI Skills MCP<br/>external knowledge registry"]
     PD -. "具体化したsurfaceの抜け漏れ監査" .-> CD["Checklist Design<br/>completeness audit"]
 
-    CE -. "日本語品質" .-> NJ["Natural Japanese<br/>quality provider"]
+    CE -. "日本語品質" .-> YOMI["yomiyasu<br/>quality provider"]
     CE -. "JS / TS lint・format" .-> UL["Ultracite<br/>quality provider"]
 
     Project["Project context<br/>requirements / design decisions / local rules"] --> CE
@@ -52,7 +56,7 @@ flowchart TB
 | **i484-geometric-illustration** | i484固有の幾何学visual language | 一般的なsoftware engineering |
 | **UI Skills MCP** | i484内蔵知識で不足する狭いUI専門知識の取得 | routing、workflow、review、Git |
 | **Checklist Design** | 具体化したscreen / flow / componentのcompleteness audit | 一般的なdesign critique、最終設計判断 |
-| **Natural Japanese / Ultracite** | language / lintなど特定品質の判定 | quality gate全体の実行順序 |
+| **yomiyasu / Ultracite** | language / lintなど特定品質の判定 | quality gate全体の実行順序 |
 
 
 ## 設計原則
@@ -173,11 +177,11 @@ Skill本体とchecklist corpusはこのrepositoryへ複製しません。利用�
 
 ## Quality Provider
 
-### Natural Japanese
+### yomiyasu
 
 ユーザー向け日本語を変更した場合に、日本語固有の自然さ、読みやすさ、機械的な文体を専門的に確認するQuality Providerとして利用します。
 
-このrepositoryにはSkill本体を複製していません。利用可能な環境ではCompound Engineeringのquality gate内から適用します。
+[nanaism/yomiyasu](https://github.com/nanaism/yomiyasu)の原版を独立した外部Skillとして利用します。このrepositoryへ同梱・独自改変せず、まとまった変更の確認をCompound Engineeringのquality gate内で行います。
 
 ### Ultracite
 
@@ -268,7 +272,7 @@ i484 Engineeringは39個のSkillを提供します。Compound Engineering由来�
 
 | Skill | 導入して期待する成果 | 使用する場面 | 選択 |
 | --- | --- | --- | --- |
-| `ce-noslop` | 事実を保ちながら読みやすい文章に整える | 文案・文書の整理。日本語品質はNatural Japaneseを併用 | 説明に応じて選択 |
+| `ce-noslop` | 事実を保ちながら読みやすい文章に整える | 文案・文書の整理。日本語品質はyomiyasuを併用 | 説明に応じて選択 |
 | `ce-promote` | 公開済み機能の告知文案を作る | 告知の下書き作成 | 明示呼び出し |
 | `ce-resolve-pr-feedback` | PRの指摘を評価し、妥当な修正と返信を行う | 特定PRへのフィードバック対応 | 説明に応じて選択 |
 | `ce-setup` | 必要なツールとプロジェクト設定を診断・整備する | 対象プロジェクトの設定確認・修復 | 明示呼び出し |
