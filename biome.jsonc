@@ -1,0 +1,76 @@
+// Preserve repository conventions; test overrides support intentional fixture construction.
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "extends": ["ultracite/biome/core"],
+  "files": {
+    "includes": [
+      "**/*.{js,jsx,ts,tsx,mjs,mts,cjs,cts}",
+      "package.json",
+      "biome.jsonc",
+      "!!tests/fixtures",
+      "!!node_modules",
+      "!!dist",
+      "!!build",
+      "!!coverage",
+      "!!site/_site",
+      "!!site/vendor",
+      "!**/*.min.js"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "trailingCommas": "all"
+    },
+    "globals": ["Bun"]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedKeys": "off"
+      }
+    }
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noAwaitInLoops": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
+      "style": {
+        "useConsistentTypeDefinitions": "off",
+        "useDefaultSwitchClause": "off",
+        "noIncrementDecrement": "off",
+        "useNodejsImportProtocol": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/**/*.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "useTopLevelRegex": "off",
+            "noDelete": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off",
+            "useDestructuring": "off"
+          },
+          "suspicious": {
+            "noTemplateCurlyInString": "off",
+            "noAssignInExpressions": "off"
+          }
+        }
+      }
+    }
+  ]
+}

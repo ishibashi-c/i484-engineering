@@ -3,7 +3,6 @@ import fs from "fs/promises"
 import os from "os"
 import path from "path"
 import { fileURLToPath } from "url"
-import { loadClaudePlugin } from "../parsers/claude"
 import { convertClaudeToCodex } from "../converters/claude-to-codex"
 import { convertClaudeToCopilot } from "../converters/claude-to-copilot"
 import { convertClaudeToDroid } from "../converters/claude-to-droid"
@@ -20,15 +19,39 @@ import {
   getLegacyPluginArtifacts,
   getLegacyWindsurfArtifacts,
 } from "../data/plugin-legacy-artifacts"
+import { loadClaudePlugin } from "../parsers/claude"
+import {
+  isManagedCodexAgentsSymlink,
+  readCodexInstallManifest,
+  resolveCodexManagedRoots,
+} from "../targets/codex"
 import { moveLegacyArtifactToBackup } from "../targets/managed-artifacts"
-import { isManagedCodexAgentsSymlink, readCodexInstallManifest, resolveCodexManagedRoots } from "../targets/codex"
-import { classifyCodexLegacyPromptOwnership, isLegacyAgentArtifactOwned, isLegacySkillArtifactOwned } from "../utils/legacy-cleanup"
-import { commandNameToRelativePath, isSafeManagedPath, pathExists, readJson, sanitizePathName } from "../utils/files"
+import {
+  commandNameToRelativePath,
+  isSafeManagedPath,
+  pathExists,
+  readJson,
+  sanitizePathName,
+} from "../utils/files"
+import {
+  classifyCodexLegacyPromptOwnership,
+  isLegacyAgentArtifactOwned,
+  isLegacySkillArtifactOwned,
+} from "../utils/legacy-cleanup"
 import { resolveOpenCodeGlobalRoot } from "../utils/opencode-config"
 import { expandHome, resolveCodexHome, resolveTargetHome } from "../utils/resolve-home"
 
-const cleanupTargets = ["codex", "opencode", "pi", "kiro", "copilot", "droid", "qwen", "windsurf"] as const
-type CleanupTarget = typeof cleanupTargets[number]
+const cleanupTargets = [
+  "codex",
+  "opencode",
+  "pi",
+  "kiro",
+  "copilot",
+  "droid",
+  "qwen",
+  "windsurf",
+] as const
+type CleanupTarget = (typeof cleanupTargets)[number]
 
 type CleanupResult = {
   target: CleanupTarget
@@ -39,18 +62,20 @@ type CleanupResult = {
 export default defineCommand({
   meta: {
     name: "cleanup",
-    description: "Back up stale compound-engineering artifacts from previous installs",
+    description:
+      "Back up stale i484 Engineering or Compound Engineering artifacts from previous installs",
   },
   args: {
     plugin: {
       type: "positional",
       required: false,
-      description: "Plugin name or local plugin path (default: compound-engineering)",
+      description: "Plugin name or local plugin path (default: i484-engineering)",
     },
     target: {
       type: "string",
       default: "all",
-      description: "Target to clean: codex | opencode | pi | kiro | copilot | droid | qwen | windsurf | all",
+      description:
+        "Target to clean: codex | opencode | pi | kiro | copilot | droid | qwen | windsurf | all",
     },
     output: {
       type: "string",
@@ -104,10 +129,14 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const pluginPath = await resolveCleanupPluginPath(args.plugin ? String(args.plugin) : "compound-engineering")
+    const pluginPath = await resolveCleanupPluginPath(
+      args.plugin ? String(args.plugin) : "i484-engineering",
+    )
     const plugin = await loadClaudePlugin(pluginPath)
-    if (plugin.manifest.name !== "compound-engineering") {
-      throw new Error("Cleanup currently supports only the compound-engineering plugin.")
+    if (!["compound-engineering", "i484-engineering"].includes(plugin.manifest.name)) {
+      throw new Error(
+        "Cleanup currently supports only the i484-engineering and compound-engineering plugins.",
+      )
     }
     const targetNames = resolveCleanupTargets(String(args.target))
     const outputRoot = resolveWorkspaceRoot(args.output)
@@ -122,7 +151,10 @@ export default defineCommand({
       copilotHome: resolveTargetHome(args.copilotHome, path.join(os.homedir(), ".copilot")),
       droidHome: resolveTargetHome(args.droidHome, path.join(os.homedir(), ".factory")),
       qwenHome: resolveTargetHome(args.qwenHome, path.join(os.homedir(), ".qwen")),
-      windsurfHome: resolveTargetHome(args.windsurfHome, path.join(os.homedir(), ".codeium", "windsurf")),
+      windsurfHome: resolveTargetHome(
+        args.windsurfHome,
+        path.join(os.homedir(), ".codeium", "windsurf"),
+      ),
       agentsHome: resolveTargetHome(args.agentsHome, path.join(os.homedir(), ".agents")),
       workspaceRoot: outputRoot,
       hasExplicitOutput: hasExplicitValue(args.output),
@@ -131,12 +163,14 @@ export default defineCommand({
 
     const results: CleanupResult[] = []
     for (const target of targetNames) {
-      results.push(...await cleanupTarget(target, plugin, roots))
+      results.push(...(await cleanupTarget(target, plugin, roots)))
     }
 
     const total = results.reduce((sum, result) => sum + result.moved, 0)
     for (const result of results) {
-      console.log(`Cleaned ${result.target} at ${result.root}: backed up ${result.moved} artifact(s)`)
+      console.log(
+        `Cleaned ${result.target} at ${result.root}: backed up ${result.moved} artifact(s)`,
+      )
     }
     console.log(`Cleanup complete for ${plugin.manifest.name}: backed up ${total} artifact(s).`)
   },
@@ -194,11 +228,22 @@ async function cleanupTarget(
       // that fan out with `Promise.all`.
       const rootsToClean = roots.hasExplicitOutput
         ? [resolveCopilotWorkspaceRoot(roots.workspaceRoot)]
-        : await dedupeRoots([roots.copilotHome, resolveCopilotWorkspaceRoot(roots.workspaceRoot), roots.agentsHome])
+        : await dedupeRoots([
+            roots.copilotHome,
+            resolveCopilotWorkspaceRoot(roots.workspaceRoot),
+            roots.agentsHome,
+          ])
       return await Promise.all(rootsToClean.map((root) => cleanupCopilot(plugin, root)))
     }
     case "droid":
-      return [await cleanupDroid(plugin, roots.hasExplicitOutput ? resolveDroidWorkspaceRoot(roots.workspaceRoot) : roots.droidHome)]
+      return [
+        await cleanupDroid(
+          plugin,
+          roots.hasExplicitOutput
+            ? resolveDroidWorkspaceRoot(roots.workspaceRoot)
+            : roots.droidHome,
+        ),
+      ]
     case "qwen":
       return [await cleanupQwen(plugin, roots.qwenHome)]
     case "windsurf": {
@@ -213,7 +258,10 @@ async function cleanupTarget(
   }
 }
 
-async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, codexRoot: string): Promise<CleanupResult> {
+async function cleanupCodex(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  codexRoot: string,
+): Promise<CleanupResult> {
   const bundle = convertClaudeToCodex(plugin, {
     agentMode: "subagent",
     inferTemperature: true,
@@ -229,12 +277,22 @@ async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
     ...bundle.skillDirs.map((skill) => sanitizePathName(skill.name)),
     ...bundle.generatedSkills.map((skill) => sanitizePathName(skill.name)),
   ])
-  const currentPrompts = new Set(bundle.prompts.map((prompt) => `${sanitizePathName(prompt.name)}.md`))
-  const currentAgents = new Set((bundle.agents ?? []).map((agent) => `${sanitizePathName(agent.name)}.toml`))
+  const currentPrompts = new Set(
+    bundle.prompts.map((prompt) => `${sanitizePathName(prompt.name)}.md`),
+  )
+  const currentAgents = new Set(
+    (bundle.agents ?? []).map((agent) => `${sanitizePathName(agent.name)}.toml`),
+  )
   const managedDir = path.join(codexRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(codexRoot, "skills"), skillName, "Codex")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(codexRoot, "skills"),
+      skillName,
+      "Codex",
+    )
     if (!currentNamespacedSkills.has(skillName)) {
       moved += await moveIfExists(
         managedDir,
@@ -258,8 +316,16 @@ async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
     // below is already safe because it only touches files CE recorded writing.
     const promptPath = path.join(codexRoot, "prompts", promptFile)
     const ownership = await classifyCodexLegacyPromptOwnership(promptPath)
-    if (ownership === "foreign") continue
-    moved += await moveIfExists(managedDir, "prompts", path.join(codexRoot, "prompts"), promptFile, "Codex")
+    if (ownership === "foreign") {
+      continue
+    }
+    moved += await moveIfExists(
+      managedDir,
+      "prompts",
+      path.join(codexRoot, "prompts"),
+      promptFile,
+      "Codex",
+    )
   }
   for (const agentFile of artifacts.agents ?? []) {
     moved += await moveIfExists(
@@ -269,7 +335,14 @@ async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
       agentFile,
       "Codex",
     )
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(codexRoot, "agents"), agentFile, "Codex", ".toml")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(codexRoot, "agents"),
+      agentFile,
+      "Codex",
+      ".toml",
+    )
   }
 
   // Manifest-driven migration: read the previous install's manifest and
@@ -283,7 +356,9 @@ async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
   const installedManifest = await readCodexInstallManifest(codexRoot, plugin.manifest.name)
   if (installedManifest) {
     for (const skillName of installedManifest.skills) {
-      if (currentNamespacedSkills.has(skillName)) continue
+      if (currentNamespacedSkills.has(skillName)) {
+        continue
+      }
       moved += await moveIfExists(
         managedDir,
         "skills",
@@ -293,11 +368,21 @@ async function cleanupCodex(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
       )
     }
     for (const promptFile of installedManifest.prompts) {
-      if (currentPrompts.has(promptFile)) continue
-      moved += await moveIfExists(managedDir, "prompts", path.join(codexRoot, "prompts"), promptFile, "Codex")
+      if (currentPrompts.has(promptFile)) {
+        continue
+      }
+      moved += await moveIfExists(
+        managedDir,
+        "prompts",
+        path.join(codexRoot, "prompts"),
+        promptFile,
+        "Codex",
+      )
     }
     for (const agentFile of installedManifest.agents) {
-      if (currentAgents.has(agentFile)) continue
+      if (currentAgents.has(agentFile)) {
+        continue
+      }
       moved += await moveIfExists(
         managedDir,
         "agents",
@@ -335,7 +420,7 @@ async function cleanupCodexSharedAgents(
     codexIncludeSkills: true,
   })
   const artifacts = getLegacyCodexArtifacts(bundle)
-  const managedDir = path.join(agentsRoot, "compound-engineering")
+  const managedDir = path.join(agentsRoot, plugin.manifest.name)
   const agentsSkillsDir = path.join(agentsRoot, "skills")
   const managedRoots = await resolveCodexManagedRoots(codexRoot, plugin.manifest.name)
   let moved = 0
@@ -363,61 +448,114 @@ async function moveIfSymlinkManaged(
   // Defense in depth — same guard as `moveIfExists`: even though legacy
   // allow-list names are safe by construction, re-check the join so a future
   // caller can't issue an out-of-tree rename via `moveLegacyArtifactToBackup`.
-  if (!isSafeManagedPath(artifactRoot, relativePath)) return 0
+  if (!isSafeManagedPath(artifactRoot, relativePath)) {
+    return 0
+  }
   const artifactPath = path.join(artifactRoot, ...relativePath.split("/"))
-  if (!(await isManagedCodexAgentsSymlink(artifactPath, managedRoots))) return 0
+  if (!(await isManagedCodexAgentsSymlink(artifactPath, managedRoots))) {
+    return 0
+  }
   // `isManagedCodexAgentsSymlink` already verified this symlink's resolved
   // target lives inside a CE-managed Codex root -- that is stronger proof of
   // CE ownership than the generic "is a symlink" preservation guard, and the
   // whole point of this sweep is to relocate the symlink node itself. Skip
   // the guard so it doesn't block moving a confirmed CE-owned symlink.
-  await moveLegacyArtifactToBackup(managedDir, kind, artifactRoot, relativePath, label, { skipSymlinkGuard: true })
+  await moveLegacyArtifactToBackup(managedDir, kind, artifactRoot, relativePath, label, {
+    skipSymlinkGuard: true,
+  })
   return 1
 }
 
-async function cleanupOpenCode(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, opencodeRoot: string): Promise<CleanupResult> {
+async function cleanupOpenCode(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  opencodeRoot: string,
+): Promise<CleanupResult> {
   const bundle = convertClaudeToOpenCode(plugin, {
     agentMode: "subagent",
     inferTemperature: true,
     permissions: "none",
   })
   const artifacts = getLegacyOpenCodeArtifacts(bundle)
-  const managedDir = path.join(opencodeRoot, "compound-engineering")
+  const managedDir = path.join(opencodeRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(opencodeRoot, "skills"), skillName, "OpenCode")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(opencodeRoot, "skills"),
+      skillName,
+      "OpenCode",
+    )
   }
   for (const agentPath of artifacts.agents) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(opencodeRoot, "agents"), agentPath, "OpenCode", ".md")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(opencodeRoot, "agents"),
+      agentPath,
+      "OpenCode",
+      ".md",
+    )
   }
   for (const commandPath of artifacts.commands) {
-    moved += await moveIfExists(managedDir, "commands", path.join(opencodeRoot, "commands"), commandPath, "OpenCode")
+    moved += await moveIfExists(
+      managedDir,
+      "commands",
+      path.join(opencodeRoot, "commands"),
+      commandPath,
+      "OpenCode",
+    )
   }
   return { target: "opencode", root: opencodeRoot, moved }
 }
 
-async function cleanupPi(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, piRoot: string): Promise<CleanupResult> {
+async function cleanupPi(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  piRoot: string,
+): Promise<CleanupResult> {
   const bundle = convertClaudeToPi(plugin, {
     agentMode: "subagent",
     inferTemperature: true,
     permissions: "none",
   })
   const artifacts = getLegacyPiArtifacts(bundle)
-  const managedDir = path.join(piRoot, "compound-engineering")
+  const managedDir = path.join(piRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(piRoot, "skills"), skillName, "Pi")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(piRoot, "skills"),
+      skillName,
+      "Pi",
+    )
   }
   for (const promptFile of artifacts.prompts) {
-    moved += await moveIfExists(managedDir, "prompts", path.join(piRoot, "prompts"), promptFile, "Pi")
+    moved += await moveIfExists(
+      managedDir,
+      "prompts",
+      path.join(piRoot, "prompts"),
+      promptFile,
+      "Pi",
+    )
   }
   for (const agentPath of artifacts.agents ?? []) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(piRoot, "agents"), agentPath, "Pi", ".md")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(piRoot, "agents"),
+      agentPath,
+      "Pi",
+      ".md",
+    )
   }
   return { target: "pi", root: piRoot, moved }
 }
 
-async function cleanupKiro(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, kiroRoot: string): Promise<CleanupResult> {
+async function cleanupKiro(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  kiroRoot: string,
+): Promise<CleanupResult> {
   const bundle = convertClaudeToKiro(plugin, {
     agentMode: "subagent",
     inferTemperature: true,
@@ -433,19 +571,42 @@ async function cleanupKiro(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
     ...artifacts.agents,
     ...bundle.agents.map((agent) => sanitizePathName(agent.name)),
   ])
-  const managedDir = path.join(kiroRoot, "compound-engineering")
+  const managedDir = path.join(kiroRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of skillNames) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(kiroRoot, "skills"), skillName, "Kiro")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(kiroRoot, "skills"),
+      skillName,
+      "Kiro",
+    )
   }
   for (const agentName of agentNames) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(kiroRoot, "agents", "prompts"), `${agentName}.md`, "Kiro", ".md")
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(kiroRoot, "agents"), `${agentName}.json`, "Kiro", ".json")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(kiroRoot, "agents", "prompts"),
+      `${agentName}.md`,
+      "Kiro",
+      ".md",
+    )
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(kiroRoot, "agents"),
+      `${agentName}.json`,
+      "Kiro",
+      ".json",
+    )
   }
   return { target: "kiro", root: kiroRoot, moved }
 }
 
-async function cleanupCopilot(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, copilotRoot: string): Promise<CleanupResult> {
+async function cleanupCopilot(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  copilotRoot: string,
+): Promise<CleanupResult> {
   // IMPORTANT: legacy detection for Copilot roots must be driven exclusively
   // by the historical allow-list returned from `getLegacyCopilotArtifacts`
   // (see EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN). Mirrors the Codex/Droid/Windsurf
@@ -463,18 +624,34 @@ async function cleanupCopilot(plugin: Awaited<ReturnType<typeof loadClaudePlugin
     permissions: "none",
   })
   const artifacts = getLegacyCopilotArtifacts(bundle)
-  const managedDir = path.join(copilotRoot, "compound-engineering")
+  const managedDir = path.join(copilotRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(copilotRoot, "skills"), skillName, "Copilot")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(copilotRoot, "skills"),
+      skillName,
+      "Copilot",
+    )
   }
   for (const agentPath of artifacts.agents) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(copilotRoot, "agents"), agentPath, "Copilot", ".agent.md")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(copilotRoot, "agents"),
+      agentPath,
+      "Copilot",
+      ".agent.md",
+    )
   }
   return { target: "copilot", root: copilotRoot, moved }
 }
 
-async function cleanupDroid(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, droidRoot: string): Promise<CleanupResult> {
+async function cleanupDroid(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  droidRoot: string,
+): Promise<CleanupResult> {
   // IMPORTANT: legacy detection for `~/.factory/{skills,droids,commands}` must
   // be driven exclusively by the historical allow-list returned from
   // `getLegacyDroidArtifacts` (see EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN). Mirrors
@@ -488,21 +665,43 @@ async function cleanupDroid(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>
     permissions: "none",
   })
   const artifacts = getLegacyDroidArtifacts(bundle)
-  const managedDir = path.join(droidRoot, "compound-engineering")
+  const managedDir = path.join(droidRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(droidRoot, "skills"), skillName, "Droid")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(droidRoot, "skills"),
+      skillName,
+      "Droid",
+    )
   }
   for (const droidPath of artifacts.droids) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "droids", path.join(droidRoot, "droids"), droidPath, "Droid", ".md")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "droids",
+      path.join(droidRoot, "droids"),
+      droidPath,
+      "Droid",
+      ".md",
+    )
   }
   for (const commandPath of artifacts.commands) {
-    moved += await moveIfExists(managedDir, "commands", path.join(droidRoot, "commands"), commandPath, "Droid")
+    moved += await moveIfExists(
+      managedDir,
+      "commands",
+      path.join(droidRoot, "commands"),
+      commandPath,
+      "Droid",
+    )
   }
   return { target: "droid", root: droidRoot, moved }
 }
 
-async function cleanupQwen(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, qwenRoot: string): Promise<CleanupResult> {
+async function cleanupQwen(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  qwenRoot: string,
+): Promise<CleanupResult> {
   // IMPORTANT: legacy detection for `~/.qwen/{skills,agents,commands}` must be
   // driven exclusively by the historical allow-list in
   // `EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN`. Mirrors the Codex/Droid/Windsurf/
@@ -545,22 +744,53 @@ async function cleanupQwen(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
   }
 
   for (const skillName of skillNames) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(qwenRoot, "skills"), skillName, "Qwen")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(qwenRoot, "skills"),
+      skillName,
+      "Qwen",
+    )
   }
   for (const agentName of agentNames) {
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(qwenRoot, "agents"), `${agentName}.yaml`, "Qwen", ".yaml")
-    moved += await moveLegacyAgentIfOwned(managedDir, "agents", path.join(qwenRoot, "agents"), `${agentName}.md`, "Qwen", ".md")
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(qwenRoot, "agents"),
+      `${agentName}.yaml`,
+      "Qwen",
+      ".yaml",
+    )
+    moved += await moveLegacyAgentIfOwned(
+      managedDir,
+      "agents",
+      path.join(qwenRoot, "agents"),
+      `${agentName}.md`,
+      "Qwen",
+      ".md",
+    )
   }
   for (const commandPath of commandPaths) {
-    moved += await moveIfExists(managedDir, "commands", path.join(qwenRoot, "commands"), commandPath, "Qwen")
+    moved += await moveIfExists(
+      managedDir,
+      "commands",
+      path.join(qwenRoot, "commands"),
+      commandPath,
+      "Qwen",
+    )
   }
 
   return { target: "qwen", root: qwenRoot, moved }
 }
 
-async function isLegacyQwenExtensionInstall(qwenRoot: string, pluginName: string): Promise<boolean> {
+async function isLegacyQwenExtensionInstall(
+  qwenRoot: string,
+  pluginName: string,
+): Promise<boolean> {
   const configPath = path.join(qwenRoot, "extensions", pluginName, "qwen-extension.json")
-  if (!(await pathExists(configPath))) return false
+  if (!(await pathExists(configPath))) {
+    return false
+  }
   try {
     const config = await readJson<Record<string, unknown>>(configPath)
     return "_compound_managed_mcp" in config || "_compound_managed_keys" in config
@@ -569,16 +799,37 @@ async function isLegacyQwenExtensionInstall(qwenRoot: string, pluginName: string
   }
 }
 
-async function cleanupWindsurf(plugin: Awaited<ReturnType<typeof loadClaudePlugin>>, windsurfRoot: string): Promise<CleanupResult> {
+async function cleanupWindsurf(
+  plugin: Awaited<ReturnType<typeof loadClaudePlugin>>,
+  windsurfRoot: string,
+): Promise<CleanupResult> {
   const artifacts = getLegacyWindsurfArtifacts(plugin)
-  const managedDir = path.join(windsurfRoot, "compound-engineering")
+  const managedDir = path.join(windsurfRoot, plugin.manifest.name)
   let moved = 0
   for (const skillName of artifacts.skills) {
-    moved += await moveLegacySkillIfOwned(managedDir, "skills", path.join(windsurfRoot, "skills"), skillName, "Windsurf")
+    moved += await moveLegacySkillIfOwned(
+      managedDir,
+      "skills",
+      path.join(windsurfRoot, "skills"),
+      skillName,
+      "Windsurf",
+    )
   }
   for (const workflowPath of artifacts.workflows) {
-    moved += await moveIfExists(managedDir, "global_workflows", path.join(windsurfRoot, "global_workflows"), workflowPath, "Windsurf")
-    moved += await moveIfExists(managedDir, "workflows", path.join(windsurfRoot, "workflows"), workflowPath, "Windsurf")
+    moved += await moveIfExists(
+      managedDir,
+      "global_workflows",
+      path.join(windsurfRoot, "global_workflows"),
+      workflowPath,
+      "Windsurf",
+    )
+    moved += await moveIfExists(
+      managedDir,
+      "workflows",
+      path.join(windsurfRoot, "workflows"),
+      workflowPath,
+      "Windsurf",
+    )
   }
   return { target: "windsurf", root: windsurfRoot, moved }
 }
@@ -595,9 +846,13 @@ async function moveIfExists(
   // `readManagedInstallManifest` / `readInstallManifest` already filtered.
   // Re-check here so any future caller that skips the read layer cannot
   // issue an out-of-tree rename via `moveLegacyArtifactToBackup`.
-  if (!isSafeManagedPath(artifactRoot, relativePath)) return 0
+  if (!isSafeManagedPath(artifactRoot, relativePath)) {
+    return 0
+  }
   const artifactPath = path.join(artifactRoot, ...relativePath.split("/"))
-  if (!(await pathExists(artifactPath))) return 0
+  if (!(await pathExists(artifactPath))) {
+    return 0
+  }
   await moveLegacyArtifactToBackup(managedDir, kind, artifactRoot, relativePath, label)
   return 1
 }
@@ -609,10 +864,16 @@ async function moveLegacySkillIfOwned(
   relativePath: string,
   label: string,
 ): Promise<number> {
-  if (!isSafeManagedPath(artifactRoot, relativePath)) return 0
+  if (!isSafeManagedPath(artifactRoot, relativePath)) {
+    return 0
+  }
   const artifactPath = path.join(artifactRoot, ...relativePath.split("/"))
-  if (!(await pathExists(artifactPath))) return 0
-  if (!(await isLegacySkillArtifactOwned(artifactPath, path.basename(relativePath)))) return 0
+  if (!(await pathExists(artifactPath))) {
+    return 0
+  }
+  if (!(await isLegacySkillArtifactOwned(artifactPath, path.basename(relativePath)))) {
+    return 0
+  }
   await moveLegacyArtifactToBackup(managedDir, kind, artifactRoot, relativePath, label)
   return 1
 }
@@ -625,29 +886,44 @@ async function moveLegacyAgentIfOwned(
   label: string,
   extension: string | null,
 ): Promise<number> {
-  if (!isSafeManagedPath(artifactRoot, relativePath)) return 0
+  if (!isSafeManagedPath(artifactRoot, relativePath)) {
+    return 0
+  }
   const artifactPath = path.join(artifactRoot, ...relativePath.split("/"))
-  if (!(await pathExists(artifactPath))) return 0
+  if (!(await pathExists(artifactPath))) {
+    return 0
+  }
   const legacyName = legacyAgentNameFromPath(relativePath, extension)
-  if (!(await isLegacyAgentArtifactOwned(artifactPath, legacyName, extension))) return 0
+  if (!(await isLegacyAgentArtifactOwned(artifactPath, legacyName, extension))) {
+    return 0
+  }
   await moveLegacyArtifactToBackup(managedDir, kind, artifactRoot, relativePath, label)
   return 1
 }
 
 function legacyAgentNameFromPath(relativePath: string, extension: string | null): string {
   const baseName = path.basename(relativePath)
-  if (!extension) return baseName
+  if (!extension) {
+    return baseName
+  }
   return baseName.endsWith(extension)
     ? baseName.slice(0, -extension.length)
     : path.basename(baseName, path.extname(baseName))
 }
 
 function resolveCleanupTargets(targetArg: string): CleanupTarget[] {
-  if (targetArg === "all") return [...cleanupTargets]
-  const targets = targetArg.split(",").map((entry) => entry.trim()).filter(Boolean)
+  if (targetArg === "all") {
+    return [...cleanupTargets]
+  }
+  const targets = targetArg
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
   for (const target of targets) {
     if (!cleanupTargets.includes(target as CleanupTarget)) {
-      throw new Error(`Unknown cleanup target: ${target}. Use one of: ${cleanupTargets.join(", ")}, all`)
+      throw new Error(
+        `Unknown cleanup target: ${target}. Use one of: ${cleanupTargets.join(", ")}, all`,
+      )
     }
   }
   return targets as CleanupTarget[]
@@ -657,7 +933,9 @@ async function resolveCleanupPluginPath(input: string): Promise<string> {
   if (input.startsWith(".") || input.startsWith("/") || input.startsWith("~")) {
     const expanded = expandHome(input)
     const directPath = path.resolve(expanded)
-    if (await pathExists(directPath)) return directPath
+    if (await pathExists(directPath)) {
+      return directPath
+    }
     throw new Error(`Local plugin path not found: ${directPath}`)
   }
 
@@ -667,7 +945,9 @@ async function resolveCleanupPluginPath(input: string): Promise<string> {
     try {
       const raw = await fs.readFile(rootManifestPath, "utf8")
       const manifest = JSON.parse(raw) as { name?: string }
-      if (manifest.name === input) return repoRoot
+      if (manifest.name === input) {
+        return repoRoot
+      }
     } catch {
       // Fall through to legacy multi-plugin layout.
     }
@@ -675,7 +955,9 @@ async function resolveCleanupPluginPath(input: string): Promise<string> {
 
   const legacyPluginPath = path.join(repoRoot, "plugins", input)
   const legacyManifestPath = path.join(legacyPluginPath, ".claude-plugin", "plugin.json")
-  if (await pathExists(legacyManifestPath)) return legacyPluginPath
+  if (await pathExists(legacyManifestPath)) {
+    return legacyPluginPath
+  }
 
   throw new Error(`Unknown bundled plugin: ${input}`)
 }
@@ -711,7 +993,9 @@ async function dedupeRoots(roots: string[]): Promise<string[]> {
     // the directory doesn't yet exist (e.g. the first `install` ever) keeps
     // the pre-realpath behavior as a safety net.
     const key = await resolveCanonicalPath(root)
-    if (seen.has(key)) continue
+    if (seen.has(key)) {
+      continue
+    }
     seen.add(key)
     result.push(root)
   }

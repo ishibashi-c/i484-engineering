@@ -1,5 +1,7 @@
 # Shipping Workflow
 
+**i484 quality providers stay inside CE's quality gate.** Apply clearly relevant specialist quality checks declared by the active project/environment without creating a parallel finalization phase. For example, when available and applicable, use `natural-japanese` for changed user-facing Japanese; when a JavaScript/TypeScript project configures Ultracite as its lint/check provider, CE's configured lint step uses Ultracite rather than inventing a second lint path. If a specialist check changes files, those edits remain in the CE-owned diff and must pass the relevant CE verification before shipping.
+
 This file contains the shipping workflow (Phase 3-4). It is loaded when all Phase 2 tasks are complete and execution transitions to quality check.
 
 ## Phase 3: Quality Check

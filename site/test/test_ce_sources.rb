@@ -194,6 +194,18 @@ class TestReadmeParser < Minitest::Test
     assert_equal ["Claude Code", "Cursor", "Grok Build CLI", "oh-my-pi"], CeSources::Readme.hosts(README)
   end
 
+  def test_japanese_install_section_lists_hosts_without_explanatory_subsections
+    readme = <<~MD
+      ## 導入
+      ### Codex App
+      ### Codex CLI
+      ### Skillの呼び出しと実装担当
+      ### Optional external specialists
+      ### その他のhost
+    MD
+    assert_equal ["Codex App", "Codex CLI"], CeSources::Readme.hosts(readme)
+  end
+
   def test_title_from_first_h1_strips_backticks
     assert_equal "ce-alpha", CeSources::Titles.from_markdown("# `ce-alpha`\n\nbody", "fallback")
   end
@@ -288,7 +300,7 @@ class TestAdoption < Minitest::Test
     scaffold do |_repo, site_dir|
       site = read_site(site_dir)
       assert_equal "Two skills that run in order.", guide(site, "Group One").data["description"]
-      assert_equal "Compound Engineering skills in the Group Two group, with the guide for each.", guide(site, "Group Two").data["description"]
+      assert_equal "i484 Engineering skills in the Group Two group, with the guide for each.", guide(site, "Group Two").data["description"]
       assert_equal "End-user-facing documentation for fixture skills. Defaults are documented in configuration.", guide(site, "Skill catalog").data["description"]
       assert_equal "For a first-time install, see the README.", page(site, "/upgrading/").data["description"]
       assert_equal "This guide is not in the catalog and has no H1, so its title falls back to the file name.", guide(site, "ce-orphan").data["description"]
@@ -358,7 +370,7 @@ class TestAdoption < Minitest::Test
       assert_equal 1, items.length
       assert_equal "Releases", items[0]["title"]
       assert_equal true, items[0]["external"]
-      assert_match %r{github\.com/EveryInc/compound-engineering-plugin/releases}, items[0]["url"]
+      assert_match %r{github\.com/ishibashi-c/i484-engineering/releases}, items[0]["url"]
     end
   end
 
@@ -434,7 +446,7 @@ class TestSiteBuild < Minitest::Test
       refute_match(/\b(href|src)="\/(?!\/)/, alpha, "guide page still carries a root-absolute URL")
       assert File.exist?(File.join(out, "guides", "group-one", "index.html"))
       install = File.read(File.join(out, "install", "index.html"))
-      assert_includes install, 'href="https://github.com/EveryInc/compound-engineering-plugin/edit/main/README.md"'
+      assert_includes install, 'href="https://github.com/ishibashi-c/i484-engineering/edit/main/README.md"'
       assert_includes install, "Edit this page on GitHub"
       alpha = File.read(File.join(out, "guides", "ce-alpha", "index.html"), encoding: "UTF-8")
       assert_includes alpha, "edit/main/docs/guides/ce-alpha.md"

@@ -1,11 +1,11 @@
-# Compound Engineering docs site. Built with Jekyll and jekyll-vitepress-theme.
+# i484 Engineering docs site. Built with Jekyll and jekyll-vitepress-theme.
 # Published sources are symlinked in from the repo and adopted by _plugins/ce_sources.rb;
 # nothing under docs/guides, README.md, or docs/install is edited for the site's sake.
 
-title: Compound Engineering
+title: i484 Engineering
 description: AI skills that make each unit of engineering work easier than the last.
-url: https://every.to
-baseurl: /compound-engineering
+url: https://ishibashi-c.github.io
+baseurl: /i484-engineering
 lang: en-US
 logo: /assets/logo.png
 
@@ -40,14 +40,14 @@ exclude:
 
 jekyll_vitepress:
   branding:
-    site_title: Compound Engineering
+    site_title: i484 Engineering
     logo:
       default: /assets/logo.png
-      alt: Compound Engineering
+      alt: i484 Engineering
       width: 28
       height: 28
   typography:
-    google_fonts_url: /compound-engineering/css/fonts.css
+    google_fonts_url: /i484-engineering/css/fonts.css
     body_font_family: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     code_font_family: "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace"
   tokens:
@@ -80,15 +80,15 @@ jekyll_vitepress:
     enabled: true
   github_star:
     enabled: true
-    repository: EveryInc/compound-engineering-plugin
+    repository: ishibashi-c/i484-engineering
   copy_page:
     enabled: true
   llms:
     enabled: true
-    title: Compound Engineering
-    description: Documentation for the Compound Engineering plugin of AI coding-agent skills.
+    title: i484 Engineering
+    description: Documentation for the i484 Engineering plugin of AI coding-agent skills.
   seo:
     enabled: true
     image:
       path: /assets/logo.png
-      alt: Compound Engineering
+      alt: i484 Engineering

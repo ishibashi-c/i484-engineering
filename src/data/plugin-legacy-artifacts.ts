@@ -1,12 +1,12 @@
+import type { ClaudePlugin } from "../types/claude"
 import type { CodexBundle } from "../types/codex"
 import type { CopilotBundle } from "../types/copilot"
 import type { DroidBundle } from "../types/droid"
-import type { ClaudePlugin } from "../types/claude"
 import type { KiroBundle } from "../types/kiro"
 import type { OpenCodeBundle } from "../types/opencode"
 import type { PiBundle } from "../types/pi"
-import { sanitizePathName } from "../utils/files"
 import { normalizeCodexName } from "../utils/codex-content"
+import { sanitizePathName } from "../utils/files"
 
 type LegacyPluginArtifacts = {
   skills?: string[]
@@ -345,8 +345,14 @@ export type LegacyWindsurfArtifacts = {
 }
 
 export function getLegacyPluginArtifacts(pluginName?: string): LegacyPluginArtifacts {
-  if (!pluginName) return {}
-  return EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN[pluginName] ?? {}
+  if (!pluginName) {
+    return {}
+  }
+  // i484 Engineering inherits the CE migration history. Keep this explicit:
+  // other plugins must never gain cleanup candidates from a name collision.
+  const historicalPluginName =
+    pluginName === "i484-engineering" ? "compound-engineering" : pluginName
+  return EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN[historicalPluginName] ?? {}
 }
 
 export function getLegacyCodexArtifacts(bundle: CodexBundle): LegacyTargetArtifacts {
@@ -369,7 +375,9 @@ export function getLegacyCodexArtifacts(bundle: CodexBundle): LegacyTargetArtifa
   const prompts = new Set<string>()
   const agents = new Set<string>()
   const currentPromptFiles = new Set<string>()
-  const currentAgentFiles = new Set<string>((bundle.agents ?? []).map((agent) => `${sanitizePathName(agent.name)}.toml`))
+  const currentAgentFiles = new Set<string>(
+    (bundle.agents ?? []).map((agent) => `${sanitizePathName(agent.name)}.toml`),
+  )
 
   for (const prompt of bundle.prompts) {
     currentPromptFiles.add(`${sanitizePathName(prompt.name)}.md`)
@@ -411,7 +419,9 @@ export function getLegacyPiArtifacts(bundle: PiBundle): LegacyTargetArtifacts {
     ...bundle.generatedSkills.map((skill) => normalizePiName(skill.name)),
     ...bundle.skillDirs.map((skill) => normalizePiName(skill.name)),
   ])
-  const currentAgentFiles = new Set<string>(bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.md`))
+  const currentAgentFiles = new Set<string>(
+    bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.md`),
+  )
   const currentPromptFiles = new Set<string>()
 
   for (const prompt of bundle.prompts) {
@@ -450,9 +460,13 @@ export function getLegacyDroidArtifacts(bundle: DroidBundle): LegacyDroidArtifac
   const skills = new Set<string>()
   const commands = new Set<string>()
   const droids = new Set<string>()
-  const currentSkills = new Set<string>(bundle.skillDirs.map((skill) => sanitizePathName(skill.name)))
+  const currentSkills = new Set<string>(
+    bundle.skillDirs.map((skill) => sanitizePathName(skill.name)),
+  )
   const currentCommands = new Set<string>(bundle.commands.map((command) => `${command.name}.md`))
-  const currentDroids = new Set<string>(bundle.droids.map((droid) => `${sanitizePathName(droid.name)}.md`))
+  const currentDroids = new Set<string>(
+    bundle.droids.map((droid) => `${sanitizePathName(droid.name)}.md`),
+  )
   const extras = getLegacyPluginArtifacts(bundle.pluginName)
 
   for (const name of extras.skills ?? []) {
@@ -482,9 +496,15 @@ export function getLegacyOpenCodeArtifacts(bundle: OpenCodeBundle): LegacyOpenCo
   const skills = new Set<string>()
   const commands = new Set<string>()
   const agents = new Set<string>()
-  const currentSkills = new Set<string>(bundle.skillDirs.map((skill) => sanitizePathName(skill.name)))
-  const currentCommands = new Set<string>(bundle.commandFiles.map((command) => toRawCommandRelativePath(command.name, ".md")))
-  const currentAgents = new Set<string>(bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.md`))
+  const currentSkills = new Set<string>(
+    bundle.skillDirs.map((skill) => sanitizePathName(skill.name)),
+  )
+  const currentCommands = new Set<string>(
+    bundle.commandFiles.map((command) => toRawCommandRelativePath(command.name, ".md")),
+  )
+  const currentAgents = new Set<string>(
+    bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.md`),
+  )
   const extras = getLegacyPluginArtifacts(bundle.pluginName)
 
   for (const name of extras.skills ?? []) {
@@ -554,7 +574,9 @@ export function getLegacyCopilotArtifacts(bundle: CopilotBundle): LegacyCopilotA
     ...bundle.generatedSkills.map((skill) => sanitizePathName(skill.name)),
     ...bundle.skillDirs.map((skill) => sanitizePathName(skill.name)),
   ])
-  const currentAgents = new Set<string>(bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.agent.md`))
+  const currentAgents = new Set<string>(
+    bundle.agents.map((agent) => `${sanitizePathName(agent.name)}.agent.md`),
+  )
   const extras = getLegacyPluginArtifacts(bundle.pluginName)
 
   for (const name of extras.skills ?? []) {
@@ -644,7 +666,9 @@ function addLegacySkillVariants(
 
 function normalizeLegacyName(value: string): string {
   const trimmed = value.trim()
-  if (!trimmed) return "item"
+  if (!trimmed) {
+    return "item"
+  }
   const normalized = trimmed
     .toLowerCase()
     .replace(/[\\/]+/g, "-")
@@ -656,16 +680,12 @@ function normalizeLegacyName(value: string): string {
 }
 
 function flattenLegacyCommandName(value: string): string {
-  const finalSegment = value.includes(":") ? value.split(":").pop()! : value
+  const finalSegment = value.split(":").at(-1) ?? value
   return normalizeLegacyName(finalSegment)
 }
 
 function legacyCommandSkillNames(value: string): string[] {
   return [...new Set([normalizeLegacyName(value), flattenLegacyCommandName(value)])]
-}
-
-function toNestedCommandRelativePath(value: string, ext: string): string {
-  return `${value.split(":").map((segment) => normalizeLegacyName(segment)).join("/")}${ext}`
 }
 
 function toRawCommandRelativePath(value: string, ext: string): string {

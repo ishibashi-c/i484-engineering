@@ -26,7 +26,10 @@ const cliEntry = path.join(repoRoot, "src", "index.ts")
 const IMPLEMENTED_TARGETS = ["opencode", "codex", "pi", "antigravity"] as const
 type Target = (typeof IMPLEMENTED_TARGETS)[number]
 
-const PLUGIN_NAMES = ["compound-engineering"] as const
+const ROOT_PLUGIN_NAME: string = JSON.parse(
+  readFileSync(path.join(repoRoot, ".claude-plugin", "plugin.json"), "utf8"),
+).name
+const PLUGIN_NAMES = [ROOT_PLUGIN_NAME] as const
 type PluginName = (typeof PLUGIN_NAMES)[number]
 
 // Note on skill body size: no body-size check is enforced here, but the reason
@@ -89,7 +92,8 @@ function walkFiles(dir: string): string[] {
 }
 
 function loadSourceInventory(pluginName: PluginName): SourceInventory {
-  const pluginRoot = pluginName === "compound-engineering" ? repoRoot : path.join(repoRoot, "plugins", pluginName)
+  const pluginRoot =
+    pluginName === ROOT_PLUGIN_NAME ? repoRoot : path.join(repoRoot, "plugins", pluginName)
   const agents = listFileBasenames(path.join(pluginRoot, "agents"), ".md")
   const commands = listFileBasenames(path.join(pluginRoot, "commands"), ".md")
   const skills: SourceInventory["skills"] = []
@@ -103,7 +107,9 @@ function loadSourceInventory(pluginName: PluginName): SourceInventory {
       continue
     }
     const { data } = parseFrontmatter(raw, skillFile)
-    const cePlatforms = Array.isArray(data.ce_platforms) ? (data.ce_platforms as string[]) : undefined
+    const cePlatforms = Array.isArray(data.ce_platforms)
+      ? (data.ce_platforms as string[])
+      : undefined
     const userInvocable = data["user-invocable"] === false ? false : undefined
     skills.push({ name, cePlatforms, userInvocable })
   }
@@ -196,28 +202,36 @@ function targetInvocation(target: Target, tempRoot: string): { args: string[]; r
   }
 }
 
-async function runConvert(pluginName: PluginName, target: Target, tempRoot: string, fakeHome: string): Promise<void> {
+async function runConvert(
+  pluginName: PluginName,
+  target: Target,
+  tempRoot: string,
+  fakeHome: string,
+): Promise<void> {
   const { args, root } = targetInvocation(target, tempRoot)
   const env: Record<string, string | undefined> = { ...process.env, HOME: fakeHome }
   // Inherited target overrides would silently redirect writes outside tempRoot.
   delete env.CODEX_HOME
   delete env.OPENCODE_CONFIG_DIR
 
-  const proc = Bun.spawn([
-    "bun",
-    "run",
-    cliEntry,
-    "convert",
-    pluginName === "compound-engineering" ? repoRoot : path.join(repoRoot, "plugins", pluginName),
-    "--to",
-    target,
-    ...args,
-  ], {
-    cwd: repoRoot,
-    stdout: "pipe",
-    stderr: "pipe",
-    env,
-  })
+  const proc = Bun.spawn(
+    [
+      "bun",
+      "run",
+      cliEntry,
+      "convert",
+      pluginName === ROOT_PLUGIN_NAME ? repoRoot : path.join(repoRoot, "plugins", pluginName),
+      "--to",
+      target,
+      ...args,
+    ],
+    {
+      cwd: repoRoot,
+      stdout: "pipe",
+      stderr: "pipe",
+      env,
+    },
+  )
 
   const exitCode = await proc.exited
   const stdout = await new Response(proc.stdout).text()
@@ -248,7 +262,10 @@ function readJson(filePath: string): Record<string, unknown> {
 function expectSkillDirsHaveSkillMd(skillsRoot: string, skillNames: string[]): void {
   for (const name of skillNames) {
     const skillFile = path.join(skillsRoot, name, "SKILL.md")
-    expect(existsSync(skillFile), `Converted skill dir ${path.join(skillsRoot, name)} is missing SKILL.md`).toBe(true)
+    expect(
+      existsSync(skillFile),
+      `Converted skill dir ${path.join(skillsRoot, name)} is missing SKILL.md`,
+    ).toBe(true)
   }
 }
 
@@ -274,7 +291,9 @@ for (const pluginName of PLUGIN_NAMES) {
       const fakeHome = path.join(outputRoot, "home")
       await fs.mkdir(fakeHome)
 
-      await Promise.all(IMPLEMENTED_TARGETS.map((target) => runConvert(pluginName, target, outputRoot, fakeHome)))
+      await Promise.all(
+        IMPLEMENTED_TARGETS.map((target) => runConvert(pluginName, target, outputRoot, fakeHome)),
+      )
 
       // Sandbox safety: with explicit output flags, no target may fall back to
       // a home-relative default (the redirected HOME would catch it).
@@ -291,17 +310,24 @@ for (const pluginName of PLUGIN_NAMES) {
       const expectedSkills = skillsForPlatform(inventory, "opencode")
       // OpenCode emits one slash-command stub per invocable skill, plus any
       // explicit commands/ entries (none for the skills-only root plugin).
-      const expectedCommands = [...new Set([...inventory.commands, ...commandStubsForPlatform(inventory, "opencode")])].sort()
+      const expectedCommands = [
+        ...new Set([...inventory.commands, ...commandStubsForPlatform(inventory, "opencode")]),
+      ].sort()
 
       const config = readJson(path.join(root, "opencode.json"))
       expect(config.$schema).toBe("https://opencode.ai/config.json")
-      expect(config.permission, "--permissions broad was pinned, so opencode.json must carry a permission block").toBeDefined()
+      expect(
+        config.permission,
+        "--permissions broad was pinned, so opencode.json must carry a permission block",
+      ).toBeDefined()
 
       const opencodeRoot = path.join(root, ".opencode")
       expect(listFileBasenames(path.join(opencodeRoot, "agents"), ".md")).toEqual(inventory.agents)
       expect(listDirNames(path.join(opencodeRoot, "skills"))).toEqual(expectedSkills)
       expectSkillDirsHaveSkillMd(path.join(opencodeRoot, "skills"), expectedSkills)
-      expect(listFileBasenames(path.join(opencodeRoot, "commands"), ".md")).toEqual(expectedCommands)
+      expect(listFileBasenames(path.join(opencodeRoot, "commands"), ".md")).toEqual(
+        expectedCommands,
+      )
 
       const manifest = readJson(path.join(opencodeRoot, pluginName, "install-manifest.json"))
       expect(manifest.version).toBe(1)
@@ -316,7 +342,9 @@ for (const pluginName of PLUGIN_NAMES) {
       const { root } = getConversion(pluginName, "codex")
       // Codex converts commands into prompts AND generated command-skills, so
       // the skills dir is the platform-filtered skills plus the commands.
-      const expectedSkills = [...new Set([...skillsForPlatform(inventory, "codex"), ...inventory.commands])].sort()
+      const expectedSkills = [
+        ...new Set([...skillsForPlatform(inventory, "codex"), ...inventory.commands]),
+      ].sort()
 
       const agentsMdPath = path.join(root, "AGENTS.md")
       if (existsSync(agentsMdPath)) {
@@ -329,7 +357,9 @@ for (const pluginName of PLUGIN_NAMES) {
       for (const name of tomlNames) {
         const toml = readFileSync(path.join(root, "agents", pluginName, `${name}.toml`), "utf8")
         for (const key of ["name", "description", "developer_instructions"]) {
-          expect(toml, `${name}.toml is missing the ${key} field`).toMatch(new RegExp(`^${key} = `, "m"))
+          expect(toml, `${name}.toml is missing the ${key} field`).toMatch(
+            new RegExp(`^${key} = `, "m"),
+          )
         }
       }
 
@@ -406,7 +436,9 @@ for (const pluginName of PLUGIN_NAMES) {
         }
       }
       expect(scanned, "expected the converted trees to contain .json/.md files").toBeGreaterThan(0)
-      expect(errors, `Converted output contains unparseable files:\n${errors.join("\n")}`).toEqual([])
+      expect(errors, `Converted output contains unparseable files:\n${errors.join("\n")}`).toEqual(
+        [],
+      )
     })
   })
 }

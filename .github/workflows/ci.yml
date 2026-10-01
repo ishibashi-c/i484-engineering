@@ -53,6 +53,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The immutable A/B corpus contains a baseline from an upstream branch
+      # that is not an ancestor of this fork. A full checkout cannot supply it.
+      - name: Fetch pinned upstream evaluation baseline
+        run: git fetch --no-tags https://github.com/EveryInc/compound-engineering-plugin.git 799702cf0f5405c9361548cd86490c5603e2632c
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -60,6 +65,11 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Check changed code with Ultracite
+        env:
+          QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
+        run: bun run check
 
       - name: Validate release metadata
         run: bun run release:validate

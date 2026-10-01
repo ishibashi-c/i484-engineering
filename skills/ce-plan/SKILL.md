@@ -22,9 +22,9 @@ Writing the file, checking confidence, and running or explicitly skipping `ce-do
 
 ## Interaction Method
 
-Ask one question at a time through the host's blocking question tool already in the current tool list. Match by capability; never probe a user-facing tool to discover it. If none is listed or a real question call errors, render numbered choices in chat; never silently skip a required question. If no feature description was supplied, ask what to plan and wait.
+Read `references/intake.md` before asking any question; follow its interaction method. Ask one question at a time. If no feature description was supplied, ask what to plan and wait.
 
-**i484 product-design knowledge is additive, never a second planning workflow.** When the work changes a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it before making design-dependent planning decisions. Use it only for product-design domain judgment. This skill still owns technical planning, evidence gathering, plan structure, document review, and handoff.
+**i484 product-design knowledge is additive, never a second planning workflow.** Read `references/intake.md` before design-dependent planning decisions; it governs `i484-product-design` routing.
 
 ## Output Contract
 
@@ -44,7 +44,7 @@ Phases run in order unless a reference routes out or short-circuits. Read a phas
 
 1. **Output first.** Read `references/output-mode.md` before interpreting any phase. It defines token parsing, output and confirmation precedence, renderer selection, artifact location, and when a repository may be resolved.
 2. **Resume, deepen, approach, and domain.** Read `references/resume.md` before acting. It defines resuming an existing plan, enriching a requirements-only plan, deepening, approach-level planning, and the software/non-software split. Follow any terminal route it selects; otherwise continue.
-3. **Source and scope.** Read `references/intake.md` before Phase 0.2 and follow it through Phase 0.7. It defines finding and preserving the upstream artifact, routing out to bootstrap work, blocking questions, depth, named resources, and the scoping synthesis; the Output Contract decision above happens inside it. Do not pass a decision point that has not resolved.
+3. **Source and scope.** Read `references/intake.md` before Phase 0.2 and follow it through Phase 0.7. Do not pass a decision point that has not resolved.
 
 ### Phases 1-4: Research and Compose
 

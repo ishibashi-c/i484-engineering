@@ -1,5 +1,11 @@
 # Building the prototype
 
+Keep a run capsule at `decisions.md` in this run's directory, so the next skill does not need this session. `references/build.md` lists what it carries. Point at the prototype; do not reproduce it. Include only what changes later planning. Do not treat `decisions.md` as a plan: applying writes the Product Contract or the recap, and the capsule is only continuity.
+
+Default substrate: the web, whatever the product is written in — a native app's navigation feel gets a web approximation, not SwiftUI. `references/build.md` defines yields and artifacts.
+
+**i484 product-design knowledge is additive, never a second prototype workflow.** When the prototype is settling how a user-facing product interface should work, feel, or read and the installed skill catalog exposes `i484-product-design`, load it before making the relevant design judgments. Use it only as product-design domain knowledge; this skill still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff.
+
 Required read before you write any prototype code, alongside `references/preview.md`.
 
 ## Fidelity

@@ -6,7 +6,7 @@ require "fileutils"
 require_relative "../_plugins/ce_github_markdown"
 
 class TestCeGithubMarkdown < Minitest::Test
-  BLOB = "https://github.com/EveryInc/compound-engineering-plugin/blob/main"
+  BLOB = "https://github.com/ishibashi-c/i484-engineering/blob/main"
 
   def setup
     @repo_root = Dir.mktmpdir("ce-gfm-")
@@ -50,7 +50,7 @@ class TestCeGithubMarkdown < Minitest::Test
     assert_includes out, "[a](/compound-engineering/guides/ce-plan/)"
     assert_includes out, "[b](/compound-engineering/install/#install)"
     assert_includes out, 'src="/compound-engineering/assets/logo.png"'
-    assert_includes out, "[c](https://github.com/EveryInc/compound-engineering-plugin/blob/main/docs/specs/omp.md)"
+    assert_includes out, "[c](https://github.com/ishibashi-c/i484-engineering/blob/main/docs/specs/omp.md)"
     assert_includes out, "[d](https://x.test/)"
   end
 
@@ -181,7 +181,7 @@ class TestCeGithubMarkdown < Minitest::Test
   end
 
   def test_existing_directory_maps_to_github_tree
-    assert_equal "[x](https://github.com/EveryInc/compound-engineering-plugin/tree/main/docs/specs)",
+    assert_equal "[x](https://github.com/ishibashi-c/i484-engineering/tree/main/docs/specs)",
                  rewrite("[x](docs/specs)")
   end
 

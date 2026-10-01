@@ -1,7 +1,7 @@
-import { existsSync, readdirSync, readFileSync, statSync, type Dirent } from "fs"
-import path from "path"
 import { describe, expect, test } from "bun:test"
+import { type Dirent, existsSync, readdirSync, readFileSync, statSync } from "fs"
 import { load } from "js-yaml"
+import path from "path"
 import { parseFrontmatter } from "../src/utils/frontmatter"
 
 const ROOT_AGENTS = readFileSync(path.join(process.cwd(), "AGENTS.md"), "utf8")
@@ -142,7 +142,7 @@ const ROOT_README = readFileSync(path.join(process.cwd(), "README.md"), "utf8")
 
 const REPO_ROOT = process.cwd()
 const SKILLS_ROOT = path.join(REPO_ROOT, "skills")
-const AGENTS_MD_REF = `AGENTS.md (repo root)`
+const AGENTS_MD_REF = "AGENTS.md (repo root)"
 
 describe("user-facing skill invocation authoring contract", () => {
   test("authoring guidance separates semantic routing from host-rendered user copy", () => {
@@ -154,19 +154,27 @@ describe("user-facing skill invocation authoring contract", () => {
       expect(text).toContain("`ce-plan`")
       expect(text).toMatch(/in prose, render only the invocation as inline code[^\n]*fenced block/i)
       expect(text).toMatch(/active host|active harness/i)
-      expect(text).toMatch(/default to `\/skill-name`[\s\S]{0,160}Codex[\s\S]{0,160}dollar-prefixed/i)
+      expect(text).toMatch(
+        /default to `\/skill-name`[\s\S]{0,160}Codex[\s\S]{0,160}dollar-prefixed/i,
+      )
       expect(text).toContain("`/skill:ce-polish`")
       expect(text).toMatch(/oh-my-pi \(`omp`\)[^\n]*\/skill:<name>`[^\n]*disable-model-invocation/i)
       expect(text).toMatch(/\/goal[\s\S]{0,180}(built-in|exception)|built-in[\s\S]{0,180}\/goal/i)
-      expect(text).toMatch(/smallest section[\s\S]{0,180}do not repeat[\s\S]{0,180}separately loaded reference/i)
+      expect(text).toMatch(
+        /smallest section[\s\S]{0,180}do not repeat[\s\S]{0,180}separately loaded reference/i,
+      )
     }
   })
 
   test("README distinguishes model-routed copy from deterministic OMP invocation", () => {
-    expect(ROOT_README).toMatch(/README uses `\/skill-name`[\s\S]{0,180}Codex[\s\S]{0,120}`\$skill-name`/i)
-    expect(ROOT_README).toContain("`$ce-plan` and `$lfg`")
-    expect(ROOT_README).toMatch(/oh-my-pi \(omp\)[^\n]*`\/skill:<name>`[^\n]*(?:manual-only|deterministic)/i)
-    expect(ROOT_README).toMatch(/\/goal[\s\S]{0,80}Codex built-in/i)
+    expect(ROOT_README).toMatch(
+      /一般的な呼び出しは\s*`\/skill-name`[\s\S]{0,180}Codex[\s\S]{0,120}`\$skill-name`/i,
+    )
+    expect(ROOT_README).toMatch(/`\$ce-plan`\s*と\s*`\$lfg`/)
+    expect(ROOT_README).toMatch(
+      /oh-my-pi[^\n]*自動選択に公開されない明示呼び出しSkill[^\n]*`\/skill:<name>`[^\n]*直接呼び出/i,
+    )
+    expect(ROOT_README).toMatch(/\/goal[\s\S]{0,80}Codexの組み込み機能/i)
   })
 })
 
@@ -245,9 +253,13 @@ function listSkillDirs(): SkillDir[] {
     return out
   }
   for (const entry of skillEntries) {
-    if (!entry.isDirectory()) continue
+    if (!entry.isDirectory()) {
+      continue
+    }
     const absPath = path.join(SKILLS_ROOT, entry.name)
-    if (!existsSync(path.join(absPath, "SKILL.md"))) continue
+    if (!existsSync(path.join(absPath, "SKILL.md"))) {
+      continue
+    }
     out.push({ relPath: path.relative(REPO_ROOT, absPath), absPath })
   }
   return out
@@ -261,7 +273,9 @@ function listMarkdownFiles(dir: string): string[] {
       out.push(...listMarkdownFiles(full))
       continue
     }
-    if (entry.name.endsWith(".md")) out.push(full)
+    if (entry.name.endsWith(".md")) {
+      out.push(full)
+    }
   }
   return out
 }
@@ -316,8 +330,11 @@ function partitionFencedCodeBlocks(markdown: string): { prose: string; fencedLin
     if (match) {
       const char = match[1][0]
       const len = match[1].length
-      if (!fence) fence = { char, len }
-      else if (fence.char === char && len >= fence.len) fence = null
+      if (!fence) {
+        fence = { char, len }
+      } else if (fence.char === char && len >= fence.len) {
+        fence = null
+      }
       return ""
     }
     if (fence) {
@@ -398,7 +415,9 @@ function extractLocalPathCodeSpans(markdown: string): Located[] {
   let match: RegExpExecArray | null
   while ((match = spanRegex.exec(markdown)) !== null) {
     const lineNumber = lineNumberAt(markdown, match.index)
-    for (const token of localPathTokensIn(match[1])) out.push({ lineNumber, value: token })
+    for (const token of localPathTokensIn(match[1])) {
+      out.push({ lineNumber, value: token })
+    }
   }
   return out
 }
@@ -465,7 +484,9 @@ function withoutFragment(target: string): string {
  * SKILL.md itself) and the skill root.
  */
 function escapesSkillDir(target: string, fileDirWithinSkill: string): boolean {
-  if (target.startsWith("/") || target.startsWith("~")) return true
+  if (target.startsWith("/") || target.startsWith("~")) {
+    return true
+  }
   const fromFile = path.posix.normalize(path.posix.join(fileDirWithinSkill, target))
   const fromRoot = path.posix.normalize(target)
   const escapes = (p: string) => p === ".." || p.startsWith("../")
@@ -484,7 +505,9 @@ function findSelfContainmentViolations(
   const stripped = stripFencedCodeBlocks(markdown)
   const out: SelfContainmentViolation[] = []
   for (const { lineNumber, value } of extractMarkdownLinkTargets(stripped)) {
-    if (isExternalLinkTarget(value) || isTemplatePlaceholderPath(value)) continue
+    if (isExternalLinkTarget(value) || isTemplatePlaceholderPath(value)) {
+      continue
+    }
     if (escapesSkillDir(withoutFragment(value), fileDirWithinSkill)) {
       out.push({ lineNumber, detail: `link target escapes the skill directory: ${value}` })
     }
@@ -506,20 +529,28 @@ function extractLocalReferenceCandidates(markdown: string): Located[] {
   const stripped = stripFencedCodeBlocks(markdown)
   const out: Located[] = []
   for (const { lineNumber, value } of extractMarkdownLinkTargets(stripped)) {
-    if (isExternalLinkTarget(value) || isTemplatePlaceholderPath(value)) continue
+    if (isExternalLinkTarget(value) || isTemplatePlaceholderPath(value)) {
+      continue
+    }
     const target = withoutFragment(value)
-    if (target === "" || target.startsWith("/") || target.startsWith("~")) continue
+    if (target === "" || target.startsWith("/") || target.startsWith("~")) {
+      continue
+    }
     out.push({ lineNumber, value: target })
   }
   for (const span of extractLocalPathCodeSpans(stripped)) {
-    if (isTemplatePlaceholderPath(span.value)) continue
+    if (isTemplatePlaceholderPath(span.value)) {
+      continue
+    }
     out.push(span)
   }
   for (const target of extractAtIncludeTargets(stripped)) {
     out.push(target)
   }
   for (const token of extractFencedLocalPathTokens(markdown)) {
-    if (isTemplatePlaceholderPath(token.value)) continue
+    if (isTemplatePlaceholderPath(token.value)) {
+      continue
+    }
     out.push(token)
   }
   return out
@@ -535,7 +566,9 @@ function extractLocalReferenceCandidates(markdown: string): Located[] {
  */
 function resolveInsideSkill(skillAbsPath: string, baseDir: string, target: string): string | null {
   const resolved = path.resolve(baseDir, target)
-  if (resolved === skillAbsPath || resolved.startsWith(skillAbsPath + path.sep)) return resolved
+  if (resolved === skillAbsPath || resolved.startsWith(skillAbsPath + path.sep)) {
+    return resolved
+  }
   return null
 }
 
@@ -548,8 +581,8 @@ type PlatformVarOccurrence = { lineNumber: number; variable: string; graceful: b
 // Shell test operators that count as guarding a platform variable: `-n`/`-z`
 // (set / unset) and `-f`/`-e`/`-d` (path existence). Defined once so the three
 // guard matchers below stay in lockstep when the set changes.
-const GUARD_TEST = `\\[\\s*-[nzefd]\\s+`
-const PLATFORM_VAR_CAPTURE = `\\$\\{?((?:CLAUDE|CODEX)_[A-Z][A-Z0-9_]*)\\b`
+const GUARD_TEST = "\\[\\s*-[nzefd]\\s+"
+const PLATFORM_VAR_CAPTURE = "\\$\\{?((?:CLAUDE|CODEX)_[A-Z][A-Z0-9_]*)\\b"
 
 /**
  * Skill-directory variables — used to locate a bundled file. For these, a
@@ -568,7 +601,9 @@ const SKILL_DIR_VARS = new Set(["CLAUDE_SKILL_DIR", "CLAUDE_PLUGIN_ROOT"])
  * test (existence/non-empty guard).
  */
 function isGracefulPlatformVarUse(line: string, variable: string): boolean {
-  if (!SKILL_DIR_VARS.has(variable) && new RegExp(`\\$\\{${variable}:-`).test(line)) return true
+  if (!SKILL_DIR_VARS.has(variable) && new RegExp(`\\$\\{${variable}:-`).test(line)) {
+    return true
+  }
   return new RegExp(`${GUARD_TEST}"[^"]*\\$\\{?${variable}\\b[^"]*"\\s*\\]`).test(line)
 }
 
@@ -577,7 +612,9 @@ function fileGuardedVars(markdown: string): Set<string> {
   const guarded = new Set<string>()
   const guardForm = new RegExp(`${GUARD_TEST}"[^"]*${PLATFORM_VAR_CAPTURE}[^"]*"\\s*\\]`, "g")
   let match: RegExpExecArray | null
-  while ((match = guardForm.exec(markdown)) !== null) guarded.add(match[1])
+  while ((match = guardForm.exec(markdown)) !== null) {
+    guarded.add(match[1])
+  }
   return guarded
 }
 
@@ -589,7 +626,9 @@ function guardsOpenedOnLine(line: string): Set<string> {
   const opened = new Set<string>()
   let match: RegExpExecArray | null
   GUARD_BLOCK_OPEN.lastIndex = 0
-  while ((match = GUARD_BLOCK_OPEN.exec(line)) !== null) opened.add(match[1])
+  while ((match = GUARD_BLOCK_OPEN.exec(line)) !== null) {
+    opened.add(match[1])
+  }
   return opened
 }
 
@@ -619,7 +658,9 @@ function findPlatformVarOccurrences(markdown: string): PlatformVarOccurrence[] {
   const proseLines = prose.split("\n")
   for (let i = 0; i < proseLines.length; i++) {
     const line = proseLines[i]
-    if (!line) continue
+    if (!line) {
+      continue
+    }
     let match: RegExpExecArray | null
     PLATFORM_VAR_REGEX.lastIndex = 0
     while ((match = PLATFORM_VAR_REGEX.exec(line)) !== null) {
@@ -636,7 +677,9 @@ function findPlatformVarOccurrences(markdown: string): PlatformVarOccurrence[] {
   let activeGuard = new Set<string>()
   let prevLineNumber = -2
   for (const { lineNumber, value: line } of fencedLines) {
-    if (lineNumber !== prevLineNumber + 1) activeGuard = new Set() // new fenced block
+    if (lineNumber !== prevLineNumber + 1) {
+      activeGuard = new Set() // new fenced block
+    }
     prevLineNumber = lineNumber
     const openedHere = guardsOpenedOnLine(line)
     const lineGuard = new Set([...activeGuard, ...openedHere])
@@ -652,8 +695,13 @@ function findPlatformVarOccurrences(markdown: string): PlatformVarOccurrence[] {
     }
     // A `fi` on this line closes the block (covers single-line guards); otherwise
     // any guard opened here stays active for subsequent lines in this block.
-    if (/\bfi\b/.test(line)) activeGuard = new Set()
-    else for (const variable of openedHere) activeGuard.add(variable)
+    if (/\bfi\b/.test(line)) {
+      activeGuard = new Set()
+    } else {
+      for (const variable of openedHere) {
+        activeGuard.add(variable)
+      }
+    }
   }
 
   out.sort((a, b) => a.lineNumber - b.lineNumber)
@@ -725,9 +773,7 @@ describe("portable skill capability wording", () => {
         const fileRel = path.relative(REPO_ROOT, filePath)
         const content = readFileSync(filePath, "utf8")
         if (claudeSelect.test(content)) {
-          offenders.push(
-            `${fileRel}: ToolSearch select:AskUserQuestion used as portable discovery`,
-          )
+          offenders.push(`${fileRel}: ToolSearch select:AskUserQuestion used as portable discovery`)
         }
         if (closedCatalog.test(content)) {
           offenders.push(
@@ -735,9 +781,7 @@ describe("portable skill capability wording", () => {
           )
         }
         if (leftoverEmptyCall.test(content)) {
-          offenders.push(
-            `${fileRel}: leftover empty () after catalog-name replacement`,
-          )
+          offenders.push(`${fileRel}: leftover empty () after catalog-name replacement`)
         }
       }
     }
@@ -758,7 +802,9 @@ describe("portable skill capability wording", () => {
       for (const filePath of listMarkdownFiles(skill.absPath)) {
         const fileRel = path.relative(REPO_ROOT, filePath)
         const content = readFileSync(filePath, "utf8")
-        if (!useAndFallback.test(content)) continue
+        if (!useAndFallback.test(content)) {
+          continue
+        }
         if (!proof.test(content)) {
           offenders.push(fileRel)
         }
@@ -778,7 +824,9 @@ describe("skill self-containment (AGENTS.md 'File References in Skills')", () =>
       const offenders: string[] = []
       for (const filePath of listMarkdownFiles(skill.absPath)) {
         const fileRel = path.relative(REPO_ROOT, filePath)
-        if (INSTALLED_PLUGIN_PATH_EXEMPTIONS.has(fileRel)) continue
+        if (INSTALLED_PLUGIN_PATH_EXEMPTIONS.has(fileRel)) {
+          continue
+        }
         const fileDirWithinSkill = path
           .relative(skill.absPath, path.dirname(filePath))
           .split(path.sep)
@@ -809,7 +857,9 @@ describe("skill reference integrity (AGENTS.md 'File References in Skills')", ()
             resolveInsideSkill(skill.absPath, path.dirname(filePath), value),
           ].filter((p): p is string => p !== null)
           if (containedCandidates.length === 0) {
-            missing.push(`  ${fileRel}:${lineNumber} — ${value} (resolves outside the skill directory)`)
+            missing.push(
+              `  ${fileRel}:${lineNumber} — ${value} (resolves outside the skill directory)`,
+            )
             continue
           }
           const exists = (p: string) => {
@@ -849,9 +899,15 @@ describe("skill frontmatter limits (Anthropic skill spec)", () => {
       }
     }
 
-    const missingUserInvoked = [...EXPECTED_USER_INVOKED_SKILLS].filter((name) => !actualUserInvoked.has(name))
-    const unexpectedUserInvoked = [...actualUserInvoked].filter((name) => !EXPECTED_USER_INVOKED_SKILLS.has(name))
-    const disabledRequiredCallees = [...REQUIRED_MODEL_INVOKED_CALLEES].filter((name) => !actualModelInvoked.has(name))
+    const missingUserInvoked = [...EXPECTED_USER_INVOKED_SKILLS].filter(
+      (name) => !actualUserInvoked.has(name),
+    )
+    const unexpectedUserInvoked = [...actualUserInvoked].filter(
+      (name) => !EXPECTED_USER_INVOKED_SKILLS.has(name),
+    )
+    const disabledRequiredCallees = [...REQUIRED_MODEL_INVOKED_CALLEES].filter(
+      (name) => !actualModelInvoked.has(name),
+    )
 
     expect(
       missingUserInvoked,
@@ -879,11 +935,15 @@ describe("skill frontmatter limits (Anthropic skill spec)", () => {
 
       const policyPath = path.join(skill.absPath, "agents", "openai.yaml")
       const manifest = existsSync(policyPath)
-        ? (load(readFileSync(policyPath, "utf8")) as { policy?: { allow_implicit_invocation?: unknown } } | null)
+        ? (load(readFileSync(policyPath, "utf8")) as {
+            policy?: { allow_implicit_invocation?: unknown }
+          } | null)
         : null
       const codexOptedOut = manifest?.policy?.allow_implicit_invocation === false
 
-      if (userInvoked !== codexOptedOut) mismatched.push(path.basename(skill.absPath))
+      if (userInvoked !== codexOptedOut) {
+        mismatched.push(path.basename(skill.absPath))
+      }
     }
 
     expect(
@@ -899,7 +959,10 @@ describe("skill frontmatter limits (Anthropic skill spec)", () => {
 
     test(`${skill.relPath} frontmatter description is at most ${DESCRIPTION_CHAR_BUDGET} characters (Anthropic skill spec)`, () => {
       const description = typeof data.description === "string" ? data.description : ""
-      expect(description, `${skill.relPath}/SKILL.md must declare a frontmatter description`).not.toBe("")
+      expect(
+        description,
+        `${skill.relPath}/SKILL.md must declare a frontmatter description`,
+      ).not.toBe("")
       expect(
         description.length,
         `${skill.relPath}/SKILL.md description is ${description.length} characters; the Anthropic skill spec caps descriptions at ${DESCRIPTION_CHAR_BUDGET} and some harnesses reject longer ones.`,
@@ -925,7 +988,10 @@ describe("skill frontmatter limits (Anthropic skill spec)", () => {
         return true
       }
     })
-    expect(stale, `Remove stale INSTALLED_PLUGIN_PATH_EXEMPTIONS entries:\n${stale.join("\n")}`).toEqual([])
+    expect(
+      stale,
+      `Remove stale INSTALLED_PLUGIN_PATH_EXEMPTIONS entries:\n${stale.join("\n")}`,
+    ).toEqual([])
   })
 })
 
@@ -937,7 +1003,9 @@ describe("platform-variable fallback (AGENTS.md 'Platform-Specific Variables in 
         const fileRel = path.relative(REPO_ROOT, filePath)
         const content = readFileSync(filePath, "utf8")
         for (const { lineNumber, variable } of findPlatformVarViolations(content)) {
-          if (PLATFORM_VAR_ACKNOWLEDGED.has(`${fileRel}#${variable}`)) continue
+          if (PLATFORM_VAR_ACKNOWLEDGED.has(`${fileRel}#${variable}`)) {
+            continue
+          }
           offenders.push(`  ${fileRel}:${lineNumber} — \${${variable}} with no fallback`)
         }
       }
@@ -1011,7 +1079,8 @@ describe("extractMarkdownLinkTargets", () => {
 
 describe("extractLocalPathCodeSpans", () => {
   test("matches skill-local references/, scripts/, assets/ spans", () => {
-    const sample = "Read `references/walkthrough.md`, run `scripts/get-pr-comments`, embed `assets/logo.png`."
+    const sample =
+      "Read `references/walkthrough.md`, run `scripts/get-pr-comments`, embed `assets/logo.png`."
     expect(extractLocalPathCodeSpans(sample).map((s) => s.value)).toEqual([
       "references/walkthrough.md",
       "scripts/get-pr-comments",
@@ -1029,9 +1098,11 @@ describe("extractLocalPathCodeSpans", () => {
   })
 
   test("placeholder arguments do not suppress a clean path token", () => {
-    expect(extractLocalPathCodeSpans("run `python3 scripts/validate.py <output-path>`").map((s) => s.value)).toEqual([
-      "scripts/validate.py",
-    ])
+    expect(
+      extractLocalPathCodeSpans("run `python3 scripts/validate.py <output-path>`").map(
+        (s) => s.value,
+      ),
+    ).toEqual(["scripts/validate.py"])
   })
 
   test("unwraps quoted and variable-prefixed path tokens (skill-root-relative by convention)", () => {
@@ -1041,7 +1112,9 @@ describe("extractLocalPathCodeSpans", () => {
       ).map((s) => s.value),
     ).toEqual(["scripts/worktree-manager.sh"])
     expect(
-      extractLocalPathCodeSpans("run `bash $CLAUDE_SKILL_DIR/scripts/setup.sh`").map((s) => s.value),
+      extractLocalPathCodeSpans("run `bash $CLAUDE_SKILL_DIR/scripts/setup.sh`").map(
+        (s) => s.value,
+      ),
     ).toEqual(["scripts/setup.sh"])
     expect(
       extractLocalPathCodeSpans('see `cat "references/guide.md"`').map((s) => s.value),
@@ -1054,13 +1127,19 @@ describe("extractLocalPathCodeSpans", () => {
   })
 
   test("skips variable-prefixed tokens whose remainder is a placeholder", () => {
-    expect(extractLocalPathCodeSpans('run `bash "${CLAUDE_SKILL_DIR:-.}/scripts/<name>"`')).toEqual([])
-    expect(extractLocalPathCodeSpans("read `$CLAUDE_PLUGIN_ROOT/references/${topic}.md`")).toEqual([])
+    expect(extractLocalPathCodeSpans('run `bash "${CLAUDE_SKILL_DIR:-.}/scripts/<name>"`')).toEqual(
+      [],
+    )
+    expect(extractLocalPathCodeSpans("read `$CLAUDE_PLUGIN_ROOT/references/${topic}.md`")).toEqual(
+      [],
+    )
   })
 
   test("extracts multiple path tokens from one span", () => {
     expect(
-      extractLocalPathCodeSpans("run `cp references/template.md assets/copy.md`").map((s) => s.value),
+      extractLocalPathCodeSpans("run `cp references/template.md assets/copy.md`").map(
+        (s) => s.value,
+      ),
     ).toEqual(["references/template.md", "assets/copy.md"])
   })
 
@@ -1073,7 +1152,8 @@ describe("extractLocalPathCodeSpans", () => {
 
 describe("extractAtIncludeTargets", () => {
   test("extracts prose at-include targets with and without ./", () => {
-    const sample = "### Persona Catalog\n\n@./references/persona-catalog.md\n\n@references/other.md\n"
+    const sample =
+      "### Persona Catalog\n\n@./references/persona-catalog.md\n\n@references/other.md\n"
     expect(extractAtIncludeTargets(sample)).toEqual([
       { lineNumber: 3, value: "references/persona-catalog.md" },
       { lineNumber: 5, value: "references/other.md" },
@@ -1156,7 +1236,10 @@ describe("escapesSkillDir", () => {
 
 describe("findSelfContainmentViolations", () => {
   test("catches an escaping markdown link", () => {
-    const violations = findSelfContainmentViolations("line\n[steal](../sibling-skill/SKILL.md)\n", "")
+    const violations = findSelfContainmentViolations(
+      "line\n[steal](../sibling-skill/SKILL.md)\n",
+      "",
+    )
     expect(violations.length).toBe(1)
     expect(violations[0].lineNumber).toBe(2)
   })
@@ -1207,13 +1290,18 @@ describe("extractLocalReferenceCandidates", () => {
     // Extraction is what makes a fenced mention visible to the existence
     // check; resolution + statSync against the real skill then demonstrates
     // the pass/caught split the repo scan enforces.
-    const sample = "```bash\nbash scripts/session-history/extract-metadata.py\nbash scripts/deleted-tool.sh\n```"
+    const sample =
+      "```bash\nbash scripts/session-history/extract-metadata.py\nbash scripts/deleted-tool.sh\n```"
     expect(extractLocalReferenceCandidates(sample).map((c) => c.value)).toEqual([
       "scripts/session-history/extract-metadata.py",
       "scripts/deleted-tool.sh",
     ])
     const skillRoot = path.join(SKILLS_ROOT, "ce-compound")
-    const existing = resolveInsideSkill(skillRoot, skillRoot, "scripts/session-history/extract-metadata.py")
+    const existing = resolveInsideSkill(
+      skillRoot,
+      skillRoot,
+      "scripts/session-history/extract-metadata.py",
+    )
     const missing = resolveInsideSkill(skillRoot, skillRoot, "scripts/deleted-tool.sh")
     expect(existing).not.toBeNull()
     expect(statSync(existing!).isFile()).toBe(true)
@@ -1222,7 +1310,9 @@ describe("extractLocalReferenceCandidates", () => {
   })
 
   test("skips fenced placeholder-bearing path tokens", () => {
-    expect(extractLocalReferenceCandidates("```bash\nbash scripts/<generated-name>\n```")).toEqual([])
+    expect(extractLocalReferenceCandidates("```bash\nbash scripts/<generated-name>\n```")).toEqual(
+      [],
+    )
   })
 
   test("collects prose at-include targets (load-time inlining)", () => {
@@ -1237,8 +1327,7 @@ describe("extractLocalReferenceCandidates", () => {
     // "skill-root-relative" (AGENTS.md "Platform-Specific Variables in
     // Skills"), so the unwrapped remainder must resolve at the skill root —
     // demonstrated against a real bundled script (ce-compound's).
-    const sample =
-      '```bash\nbash "${CLAUDE_SKILL_DIR:-.}/scripts/validate-frontmatter.py"\n```'
+    const sample = '```bash\nbash "${CLAUDE_SKILL_DIR:-.}/scripts/validate-frontmatter.py"\n```'
     expect(extractLocalReferenceCandidates(sample).map((c) => c.value)).toEqual([
       "scripts/validate-frontmatter.py",
     ])
@@ -1250,10 +1339,7 @@ describe("extractLocalReferenceCandidates", () => {
 })
 
 describe("resolveInsideSkill", () => {
-  const skillRoot = path.join(
-    SKILLS_ROOT,
-    "ce-resolve-pr-feedback",
-  )
+  const skillRoot = path.join(SKILLS_ROOT, "ce-resolve-pr-feedback")
 
   test("rejects ../ traversal to a sibling skill even when the target exists there", () => {
     const sibling = "../ce-plan/references/plan-handoff.md"
@@ -1265,13 +1351,21 @@ describe("resolveInsideSkill", () => {
 
   test("rejects obfuscated in-prefix traversal (references/../../other-skill/...)", () => {
     expect(
-      resolveInsideSkill(skillRoot, skillRoot, "references/../../ce-plan/references/plan-handoff.md"),
+      resolveInsideSkill(
+        skillRoot,
+        skillRoot,
+        "references/../../ce-plan/references/plan-handoff.md",
+      ),
     ).toBeNull()
   })
 
   test("accepts in-skill ../ traversal (references/ -> scripts/)", () => {
     expect(
-      resolveInsideSkill(skillRoot, path.join(skillRoot, "references"), "../scripts/get-pr-comments"),
+      resolveInsideSkill(
+        skillRoot,
+        path.join(skillRoot, "references"),
+        "../scripts/get-pr-comments",
+      ),
     ).toBe(path.join(skillRoot, "scripts", "get-pr-comments"))
   })
 
@@ -1302,8 +1396,10 @@ describe("findPlatformVarOccurrences / isGracefulPlatformVarUse", () => {
     expect(occurrences).toEqual([{ lineNumber: 1, variable: "CLAUDE_SKILL_DIR", graceful: false }])
   })
 
-  test("treats [ -n \"$VAR\" ] existence guards as graceful", () => {
-    const occurrences = findPlatformVarOccurrences('if [ -n "$CODEX_SANDBOX" ] || [ -n "$CODEX_SESSION_ID" ]; then')
+  test('treats [ -n "$VAR" ] existence guards as graceful', () => {
+    const occurrences = findPlatformVarOccurrences(
+      'if [ -n "$CODEX_SANDBOX" ] || [ -n "$CODEX_SESSION_ID" ]; then',
+    )
     expect(occurrences.map((o) => o.graceful)).toEqual([true, true])
   })
 
@@ -1333,11 +1429,7 @@ describe("findPlatformVarViolations", () => {
   })
 
   test("reports occurrences inside fenced code blocks too", () => {
-    const sample = [
-      "```bash",
-      "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/x.py",
-      "```",
-    ].join("\n")
+    const sample = ["```bash", "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/x.py", "```"].join("\n")
     expect(findPlatformVarViolations(sample).map((v) => v.variable)).toEqual(["CLAUDE_PLUGIN_ROOT"])
   })
 
@@ -1347,7 +1439,9 @@ describe("findPlatformVarViolations", () => {
 
   test("a ${CLAUDE_SKILL_DIR:-.} bundled-script path IS reported (issue #943)", () => {
     expect(
-      findPlatformVarViolations('bash "${CLAUDE_SKILL_DIR:-.}/scripts/x.sh"').map((v) => v.variable),
+      findPlatformVarViolations('bash "${CLAUDE_SKILL_DIR:-.}/scripts/x.sh"').map(
+        (v) => v.variable,
+      ),
     ).toEqual(["CLAUDE_SKILL_DIR"])
   })
 
@@ -1355,13 +1449,13 @@ describe("findPlatformVarViolations", () => {
     // The guard line opens the block; the guarded call on the next line is
     // graceful because it sits inside the open `if [ -f ... ]; then ... fi`.
     const sample = [
-      '```bash',
+      "```bash",
       'if [ -f "${CLAUDE_SKILL_DIR}/scripts/x.sh" ]; then',
       '  bash "${CLAUDE_SKILL_DIR}/scripts/x.sh" create feat/login',
-      'else',
+      "else",
       '  echo "unavailable on this platform"',
-      'fi',
-      '```',
+      "fi",
+      "```",
     ].join("\n")
     expect(findPlatformVarViolations(sample)).toEqual([])
   })
@@ -1370,12 +1464,12 @@ describe("findPlatformVarViolations", () => {
     // x.py is guarded; y.py — after `fi`, outside any guard — must still be
     // reported, or the convention would miss issue #943's bug for y.py.
     const sample = [
-      '```bash',
+      "```bash",
       'if [ -f "${CLAUDE_SKILL_DIR}/scripts/x.py" ]; then',
       '  python3 "${CLAUDE_SKILL_DIR}/scripts/x.py"',
-      'fi',
+      "fi",
       'python3 "${CLAUDE_SKILL_DIR}/scripts/y.py"',
-      '```',
+      "```",
     ].join("\n")
     const violations = findPlatformVarViolations(sample)
     expect(violations.map((v) => v.lineNumber)).toEqual([5])
@@ -1386,10 +1480,10 @@ describe("findPlatformVarViolations", () => {
     // following unguarded y.py must still be reported (regression: an earlier
     // version cleared the guard only on a line that was exactly `fi`).
     const sample = [
-      '```bash',
+      "```bash",
       'if [ -f "${CLAUDE_SKILL_DIR}/scripts/x.py" ]; then python3 "${CLAUDE_SKILL_DIR}/scripts/x.py"; fi',
       'python3 "${CLAUDE_SKILL_DIR}/scripts/y.py"',
-      '```',
+      "```",
     ].join("\n")
     expect(findPlatformVarViolations(sample).map((v) => v.lineNumber)).toEqual([3])
   })
@@ -1398,21 +1492,19 @@ describe("findPlatformVarViolations", () => {
     // The executable use is guarded in a fence; the later prose sentence
     // mentioning the same var must not be flagged.
     const sample = [
-      '```bash',
+      "```bash",
       'if [ -f "${CLAUDE_SKILL_DIR}/scripts/x.sh" ]; then bash "${CLAUDE_SKILL_DIR}/scripts/x.sh"; fi',
-      '```',
-      '',
-      'On Claude Code `${CLAUDE_SKILL_DIR}` resolves to the skill directory.',
+      "```",
+      "",
+      "On Claude Code `${CLAUDE_SKILL_DIR}` resolves to the skill directory.",
     ].join("\n")
     expect(findPlatformVarViolations(sample)).toEqual([])
   })
 
   test("a bare ${VAR} use with no existence guard anywhere is still reported", () => {
-    const sample = [
-      '```bash',
-      'python3 "${CLAUDE_SKILL_DIR}/scripts/x.py" out.md',
-      '```',
-    ].join("\n")
+    const sample = ["```bash", 'python3 "${CLAUDE_SKILL_DIR}/scripts/x.py" out.md', "```"].join(
+      "\n",
+    )
     expect(findPlatformVarViolations(sample).map((v) => v.variable)).toEqual(["CLAUDE_SKILL_DIR"])
   })
 })
@@ -1455,10 +1547,16 @@ function findBarePython3Invocations(content: string): number[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!
     // The sanctioned probe names `python3` as a candidate — not an invocation.
-    if (line.includes("for c in python3 python py")) continue
+    if (line.includes("for c in python3 python py")) {
+      continue
+    }
     // Shell comments are not agent-copied invocation blocks.
-    if (/^\s*#/.test(line)) continue
-    if (BARE_PYTHON3_INVOCATION.test(line)) lineNumbers.push(i + 1)
+    if (/^\s*#/.test(line)) {
+      continue
+    }
+    if (BARE_PYTHON3_INVOCATION.test(line)) {
+      lineNumbers.push(i + 1)
+    }
   }
   return lineNumbers
 }
@@ -1491,25 +1589,21 @@ describe("python interpreter resolution (no bare python3 invocations)", () => {
     expect(findBarePython3Invocations("python3 scripts/foo.py")).toEqual([1])
     expect(
       findBarePython3Invocations(
-        'Never write inline scripts (`python3 -c`, `node -e`) to process issue data.',
+        "Never write inline scripts (`python3 -c`, `node -e`) to process issue data.",
       ),
     ).toEqual([])
   })
 })
 
 describe("review coverage fallback wording (issue #1732)", () => {
-  const RECOVERY = path.join(
-    REPO_ROOT,
-    "skills/ce-code-review/references/cross-model-recovery.md",
-  )
+  const RECOVERY = path.join(REPO_ROOT, "skills/ce-code-review/references/cross-model-recovery.md")
   const PINNED_WORDING = "adversarial lens: in-process fallback"
 
   test("did-not-run fallback branch pins the exact in-process Coverage wording", () => {
     const content = readFileSync(RECOVERY, "utf8")
     const fullForm =
-      /adversarial lens: in-process fallback \(cross-model peer not run: [^)]+\)/.test(
-        content,
-      ) && content.includes("peer.outcome: in-process-fallback")
+      /adversarial lens: in-process fallback \(cross-model peer not run: [^)]+\)/.test(content) &&
+      content.includes("peer.outcome: in-process-fallback")
     expect(
       fullForm,
       `cross-model-recovery.md must pin the exact Coverage wording \`${PINNED_WORDING} (cross-model peer not run: <reason>)\` so a complete review is never reported with ce-work's ship-gate skip phrase (issue #1732).`,
@@ -1518,7 +1612,9 @@ describe("review coverage fallback wording (issue #1732)", () => {
 
   test("ce-code-review Coverage guidance never uses the ship-gate skip phrase", () => {
     const skill = skillDirs.find((s) => s.relPath === "skills/ce-code-review")
-    if (!skill) throw new Error("skills/ce-code-review not found")
+    if (!skill) {
+      throw new Error("skills/ce-code-review not found")
+    }
     const offenders: string[] = []
     for (const filePath of listMarkdownFiles(skill.absPath)) {
       const fileRel = path.relative(REPO_ROOT, filePath)

@@ -17,8 +17,6 @@ description: プロダクトUIをdurableなproduct truth、design truth、surfac
 
 ## 責務境界
 
-このSkillが持つのはProduct Design固有の判断である。
-
 - ユーザーが何を読み、比較し、判断し、操作するか。
 - 情報階層、composition、component role、typography、color、surface、密度。
 - navigation、form、control、state、feedback、error prevention、recovery。
@@ -43,7 +41,7 @@ Planning、task decomposition、実装順序、test / lint / build、reviewer起
 | renderに基づく評価、component安定性、finding優先度 | [design-evaluation.md](references/design-evaluation.md) |
 | i484内蔵知識では足りない狭いUI専門領域を外部registryから補う | [external-ui-knowledge.md](references/external-ui-knowledge.md) |
 
-必要なReferenceだけ読む。Reference数やchecklist消化を品質指標にしない。
+Reference数やchecklist消化を品質指標にしない。
 
 ### UX coverage
 
@@ -57,16 +55,7 @@ Project context、i484のReference、現在すでに読み込まれた専門知�
 
 ## 判断原則
 
-表面の装飾より先に、ユーザーが何を理解し、比較し、判断し、どこで操作・回復する必要があるかから構造を選ぶ。
-
-- hierarchyは重要度とtask順序を反映する。同じsurfaceや強調を無差別に増やさない。
-- componentは外観ではなくroleで選び、同じ意味のcontrolやstateには一貫した表現を使う。
-- typography、color、spacing、border、badgeは役割を持たせる。装飾の種類を増やすことを固有性と混同しない。
-- Project内の一貫性とplatform慣例を出発点にし、外す場合はユーザーtaskから理由を持たせる。
-- 一回限りの構成を想像上の再利用のために基盤化せず、反対に同じ意味のpatternを画面ごとに別物へしない。
-- 短い理想データだけで成立するUIを合格にしない。判断を変えうる代表状態を選び、主要task・意味上のslot・回復経路が保たれるかを見る。
-
-UXの具体的な観点は`usability-checklist.md`から今回のtaskとstateに関係するものだけを選ぶ。全項目を機械的に実行しない。
+構造や部品を選ぶ前に[composition-components.md](references/composition-components.md)の判断原則を読む。
 
 ## UI fidelity
 
@@ -78,9 +67,7 @@ UXの具体的な観点は`usability-checklist.md`から今回のtaskとstateに
 
 ## Evidence
 
-このSkillはverification workflowを所有しない。設計主張に必要な観測対象だけを示す。詳しい基準は[design-evaluation.md](references/design-evaluation.md)を使う。
-
-見た目の主張には実render、操作の主張には実際のstate transitionやfocus/recovery、native host固有の主張にはそのhostでの観測が関係する。Responsiveは名前付きdeviceを消化するのではなく、content pressureやlayout transitionが起きる条件を見る。観測できない主張は未確認のままにする。
+このSkillはverification workflowを所有しない。設計主張を評価する前に[design-evaluation.md](references/design-evaluation.md)を読み、主張を支持または反証する観測条件を示す。観測できない主張は未確認のままにする。
 
 実際のtool、順序、検証量、再実行、review、shippingはengineering frameworkが決める。
 

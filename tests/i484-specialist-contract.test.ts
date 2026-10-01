@@ -1,9 +1,9 @@
+import { describe, expect, test } from "bun:test"
 import { readFile } from "fs/promises"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 
 async function readRepoFile(relativePath: string): Promise<string> {
-  return readFile(path.join(process.cwd(), relativePath), "utf8")
+  return await readFile(path.join(process.cwd(), relativePath), "utf8")
 }
 
 const specialists = [
@@ -120,28 +120,54 @@ describe("i484 Engineering specialist contract", () => {
     const visualize = await readRepoFile("skills/i484-visualize/SKILL.md")
     const geometric = await readRepoFile("skills/i484-geometric-illustration/SKILL.md")
 
-    expect(visualize).toContain("このSkillはbranch、commit、PR、deploy、一般コードレビュー、engineering task decompositionを所有しない")
-    expect(geometric).toContain("software engineeringのplanning、test、review orchestration、Git、PR、shippingは所有しない")
+    expect(visualize).toContain(
+      "このSkillはbranch、commit、PR、deploy、一般コードレビュー、engineering task decompositionを所有しない",
+    )
+    expect(geometric).toContain(
+      "software engineeringのplanning、test、review orchestration、Git、PR、shippingは所有しない",
+    )
   })
 
   test("routes product-design knowledge through CE without transferring authority", async () => {
-    const [brainstorm, plan, prototype, polish, work] = await Promise.all([
+    const [
+      brainstorm,
+      plan,
+      prototype,
+      polish,
+      work,
+      brainstormRules,
+      planIntake,
+      prototypeBuild,
+      implementationLoop,
+      shipping,
+    ] = await Promise.all([
       readRepoFile("skills/ce-brainstorm/SKILL.md"),
       readRepoFile("skills/ce-plan/SKILL.md"),
       readRepoFile("skills/ce-prototype/SKILL.md"),
       readRepoFile("skills/ce-polish/SKILL.md"),
       readRepoFile("skills/ce-work/SKILL.md"),
+      readRepoFile("skills/ce-brainstorm/references/interaction-rules.md"),
+      readRepoFile("skills/ce-plan/references/intake.md"),
+      readRepoFile("skills/ce-prototype/references/build.md"),
+      readRepoFile("skills/ce-work/references/implementation-loop.md"),
+      readRepoFile("skills/ce-work/references/shipping-workflow.md"),
     ])
 
-    expect(brainstorm).toContain("i484 product-design knowledge is additive, never a second brainstorm workflow")
+    expect(brainstorm).toContain(
+      "i484 product-design knowledge is additive, never a second brainstorm workflow",
+    )
     expect(brainstorm).toContain("`i484-product-design`")
     expect(brainstorm).toContain("design-dependent questions")
 
-    expect(plan).toContain("i484 product-design knowledge is additive, never a second planning workflow")
+    expect(plan).toContain(
+      "i484 product-design knowledge is additive, never a second planning workflow",
+    )
     expect(plan).toContain("`i484-product-design`")
     expect(plan).toContain("design-dependent planning decisions")
 
-    expect(prototype).toContain("i484 product-design knowledge is additive, never a second prototype workflow")
+    expect(prototype).toContain(
+      "i484 product-design knowledge is additive, never a second prototype workflow",
+    )
     expect(prototype).toContain("`i484-product-design`")
     expect(prototype).toContain("product-design domain knowledge")
 
@@ -153,6 +179,47 @@ describe("i484 Engineering specialist contract", () => {
     expect(work).toContain("i484 quality providers stay inside CE's quality gate")
     expect(work).toContain("`natural-japanese`")
     expect(work).toContain("Ultracite")
+
+    // The kernel retains authority and acting-point reads; required owners carry
+    // the conditional catalog check and domain policy after the size restructure.
+    expect(brainstorm).toContain(
+      "Read `references/interaction-rules.md` before design-dependent questions",
+    )
+    expect(plan).toContain("Read `references/intake.md` before design-dependent planning decisions")
+    expect(prototype).toContain(
+      "Read `references/build.md` and `references/preview.md` before writing anything",
+    )
+    expect(work).toContain(
+      "Before the first implementation write, including on the Trivial route, read `references/implementation-loop.md`",
+    )
+    expect(work).toContain(
+      "standalone mode reads `references/shipping-workflow.md` before any quality check or delivery",
+    )
+    for (const owner of [brainstormRules, planIntake, prototypeBuild, implementationLoop]) {
+      expect(owner).toContain("installed skill catalog exposes `i484-product-design`")
+    }
+    expect(brainstormRules).toContain(
+      "load it before asking or resolving design-dependent questions",
+    )
+    expect(brainstormRules).toContain(
+      "still owns dialogue, requirements scoping, artifact decisions, and handoff",
+    )
+    expect(planIntake).toContain("load it before making design-dependent planning decisions")
+    expect(planIntake).toContain(
+      "still owns technical planning, evidence gathering, plan structure, document review, and handoff",
+    )
+    expect(prototypeBuild).toContain("load it before making the relevant design judgments")
+    expect(prototypeBuild).toContain(
+      "still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff",
+    )
+    expect(implementationLoop).toContain(
+      "load it for product-design judgment before making the relevant UI decisions",
+    )
+    expect(implementationLoop).toContain(
+      "still owns task execution, evidence strategy, verification, commits, review, and shipping",
+    )
+    expect(shipping).toContain("without creating a parallel finalization phase")
+    expect(shipping).toContain("must pass the relevant CE verification before shipping")
   })
 
   test("keeps context and surface intent as design knowledge rather than workflow", async () => {

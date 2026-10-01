@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { promises as fs } from "fs"
-import path from "path"
 import os from "os"
+import path from "path"
+import { convertClaudeToOpenCode } from "../src/converters/claude-to-opencode"
+import { loadClaudePlugin } from "../src/parsers/claude"
 import { writeOpenCodeBundle } from "../src/targets/opencode"
 import type { OpenCodeBundle } from "../src/types/opencode"
-import { loadClaudePlugin } from "../src/parsers/claude"
-import { convertClaudeToOpenCode } from "../src/converters/claude-to-opencode"
 
 async function exists(filePath: string): Promise<boolean> {
   try {
@@ -51,8 +51,14 @@ describe("writeOpenCodeBundle", () => {
     expect(await exists(path.join(tempRoot, "opencode.json"))).toBe(true)
     expect(await exists(path.join(tempRoot, ".opencode", "agents", "agent-one.md"))).toBe(true)
     expect(await exists(path.join(tempRoot, ".opencode", "plugins", "hook.ts"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "skills", "skill-one", "SKILL.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "compound-engineering", "install-manifest.json"))).toBe(true)
+    expect(await exists(path.join(tempRoot, ".opencode", "skills", "skill-one", "SKILL.md"))).toBe(
+      true,
+    )
+    expect(
+      await exists(
+        path.join(tempRoot, ".opencode", "compound-engineering", "install-manifest.json"),
+      ),
+    ).toBe(true)
   })
 
   test("writes directly into a .opencode output root", async () => {
@@ -143,9 +149,9 @@ describe("writeOpenCodeBundle", () => {
 
     // Bundle adds mcp server but keeps user's custom key
     const bundle: OpenCodeBundle = {
-      config: { 
-        $schema: "https://opencode.ai/config.json", 
-        mcp: { "plugin-server": { type: "local", command: "uvx", args: ["plugin-srv"] } } 
+      config: {
+        $schema: "https://opencode.ai/config.json",
+        mcp: { "plugin-server": { type: "local", command: "uvx", args: ["plugin-srv"] } },
       },
       agents: [],
       plugins: [],
@@ -157,7 +163,7 @@ describe("writeOpenCodeBundle", () => {
 
     // Merged config should have both user key and plugin key
     const newConfig = JSON.parse(await fs.readFile(configPath, "utf8"))
-    expect(newConfig.custom).toBe("value")  // user key preserved
+    expect(newConfig.custom).toBe("value") // user key preserved
     expect(newConfig.mcp).toBeDefined()
     expect(newConfig.mcp["plugin-server"]).toBeDefined()
 
@@ -166,7 +172,9 @@ describe("writeOpenCodeBundle", () => {
     const backupFileName = files.find((f) => f.startsWith("opencode.json.bak."))
     expect(backupFileName).toBeDefined()
 
-    const backupContent = JSON.parse(await fs.readFile(path.join(outputRoot, backupFileName!), "utf8"))
+    const backupContent = JSON.parse(
+      await fs.readFile(path.join(outputRoot, backupFileName!), "utf8"),
+    )
     expect(backupContent.custom).toBe("value")
   })
 
@@ -177,19 +185,19 @@ describe("writeOpenCodeBundle", () => {
 
     // Create existing config with user's mcp server
     await fs.mkdir(outputRoot, { recursive: true })
-    const existingConfig = { 
-      mcp: { "user-server": { type: "local", command: "uvx", args: ["user-srv"] } } 
+    const existingConfig = {
+      mcp: { "user-server": { type: "local", command: "uvx", args: ["user-srv"] } },
     }
     await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2))
 
     // Bundle adds plugin server AND has conflicting user-server with different args
     const bundle: OpenCodeBundle = {
-      config: { 
+      config: {
         $schema: "https://opencode.ai/config.json",
-        mcp: { 
+        mcp: {
           "plugin-server": { type: "local", command: "uvx", args: ["plugin-srv"] },
-          "user-server": { type: "local", command: "uvx", args: ["plugin-override"] }  // conflict
-        } 
+          "user-server": { type: "local", command: "uvx", args: ["plugin-override"] }, // conflict
+        },
       },
       agents: [],
       plugins: [],
@@ -204,8 +212,8 @@ describe("writeOpenCodeBundle", () => {
     expect(mergedConfig.mcp).toBeDefined()
     expect(mergedConfig.mcp["plugin-server"]).toBeDefined()
     expect(mergedConfig.mcp["user-server"]).toBeDefined()
-    expect(mergedConfig.mcp["user-server"].args[0]).toBe("user-srv")  // user wins on conflict
-    expect(mergedConfig.mcp["plugin-server"].args[0]).toBe("plugin-srv")  // plugin entry present
+    expect(mergedConfig.mcp["user-server"].args[0]).toBe("user-srv") // user wins on conflict
+    expect(mergedConfig.mcp["plugin-server"].args[0]).toBe("plugin-srv") // plugin entry present
   })
 
   test("preserves unrelated user keys when merging opencode.json", async () => {
@@ -215,19 +223,19 @@ describe("writeOpenCodeBundle", () => {
 
     // Create existing config with multiple user keys
     await fs.mkdir(outputRoot, { recursive: true })
-    const existingConfig = { 
+    const existingConfig = {
       model: "my-model",
       theme: "dark",
-      mcp: {}
+      mcp: {},
     }
     await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2))
 
     // Bundle adds plugin-specific keys
     const bundle: OpenCodeBundle = {
-      config: { 
+      config: {
         $schema: "https://opencode.ai/config.json",
         mcp: { "plugin-server": { type: "local", command: "uvx", args: ["plugin-srv"] } },
-        permission: { "bash": "allow" }
+        permission: { bash: "allow" },
       },
       agents: [],
       plugins: [],
@@ -242,7 +250,7 @@ describe("writeOpenCodeBundle", () => {
     expect(mergedConfig.model).toBe("my-model")
     expect(mergedConfig.theme).toBe("dark")
     expect(mergedConfig.mcp["plugin-server"]).toBeDefined()
-    expect(mergedConfig.permission["bash"]).toBe("allow")
+    expect(mergedConfig.permission.bash).toBe("allow")
   })
 
   test("writes command files as .md in commands/ directory", async () => {
@@ -272,11 +280,11 @@ describe("writeOpenCodeBundle", () => {
     await fs.mkdir(refsDir, { recursive: true })
     await fs.writeFile(
       path.join(skillSrcDir, "SKILL.md"),
-      "---\nname: test-skill\n---\n\n- `compound-engineering:review:coherence-reviewer`\n"
+      "---\nname: test-skill\n---\n\n- `compound-engineering:review:coherence-reviewer`\n",
     )
     await fs.writeFile(
       path.join(refsDir, "agents.md"),
-      "Use `compound-engineering:research:repo-research-analyst` for codebase analysis.\n"
+      "Use `compound-engineering:research:repo-research-analyst` for codebase analysis.\n",
     )
 
     const outputRoot = path.join(tempRoot, ".opencode")
@@ -290,16 +298,16 @@ describe("writeOpenCodeBundle", () => {
 
     await writeOpenCodeBundle(outputRoot, bundle)
 
-    const skillContent = await fs.readFile(
+    const writtenSkillContent = await fs.readFile(
       path.join(outputRoot, "skills", "test-skill", "SKILL.md"),
-      "utf8"
+      "utf8",
     )
-    expect(skillContent).toContain("`coherence-reviewer`")
-    expect(skillContent).not.toContain("compound-engineering:review:coherence-reviewer")
+    expect(writtenSkillContent).toContain("`coherence-reviewer`")
+    expect(writtenSkillContent).not.toContain("compound-engineering:review:coherence-reviewer")
 
     const refContent = await fs.readFile(
       path.join(outputRoot, "skills", "test-skill", "references", "agents.md"),
-      "utf8"
+      "utf8",
     )
     expect(refContent).toContain("`repo-research-analyst`")
     expect(refContent).not.toContain("compound-engineering:research:repo-research-analyst")
@@ -312,9 +320,10 @@ describe("writeOpenCodeBundle", () => {
     await fs.mkdir(scriptsDir, { recursive: true })
     await fs.writeFile(
       path.join(skillSrcDir, "SKILL.md"),
-      "---\nname: test-skill\n---\n\nSkill body.\n"
+      "---\nname: test-skill\n---\n\nSkill body.\n",
     )
-    const scriptContent = "#!/bin/bash\n# compound-engineering:review:security-sentinel\necho done\n"
+    const scriptContent =
+      "#!/bin/bash\n# compound-engineering:review:security-sentinel\necho done\n"
     await fs.writeFile(path.join(scriptsDir, "run.sh"), scriptContent)
 
     const outputRoot = path.join(tempRoot, ".opencode")
@@ -330,7 +339,7 @@ describe("writeOpenCodeBundle", () => {
 
     const copiedScript = await fs.readFile(
       path.join(outputRoot, "skills", "test-skill", "scripts", "run.sh"),
-      "utf8"
+      "utf8",
     )
     // Non-markdown files should be copied verbatim — no FQ rewriting
     expect(copiedScript).toBe(scriptContent)
@@ -444,7 +453,9 @@ describe("writeOpenCodeBundle", () => {
     })
 
     // Both plugins must keep their own namespaced manifest
-    expect(await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json"))).toBe(true)
+    expect(
+      await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json")),
+    ).toBe(true)
     expect(await exists(path.join(outputRoot, "coding-tutor", "install-manifest.json"))).toBe(true)
 
     // Reinstall plugin A with no agents/skills — it must clean up only its own
@@ -472,11 +483,20 @@ describe("writeOpenCodeBundle", () => {
     const outputRoot = path.join(tempRoot, ".opencode")
 
     await fs.mkdir(path.join(outputRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", REPRODUCE_BUG_DESCRIPTION))
+    await fs.writeFile(
+      path.join(outputRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", REPRODUCE_BUG_DESCRIPTION),
+    )
     await fs.mkdir(path.join(outputRoot, "agents"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "agents", "bug-reproduction-validator.md"), agentContent("bug-reproduction-validator", BUG_REPRODUCTION_VALIDATOR_DESCRIPTION))
+    await fs.writeFile(
+      path.join(outputRoot, "agents", "bug-reproduction-validator.md"),
+      agentContent("bug-reproduction-validator", BUG_REPRODUCTION_VALIDATOR_DESCRIPTION),
+    )
     await fs.mkdir(path.join(outputRoot, "commands"), { recursive: true })
-    await fs.writeFile(path.join(outputRoot, "commands", "reproduce-bug.md"), "legacy removed command")
+    await fs.writeFile(
+      path.join(outputRoot, "commands", "reproduce-bug.md"),
+      "legacy removed command",
+    )
     await fs.writeFile(path.join(outputRoot, "commands", "report-bug.md"), "legacy deleted command")
 
     const plugin = await loadClaudePlugin(path.join(import.meta.dir, ".."))
@@ -488,10 +508,12 @@ describe("writeOpenCodeBundle", () => {
     await writeOpenCodeBundle(outputRoot, bundle)
 
     expect(await exists(path.join(outputRoot, "skills", "reproduce-bug"))).toBe(false)
-    expect(await exists(path.join(outputRoot, "agents", "bug-reproduction-validator.md"))).toBe(false)
+    expect(await exists(path.join(outputRoot, "agents", "bug-reproduction-validator.md"))).toBe(
+      false,
+    )
     expect(await exists(path.join(outputRoot, "commands", "reproduce-bug.md"))).toBe(false)
     expect(await exists(path.join(outputRoot, "commands", "report-bug.md"))).toBe(false)
-    expect(await exists(path.join(outputRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(outputRoot, plugin.manifest.name, "legacy-backup"))).toBe(true)
   })
 
   test("preserves user-authored legacy-name OpenCode agents during install cleanup", async () => {
@@ -511,7 +533,9 @@ describe("writeOpenCodeBundle", () => {
     await writeOpenCodeBundle(outputRoot, bundle)
 
     expect(await exists(path.join(agentsRoot, "ce-repo-research-analyst.md"))).toBe(true)
-    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(userAgent)
+    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(
+      userAgent,
+    )
   })
 
   test("upgrades from pre-namespacing legacy shared manifest for non-CE plugins", async () => {
@@ -549,10 +573,7 @@ describe("writeOpenCodeBundle", () => {
     await fs.mkdir(path.join(outputRoot, "commands"), { recursive: true })
     await fs.writeFile(path.join(outputRoot, "commands", "stale-tutor-cmd.md"), "stale")
     await fs.mkdir(path.join(outputRoot, "skills", "stale-tutor-skill"), { recursive: true })
-    await fs.writeFile(
-      path.join(outputRoot, "skills", "stale-tutor-skill", "SKILL.md"),
-      "stale",
-    )
+    await fs.writeFile(path.join(outputRoot, "skills", "stale-tutor-skill", "SKILL.md"), "stale")
 
     // Reinstall coding-tutor with a new, non-overlapping set of artifacts.
     await writeOpenCodeBundle(outputRoot, {
@@ -576,12 +597,16 @@ describe("writeOpenCodeBundle", () => {
 
     // Fresh artifacts must be written under the plugin-scoped manifest path.
     expect(await exists(path.join(outputRoot, "agents", "fresh-tutor-agent.md"))).toBe(true)
-    expect(await exists(path.join(outputRoot, "skills", "fresh-tutor-skill", "SKILL.md"))).toBe(true)
+    expect(await exists(path.join(outputRoot, "skills", "fresh-tutor-skill", "SKILL.md"))).toBe(
+      true,
+    )
     expect(await exists(path.join(outputRoot, "coding-tutor", "install-manifest.json"))).toBe(true)
 
     // The legacy shared manifest must be archived so it doesn't keep
     // misleading a future install (and must no longer exist at the old path).
-    expect(await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json"))).toBe(false)
+    expect(
+      await exists(path.join(outputRoot, "compound-engineering", "install-manifest.json")),
+    ).toBe(false)
     expect(await exists(path.join(outputRoot, "coding-tutor", "legacy-backup"))).toBe(true)
   })
 
@@ -663,7 +688,9 @@ async function probeSymlinkSupport(): Promise<{ canDirSymlink: boolean; canFileS
 const { canDirSymlink, canFileSymlink } = await probeSymlinkSupport()
 
 describe("writeOpenCodeBundle preserves user-managed skill and command paths", () => {
-  async function readInstallManifest(outputRoot: string): Promise<{ groups: Record<string, string[]> }> {
+  async function readInstallManifest(
+    outputRoot: string,
+  ): Promise<{ groups: Record<string, string[]> }> {
     const raw = await fs.readFile(
       path.join(outputRoot, "compound-engineering", "install-manifest.json"),
       "utf8",
@@ -692,7 +719,13 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
       }
@@ -701,7 +734,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
 
       const linkStat = await fs.lstat(path.join(outputRoot, "skills", "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifest = await readInstallManifest(outputRoot)
       expect(manifest.groups.skills).not.toContain("skill-one")
@@ -734,9 +769,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
 
     await writeOpenCodeBundle(outputRoot, bundle)
 
-    expect(await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8")).toBe(
-      "# hand-authored, never installed by this tool\n",
-    )
+    expect(
+      await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8"),
+    ).toBe("# hand-authored, never installed by this tool\n")
 
     const manifest = await readInstallManifest(outputRoot)
     expect(manifest.groups.skills).not.toContain("skill-one")
@@ -762,11 +797,17 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
 
     await writeOpenCodeBundle(outputRoot, bundle)
     // Simulate drift between two installs: same managed dir, different upstream content.
-    await fs.writeFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "stale managed content")
+    await fs.writeFile(
+      path.join(outputRoot, "skills", "skill-one", "SKILL.md"),
+      "stale managed content",
+    )
 
     await writeOpenCodeBundle(outputRoot, bundle)
 
-    const content = await fs.readFile(path.join(outputRoot, "skills", "skill-one", "SKILL.md"), "utf8")
+    const content = await fs.readFile(
+      path.join(outputRoot, "skills", "skill-one", "SKILL.md"),
+      "utf8",
+    )
     expect(content).not.toBe("stale managed content")
     expect(content).toContain("Skill body")
 
@@ -777,7 +818,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
   test.skipIf(!canDirSymlink)(
     "a preserved skill symlink survives a later install run where the skill is dropped from the bundle",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-preserve-skill-symlink-second-run-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "opencode-preserve-skill-symlink-second-run-"),
+      )
       const outputRoot = path.join(tempRoot, ".opencode")
 
       const bundleWithSkill: OpenCodeBundle = {
@@ -789,7 +832,13 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
         skillDirs: [
           {
             name: "skill-one",
-            sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one"),
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
           },
         ],
       }
@@ -822,7 +871,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
 
       const linkStat = await fs.lstat(path.join(outputRoot, "skills", "skill-one"))
       expect(linkStat.isSymbolicLink()).toBe(true)
-      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe("# user fork content\n")
+      expect(await fs.readFile(path.join(forkDir, "SKILL.md"), "utf8")).toBe(
+        "# user fork content\n",
+      )
 
       const manifestAfterSecondRun = await readInstallManifest(outputRoot)
       expect(manifestAfterSecondRun.groups.skills).not.toContain("skill-one")
@@ -894,7 +945,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
   test.skipIf(!canFileSymlink)(
     "preserves a symlinked command file and leaves its target content untouched",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-preserve-command-symlink-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "opencode-preserve-command-symlink-"),
+      )
       const outputRoot = path.join(tempRoot, ".opencode")
       const forkCommandPath = path.join(tempRoot, "user-fork-command.md")
       await fs.writeFile(forkCommandPath, "# user fork command content\n")
@@ -929,7 +982,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
   test.skipIf(!canDirSymlink)(
     "a legacy-named skill symlinked to a user fork is not swept into legacy-backup",
     async () => {
-      const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-preserve-legacy-skill-symlink-"))
+      const tempRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "opencode-preserve-legacy-skill-symlink-"),
+      )
       const outputRoot = path.join(tempRoot, ".opencode")
 
       // Worst case: the fork keeps the CE fingerprint (name + description), so
@@ -958,7 +1013,9 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
       if (await exists(legacyBackupRoot)) {
         for (const timestamp of await fs.readdir(legacyBackupRoot)) {
           const skillsBackup = path.join(legacyBackupRoot, timestamp, "skills")
-          if (!(await exists(skillsBackup))) continue
+          if (!(await exists(skillsBackup))) {
+            continue
+          }
           expect(await fs.readdir(skillsBackup)).not.toContain("reproduce-bug")
         }
       }
@@ -967,8 +1024,13 @@ describe("writeOpenCodeBundle preserves user-managed skill and command paths", (
 })
 
 describe("writeOpenCodeBundle guards against ancestor-symlink traversal", () => {
-  async function readInstallManifest(outputRoot: string): Promise<{ groups: Record<string, string[]> }> {
-    const raw = await fs.readFile(path.join(outputRoot, "compound-engineering", "install-manifest.json"), "utf8")
+  async function readInstallManifest(
+    outputRoot: string,
+  ): Promise<{ groups: Record<string, string[]> }> {
+    const raw = await fs.readFile(
+      path.join(outputRoot, "compound-engineering", "install-manifest.json"),
+      "utf8",
+    )
     return JSON.parse(raw) as { groups: Record<string, string[]> }
   }
 
@@ -989,7 +1051,18 @@ describe("writeOpenCodeBundle guards against ancestor-symlink traversal", () => 
         agents: [],
         plugins: [],
         commandFiles: [],
-        skillDirs: [{ name: "skill-one", sourceDir: path.join(import.meta.dir, "fixtures", "sample-plugin", "skills", "skill-one") }],
+        skillDirs: [
+          {
+            name: "skill-one",
+            sourceDir: path.join(
+              import.meta.dir,
+              "fixtures",
+              "sample-plugin",
+              "skills",
+              "skill-one",
+            ),
+          },
+        ],
       }
 
       await writeOpenCodeBundle(outputRoot, bundle)

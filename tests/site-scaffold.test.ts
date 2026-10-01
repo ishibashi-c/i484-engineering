@@ -1,6 +1,6 @@
-import { existsSync, lstatSync, readFileSync, readlinkSync, readdirSync } from "fs"
-import path from "path"
 import { describe, expect, test } from "bun:test"
+import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync } from "fs"
+import path from "path"
 
 // The docs site under site/ is a build layer over files that live elsewhere in
 // the repo. These pins hold the invariants that a build alone does not prove:
@@ -30,10 +30,10 @@ describe("docs site scaffold", () => {
     }
   })
 
-  test("site is built for the every.to path, with no custom-domain CNAME", () => {
+  test("site is built for the fork GitHub Pages path, with no custom-domain CNAME", () => {
     const config = read("site/_config.yml")
-    expect(config).toMatch(/^url: https:\/\/every\.to$/m)
-    expect(config).toMatch(/^baseurl: \/compound-engineering$/m)
+    expect(config).toMatch(/^url: https:\/\/ishibashi-c\.github\.io$/m)
+    expect(config).toMatch(/^baseurl: \/i484-engineering$/m)
     expect(existsSync(path.join(site, "CNAME"))).toBe(false)
   })
 

@@ -7,8 +7,8 @@ import {
   POST_SWEEP_REF,
   PRE_SWEEP_REF,
   SCENARIOS,
-  WAVE1,
   scenarioHasDecisionGrade,
+  WAVE1,
 } from "./catalog"
 import { REPO_ROOT, WORKTREE_REF } from "./extract"
 
@@ -22,7 +22,9 @@ function shippedSkills(): string[] {
 }
 
 function gitPathExists(ref: string, gitPath: string): boolean {
-  if (ref === WORKTREE_REF) return fs.existsSync(path.join(REPO_ROOT, gitPath))
+  if (ref === WORKTREE_REF) {
+    return fs.existsSync(path.join(REPO_ROOT, gitPath))
+  }
   return spawnSync("git", ["cat-file", "-e", `${ref}:${gitPath}`], { cwd: REPO_ROOT }).status === 0
 }
 
@@ -58,10 +60,11 @@ describe("skill-eval-cell catalog", () => {
         scenario.id,
         scenario.baseline_ref,
       ]),
-    ).toEqual(
-      [...issue1482].map((id) => [id, ISSUE_1482_BASE_REF]),
-    )
-    expect(SCENARIOS.find((scenario) => scenario.id === "ce-code-review/report-only-default")?.baseline_ref).toBeUndefined()
+    ).toEqual([...issue1482].map((id) => [id, ISSUE_1482_BASE_REF]))
+    expect(
+      SCENARIOS.find((scenario) => scenario.id === "ce-code-review/report-only-default")
+        ?.baseline_ref,
+    ).toBeUndefined()
   })
 
   test("WAVE1 ids exist in the catalog", () => {
@@ -74,7 +77,7 @@ describe("skill-eval-cell catalog", () => {
     for (const scenario of SCENARIOS) {
       // A post-only row for a skill that did not exist at the sweep baseline has no pre arm to resolve.
       const preRef = scenario.baseline_ref ?? PRE_SWEEP_REF
-      if (!scenario.post_only && !gitShowExists(preRef, scenario.skill)) {
+      if (!(scenario.post_only || gitShowExists(preRef, scenario.skill))) {
         missing.push(`${scenario.skill} missing at ${preRef}`)
       }
       if (!gitShowExists(POST_SWEEP_REF, scenario.skill)) {
@@ -87,7 +90,9 @@ describe("skill-eval-cell catalog", () => {
   test("fixture paths exist and tasks are non-empty", () => {
     const bad: string[] = []
     for (const s of SCENARIOS) {
-      if (!s.task.trim()) bad.push(`${s.id}: empty task`)
+      if (!s.task.trim()) {
+        bad.push(`${s.id}: empty task`)
+      }
       if (s.fixture && !fs.existsSync(path.join(REPO_ROOT, s.fixture))) {
         bad.push(`${s.id}: missing fixture ${s.fixture}`)
       }
@@ -98,7 +103,9 @@ describe("skill-eval-cell catalog", () => {
   test("workspace_read paths exist in the scenario fixture", () => {
     const missing: string[] = []
     for (const s of SCENARIOS) {
-      if (!s.grade.workspace_read?.length) continue
+      if (!s.grade.workspace_read?.length) {
+        continue
+      }
       if (!s.fixture) {
         missing.push(`${s.id}: workspace_read without a fixture`)
         continue
@@ -200,7 +207,7 @@ describe("skill-eval-cell catalog", () => {
         "ce-plan/no-implement:references/resume.md",
         "ce-plan/objective-above-the-changed-component:references/plan-sections.md",
         "ce-plan/objective-holdable-without-the-rest-of-the-plan:references/plan-sections.md",
-      "ce-polish/https-server-uses-actual-url:references/run.md",
+        "ce-polish/https-server-uses-actual-url:references/run.md",
         "ce-polish/start-server-reads-run:references/run.md",
         "ce-pov/oracle-dispatches-peers:references/cross-model-panel.md",
         "ce-pov/peer-named-by-requested-model:references/cross-model-panel.md",
@@ -216,7 +223,7 @@ describe("skill-eval-cell catalog", () => {
         "ce-riffrec-feedback-analysis/quick-notes:references/quick-bug-report.md",
         "ce-riffrec-feedback-analysis/setup-before-recording:references/install-riffrec.md",
         "ce-resolve-pr-feedback/bounded-failure-gets-no-more-code:references/evaluation-rubric.md",
-      "ce-resolve-pr-feedback/judgment-bound-adjudicates:references/evaluation-rubric.md",
+        "ce-resolve-pr-feedback/judgment-bound-adjudicates:references/evaluation-rubric.md",
         "ce-resolve-pr-feedback/pipeline-no-merge:references/pipeline-mode.md",
         "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision:references/evaluation-rubric.md",
         "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision:references/pipeline-mode.md",
@@ -232,6 +239,8 @@ describe("skill-eval-cell catalog", () => {
         "ce-work/requirements-only-stops:references/input-triage.md",
         "ce-work/return-to-caller-no-pr:references/input-triage.md",
         "ce-work/return-to-caller-no-pr:references/return-to-caller.md",
+        "i484-product-design/checklist-design-audit-route:references/completeness-audit.md",
+        "i484-product-design/ux-coverage-required:references/usability-checklist.md",
         "lfg/plan-first:references/plan-brief.md",
       ].sort(),
     )
@@ -242,7 +251,11 @@ describe("skill-eval-cell catalog", () => {
   })
 
   test("feature-only decision rows are explicitly post-only", () => {
-    expect(SCENARIOS.filter((s) => s.post_only).map((s) => s.id).sort()).toEqual([
+    expect(
+      SCENARIOS.filter((s) => s.post_only)
+        .map((s) => s.id)
+        .sort(),
+    ).toEqual([
       "ce-babysit-pr/announced-review-that-finished-reads-ready",
       "ce-babysit-pr/announced-review-with-nothing-to-show-waits",
       "ce-babysit-pr/check-only-answer-reactivates-source",
@@ -309,6 +322,9 @@ describe("skill-eval-cell catalog", () => {
       "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision",
       "ce-setup/instruction-file-covered-offers-nothing",
       "ce-setup/instruction-file-gap-offers-store-and-directive",
+      "i484-product-design/checklist-design-audit-route",
+      "i484-product-design/ux-coverage-decorative-skip",
+      "i484-product-design/ux-coverage-required",
     ])
   })
 
@@ -320,13 +336,15 @@ describe("skill-eval-cell catalog", () => {
     // Under read_only the forbidden mutation is impossible, so must_exclude alone
     // can never fail. Something that observes the stated decision has to be present.
     const vacuous = SCENARIOS.filter((s) => {
-      if (!s.read_only || !s.grade.must_exclude?.length) return false
-      return (
-        !s.grade.must_include?.length &&
-        !s.grade.must_include_any?.length &&
-        !Object.keys(s.grade.declared ?? {}).length &&
-        !s.grade.files_read_post?.length &&
-        !s.grade.workspace_read?.length
+      if (!(s.read_only && s.grade.must_exclude?.length)) {
+        return false
+      }
+      return !(
+        s.grade.must_include?.length ||
+        s.grade.must_include_any?.length ||
+        Object.keys(s.grade.declared ?? {}).length ||
+        s.grade.files_read_post?.length ||
+        s.grade.workspace_read?.length
       )
     }).map((s) => s.id)
     expect(vacuous).toEqual([])
@@ -336,15 +354,21 @@ describe("skill-eval-cell catalog", () => {
     const bad: string[] = []
     const resolved = new Map<string, boolean>()
     for (const s of SCENARIOS) {
-      if (s.preview_ref && s.cohort !== "in-progress") bad.push(`${s.id}: preview_ref on ${s.cohort}`)
-      if (!s.preview_ref) continue
+      if (s.preview_ref && s.cohort !== "in-progress") {
+        bad.push(`${s.id}: preview_ref on ${s.cohort}`)
+      }
+      if (!s.preview_ref) {
+        continue
+      }
       let ok = resolved.get(s.preview_ref)
       if (ok === undefined) {
         const r = spawnSync("git", ["rev-parse", "--verify", s.preview_ref], { cwd: REPO_ROOT })
         ok = r.status === 0
         resolved.set(s.preview_ref, ok)
       }
-      if (!ok) bad.push(`${s.id}: preview_ref ${s.preview_ref} does not resolve`)
+      if (!ok) {
+        bad.push(`${s.id}: preview_ref ${s.preview_ref} does not resolve`)
+      }
     }
     expect(bad).toEqual([])
   })

@@ -31,7 +31,7 @@ When triage selects Return-to-Caller Mode, read `references/return-to-caller.md`
 
 ### Phase 1: Quick Start
 
-1. **Establish the workspace.** Before moving branches, editing, dispatching, or committing, read `references/workspace-setup.md`. It decides the writable checkout, plan clarification, branch placement, the pre-work inventory, already-dirty files, and task setup. Never write without a writable canonical checkout, and never write on the real default branch unless the user explicitly directed that in this session.
+1. **Establish the workspace.** Before moving branches, editing, dispatching, or committing, read `references/workspace-setup.md`. Never write without a writable canonical checkout, and never write on the real default branch unless the user explicitly directed that in this session.
 
    **Do not commit or publish anything the user did not offer.** When a unit needs a file that was already dirty, standalone mode asks once whether to include or exclude that file. Return-to-Caller Mode neither asks nor edits it; it returns blocked, naming the collision and how to recover.
 
@@ -39,21 +39,21 @@ When triage selects Return-to-Caller Mode, read `references/return-to-caller.md`
 
    If cross-model execution is selected, read `references/cross-model-execution.md` before any content or authority crosses to the other model. It defines controller initialization, the post-init engine lock, bounded egress, transactions, recovery, and receipts.
 
-   Before choosing inline, serial, or parallel execution, and before dispatching any worker, read `references/execution-strategy.md`. It decides scheduling, isolation, the packet each worker receives, worker lifecycle, and integration. The host orchestrator keeps authoritative verification and makes the canonical commits.
+   Before choosing inline, serial, or parallel execution, and before dispatching any worker, read `references/execution-strategy.md`. The host owns authoritative verification and canonical commits.
 
 ### Phase 2: Execute
 
-Before the first implementation write, including on the Trivial route, read `references/implementation-loop.md`. It decides how evidence is chosen, verification, when to stop a unit, incremental commits, following existing patterns, continuous testing, where simplification stops, UI work, progress tracking, and settled decisions.
+Before the first implementation write, including on the Trivial route, read `references/implementation-loop.md` and follow its implementation and evidence protocol.
 
-**i484 specialist knowledge is additive, never a second workflow.** When the task changes a user-facing product UI and the installed skill catalog exposes `i484-product-design`, load it for product-design judgment before making the relevant UI decisions. Use its UX, composition, interaction, accessibility, content-stress, and visual-language criteria as domain knowledge; this `ce-work` flow still owns task execution, evidence strategy, verification, commits, review, and shipping. Other i484 specialists may be used when their artifact/domain description directly matches the requested work, without transferring engineering authority to them.
+**i484 specialist knowledge is additive, never a second workflow.** The required implementation-loop read governs `i484-product-design` and other specialist routing before relevant decisions.
 
 The commit rule from this file stays in force throughout: every implementation commit names only that unit's owned files. A bare `git commit` can absorb the user's pre-existing index, so it is forbidden.
 
 ### Phase 3-4: Quality Check and Finishing Work
 
-After the tasks and local verification are complete, standalone mode reads `references/shipping-workflow.md` before any quality check or delivery. It decides simplification, code-review receipts and fallbacks, leftover findings, final validation, and delivery.
+After the tasks and local verification are complete, standalone mode reads `references/shipping-workflow.md` before any quality check or delivery, and follows it through delivery.
 
-**i484 quality providers stay inside CE's quality gate.** Apply clearly relevant specialist quality checks declared by the active project/environment without creating a parallel finalization phase. For example, when available and applicable, use `natural-japanese` for changed user-facing Japanese; when a JavaScript/TypeScript project configures Ultracite as its lint/check provider, CE's configured lint step uses Ultracite rather than inventing a second lint path. If a specialist check changes files, those edits remain in the CE-owned diff and must pass the relevant CE verification before shipping.
+**i484 quality providers stay inside CE's quality gate.** The required shipping-workflow read governs `natural-japanese`, Ultracite, and specialist edits before quality checks.
 
 **Code-review completion gate (standalone only).** Code review must actually happen before shipping. The run is not done, must not call a commit or shipping skill, and must not report that shipping is complete until the shipping reference has recorded either an actual completed `ce-code-review` receipt or one of its exact authorized skip states. Never substitute a mental self-review or findings already applied earlier. This rule does not apply in Return-to-Caller Mode.
 

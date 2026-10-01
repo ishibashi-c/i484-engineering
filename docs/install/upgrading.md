@@ -1,8 +1,8 @@
 # Upgrading an existing install
 
-Per-host instructions for refreshing Compound Engineering when you installed it before the root-native, skills-only layout, plus cleanup for artifacts left behind by older install paths.
+Per-host instructions for refreshing i484 Engineering when you installed it before the root-native, skills-only layout, plus cleanup for artifacts left behind by older install paths.
 
-For a first-time install, see the [README](../../README.md#install).
+For a first-time install, see the [README](../../README.md).
 
 ---
 
@@ -13,34 +13,34 @@ Compound Engineering moved to a root-native, skills-only layout. An existing mar
 **Claude Code**
 
 ```text
-/plugin marketplace update compound-engineering-plugin
-/plugin update compound-engineering
+/plugin marketplace update i484-engineering-plugin
+/plugin update i484-engineering
 ```
 
 **Codex CLI**
 
 ```bash
-codex plugin marketplace upgrade compound-engineering-plugin
-codex plugin add compound-engineering@compound-engineering-plugin
+codex plugin marketplace upgrade i484-engineering-plugin
+codex plugin add i484-engineering@i484-engineering-plugin
 ```
 
 There is no `codex plugin update`; re-running `add` reinstalls from the refreshed snapshot. For a non-default profile, run both commands against the same `CODEX_HOME`.
 
 **Codex App**
 
-Refresh the marketplace from the **Plugins** panel (remove and re-add the `EveryInc/compound-engineering-plugin` marketplace if there is no refresh control), then reinstall **compound-engineering** and restart Codex.
+Refresh the marketplace from the **Plugins** panel (remove and re-add the `ishibashi-c/i484-engineering` marketplace if there is no refresh control), then reinstall **i484-engineering** and restart Codex.
 
 **Grok Bot**
 
-Reinstall or refresh Compound Engineering on that Cursor account (`/add-plugin compound-engineering` in Cursor Agent chat, or marketplace search). Grok Bot then loads the new snapshot from the shared plugin library. Do not clone this repository onto the Grok Bot computer for a normal update.
+Reinstall or refresh i484 Engineering on that Cursor account (`/add-plugin i484-engineering` in Cursor Agent chat, or marketplace search). Grok Bot then loads the new snapshot from the shared plugin library. Do not clone this repository onto the Grok Bot computer for a normal update.
 
 If you configured a host with a direct path or sparse path under `plugins/compound-engineering`, edit or reinstall that source so it points at the repository root with no sparse path.
 
 If a previous Bun-installed copy is still shadowing native plugin skills, run the current cleanup command from a checkout of this repository:
 
 ```bash
-git clone https://github.com/EveryInc/compound-engineering-plugin.git /tmp/compound-engineering-plugin-cleanup
-cd /tmp/compound-engineering-plugin-cleanup
+git clone https://github.com/ishibashi-c/i484-engineering.git /tmp/i484-engineering-cleanup
+cd /tmp/i484-engineering-cleanup
 bun install
 bun run cleanup --target all
 ```

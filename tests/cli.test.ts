@@ -1,12 +1,14 @@
 import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test"
 import { promises as fs } from "fs"
-import path from "path"
 import os from "os"
+import path from "path"
 import { materializeClaudePluginFixture } from "./helpers/claude-plugin-fixture"
 
 setDefaultTimeout(20_000)
 
-const fixture = materializeClaudePluginFixture(path.join(import.meta.dir, "fixtures", "sample-plugin"))
+const fixture = materializeClaudePluginFixture(
+  path.join(import.meta.dir, "fixtures", "sample-plugin"),
+)
 const fixtureRoot = fixture.root
 
 afterAll(fixture.cleanup)
@@ -32,7 +34,7 @@ async function runGit(args: string[], cwd: string, env?: NodeJS.ProcessEnv): Pro
   if (exitCode !== 0) {
     throw new Error(`git ${args.join(" ")} failed (exit ${exitCode}).\nstderr: ${stderr}`)
   }
- }
+}
 
 const HISTORICAL_AGENT_DESCRIPTIONS: Record<string, string> = {
   "bug-reproduction-validator":
@@ -51,22 +53,26 @@ const HISTORICAL_SKILL_DESCRIPTIONS: Record<string, string> = {
   "ce:review-beta":
     "[BETA] Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. Use when reviewing code changes before creating a PR.",
   "ce-update":
-    "Check if the compound-engineering plugin is up to date and recommend the\nupdate command if not. Use when the user says \"update compound engineering\",\n\"check compound engineering version\", \"ce update\", \"is compound engineering\nup to date\", \"update ce plugin\", or reports issues that might stem from a\nstale compound-engineering plugin version. This skill only works in Claude\nCode — it relies on the plugin harness cache layout.\n",
+    'Check if the compound-engineering plugin is up to date and recommend the\nupdate command if not. Use when the user says "update compound engineering",\n"check compound engineering version", "ce update", "is compound engineering\nup to date", "update ce plugin", or reports issues that might stem from a\nstale compound-engineering plugin version. This skill only works in Claude\nCode — it relies on the plugin harness cache layout.\n',
   "git-commit-push-pr":
-    "Commit, push, and open a PR with an adaptive, value-first description that scales in depth with the change. Use when the user says \"commit and PR\", \"ship this\", \"create a PR\", or \"open a pull request\". Also handles description-only flows (\"write a PR description\", \"rewrite the PR body\", \"describe this PR\") without committing or pushing.",
+    'Commit, push, and open a PR with an adaptive, value-first description that scales in depth with the change. Use when the user says "commit and PR", "ship this", "create a PR", or "open a pull request". Also handles description-only flows ("write a PR description", "rewrite the PR body", "describe this PR") without committing or pushing.',
   "reproduce-bug":
     "Systematically reproduce and investigate a bug from a GitHub issue. Use when the user provides a GitHub issue number or URL for a bug they want reproduced or investigated.",
 }
 
 function historicalAgentDescription(name: string): string {
   const description = HISTORICAL_AGENT_DESCRIPTIONS[name]
-  if (!description) throw new Error(`Missing historical agent description for ${name}`)
+  if (!description) {
+    throw new Error(`Missing historical agent description for ${name}`)
+  }
   return description
 }
 
 function historicalSkillDescription(name: string): string {
   const description = HISTORICAL_SKILL_DESCRIPTIONS[name]
-  if (!description) throw new Error(`Missing historical skill description for ${name}`)
+  if (!description) {
+    throw new Error(`Missing historical skill description for ${name}`)
+  }
   return description
 }
 
@@ -88,10 +94,7 @@ function kiroAgentConfigContent(name: string, description: string): string {
     description,
     prompt: `file://./prompts/${name}.md`,
     tools: ["*"],
-    resources: [
-      "file://.kiro/steering/**/*.md",
-      "skill://.kiro/skills/**/SKILL.md",
-    ],
+    resources: ["file://.kiro/steering/**/*.md", "skill://.kiro/skills/**/SKILL.md"],
     includeMcpJson: true,
     welcomeMessage: `Switching to the ${name} agent. ${description}`,
   })
@@ -107,21 +110,24 @@ describe("CLI", () => {
   test("install converts fixture plugin to OpenCode output", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-opencode-"))
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -133,30 +139,41 @@ describe("CLI", () => {
 
     expect(stdout).toContain("Installed compound-engineering")
     expect(await exists(path.join(tempRoot, "opencode.json"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "agents", "repo-research-analyst.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "agents", "security-sentinel.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "skills", "skill-one", "SKILL.md"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".opencode", "plugins", "converted-hooks.ts"))).toBe(true)
+    expect(
+      await exists(path.join(tempRoot, ".opencode", "agents", "repo-research-analyst.md")),
+    ).toBe(true)
+    expect(await exists(path.join(tempRoot, ".opencode", "agents", "security-sentinel.md"))).toBe(
+      true,
+    )
+    expect(await exists(path.join(tempRoot, ".opencode", "skills", "skill-one", "SKILL.md"))).toBe(
+      true,
+    )
+    expect(await exists(path.join(tempRoot, ".opencode", "plugins", "converted-hooks.ts"))).toBe(
+      true,
+    )
   })
 
   test("install defaults output to ~/.config/opencode", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-local-default-"))
 
     const repoRoot = path.join(import.meta.dir, "..")
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-    ], {
-      cwd: tempRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: envWithoutOpenCodeConfig({ HOME: tempRoot }),
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+      ],
+      {
+        cwd: tempRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: envWithoutOpenCodeConfig({ HOME: tempRoot }),
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -169,26 +186,33 @@ describe("CLI", () => {
     expect(stdout).toContain("Installed compound-engineering")
     // OpenCode global config lives at ~/.config/opencode per XDG spec
     expect(await exists(path.join(tempRoot, ".config", "opencode", "opencode.json"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".config", "opencode", "agents", "repo-research-analyst.md"))).toBe(true)
+    expect(
+      await exists(
+        path.join(tempRoot, ".config", "opencode", "agents", "repo-research-analyst.md"),
+      ),
+    ).toBe(true)
   })
 
   test("install rejects native marketplace-only plugin targets", async () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     for (const target of ["copilot", "droid", "qwen", "omp"]) {
-      const proc = Bun.spawn([
-        "bun",
-        "run",
-        path.join(repoRoot, "src", "index.ts"),
-        "install",
-        fixtureRoot,
-        "--to",
-        target,
-      ], {
-        cwd: repoRoot,
-        stdout: "pipe",
-        stderr: "pipe",
-      })
+      const proc = Bun.spawn(
+        [
+          "bun",
+          "run",
+          path.join(repoRoot, "src", "index.ts"),
+          "install",
+          fixtureRoot,
+          "--to",
+          target,
+        ],
+        {
+          cwd: repoRoot,
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      )
 
       const exitCode = await proc.exited
       const stderr = await new Response(proc.stderr).text()
@@ -205,11 +229,20 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(codexRoot, "skills", "ce:plan"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce:plan", "SKILL.md"), skillContent("ce:plan", historicalSkillDescription("ce:plan")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce:plan", "SKILL.md"),
+      skillContent("ce:plan", historicalSkillDescription("ce:plan")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "ce:review-beta"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce:review-beta", "SKILL.md"), skillContent("ce:review-beta", historicalSkillDescription("ce:review-beta")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce:review-beta", "SKILL.md"),
+      skillContent("ce:review-beta", historicalSkillDescription("ce:review-beta")),
+    )
     await fs.mkdir(path.join(codexRoot, "skills", "ce-update"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "skills", "ce-update", "SKILL.md"), skillContent("ce-update", historicalSkillDescription("ce-update")))
+    await fs.writeFile(
+      path.join(codexRoot, "skills", "ce-update", "SKILL.md"),
+      skillContent("ce-update", historicalSkillDescription("ce-update")),
+    )
     // A user-authored skill at a flat path whose name happens to collide with
     // a current CE skill name (ce-debug is a current CE skill that has never
     // been on the historical flat-path allow-list). The cleanup MUST NOT move
@@ -226,29 +259,28 @@ describe("CLI", () => {
     // an ownership-valid symlink and backs it up. A plain directory here
     // would be user-owned (see the new regression coverage below) and must
     // not be touched -- this shape mirrors the install writer.
-    const sharedAgentSymlinkTarget = path.join(
-      codexRoot,
-      "skills",
-      "compound-engineering",
-      "ce-plan",
-    )
+    const sharedAgentSymlinkTarget = path.join(codexRoot, "skills", "i484-engineering", "ce-plan")
     await fs.mkdir(sharedAgentSymlinkTarget, { recursive: true })
     await fs.writeFile(path.join(sharedAgentSymlinkTarget, "SKILL.md"), "legacy shared skill")
     await fs.mkdir(path.join(agentsRoot, "skills"), { recursive: true })
     await fs.symlink(sharedAgentSymlinkTarget, path.join(agentsRoot, "skills", "ce-plan"))
-    await fs.mkdir(path.join(codexRoot, "skills", "compound-engineering", "repo-research-analyst"), { recursive: true })
+    await fs.mkdir(path.join(codexRoot, "skills", "i484-engineering", "repo-research-analyst"), {
+      recursive: true,
+    })
     await fs.writeFile(
-      path.join(codexRoot, "skills", "compound-engineering", "repo-research-analyst", "SKILL.md"),
+      path.join(codexRoot, "skills", "i484-engineering", "repo-research-analyst", "SKILL.md"),
       skillContent("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
     )
-    await fs.mkdir(path.join(codexRoot, "skills", "compound-engineering", "ce-plan"), { recursive: true })
+    await fs.mkdir(path.join(codexRoot, "skills", "i484-engineering", "ce-plan"), {
+      recursive: true,
+    })
     await fs.writeFile(
-      path.join(codexRoot, "skills", "compound-engineering", "ce-plan", "SKILL.md"),
+      path.join(codexRoot, "skills", "i484-engineering", "ce-plan", "SKILL.md"),
       "current namespaced skill",
     )
-    await fs.mkdir(path.join(codexRoot, "agents", "compound-engineering"), { recursive: true })
+    await fs.mkdir(path.join(codexRoot, "agents", "i484-engineering"), { recursive: true })
     await fs.writeFile(
-      path.join(codexRoot, "agents", "compound-engineering", "ce-learnings-researcher.toml"),
+      path.join(codexRoot, "agents", "i484-engineering", "ce-learnings-researcher.toml"),
       "legacy namespaced agent toml",
     )
     await fs.writeFile(
@@ -256,22 +288,25 @@ describe("CLI", () => {
       "legacy flat agent toml",
     )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "codex",
-      "--codex-home",
-      codexRoot,
-      "--agents-home",
-      agentsRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "codex",
+        "--codex-home",
+        codexRoot,
+        "--agents-home",
+        agentsRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -296,16 +331,24 @@ describe("CLI", () => {
     expect(await exists(path.join(codexRoot, "skills", "ce-update"))).toBe(false)
     expect(await exists(path.join(codexRoot, "prompts", "report-bug.md"))).toBe(false)
     expect(await exists(path.join(agentsRoot, "skills", "ce-plan"))).toBe(false)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "repo-research-analyst"))).toBe(false)
-    expect(await exists(path.join(codexRoot, "agents", "compound-engineering", "ce-learnings-researcher.toml"))).toBe(false)
+    expect(
+      await exists(path.join(codexRoot, "skills", "i484-engineering", "repo-research-analyst")),
+    ).toBe(false)
+    expect(
+      await exists(
+        path.join(codexRoot, "agents", "i484-engineering", "ce-learnings-researcher.toml"),
+      ),
+    ).toBe(false)
     expect(await exists(path.join(codexRoot, "agents", "ce-repo-research-analyst.toml"))).toBe(true)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "ce-plan"))).toBe(true)
-    expect(await exists(path.join(codexRoot, "compound-engineering", "legacy-backup"))).toBe(true)
-    expect(await exists(path.join(agentsRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(codexRoot, "skills", "i484-engineering", "ce-plan"))).toBe(true)
+    expect(await exists(path.join(codexRoot, "i484-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(agentsRoot, "i484-engineering", "legacy-backup"))).toBe(true)
 
     // The user's flat-path skill survives with its original content.
     expect(await exists(path.join(userOwnedSkillDir, "SKILL.md"))).toBe(true)
-    expect(await fs.readFile(path.join(userOwnedSkillDir, "SKILL.md"), "utf8")).toBe(userOwnedSkillContent)
+    expect(await fs.readFile(path.join(userOwnedSkillDir, "SKILL.md"), "utf8")).toBe(
+      userOwnedSkillContent,
+    )
   })
 
   test("cleanup backs up CE-owned legacy Pi agent files on demand", async () => {
@@ -337,20 +380,23 @@ describe("CLI", () => {
     ].join("\n")
     await fs.writeFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), userAgentBody)
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "pi",
-      "--pi-home",
-      piRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "pi",
+        "--pi-home",
+        piRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -364,8 +410,10 @@ describe("CLI", () => {
     expect(stdout).toContain("backed up 1 artifact")
     expect(await exists(path.join(agentsRoot, "repo-research-analyst.md"))).toBe(false)
     expect(await exists(path.join(agentsRoot, "ce-repo-research-analyst.md"))).toBe(true)
-    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(userAgentBody)
-    expect(await exists(path.join(piRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await fs.readFile(path.join(agentsRoot, "ce-repo-research-analyst.md"), "utf8")).toBe(
+      userAgentBody,
+    )
+    expect(await exists(path.join(piRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup only backs up CE-owned symlinks under ~/.agents/skills", async () => {
@@ -384,7 +432,7 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     // (1) CE-owned symlink: points inside `<codex>/skills/<plugin>/ce-plan`.
-    const ceOwnedTarget = path.join(codexRoot, "skills", "compound-engineering", "ce-plan")
+    const ceOwnedTarget = path.join(codexRoot, "skills", "i484-engineering", "ce-plan")
     await fs.mkdir(ceOwnedTarget, { recursive: true })
     await fs.writeFile(path.join(ceOwnedTarget, "SKILL.md"), "ce-owned skill")
     await fs.mkdir(path.join(agentsRoot, "skills"), { recursive: true })
@@ -406,22 +454,25 @@ describe("CLI", () => {
     const userPlainContent = "# user-authored skill, plain directory"
     await fs.writeFile(path.join(userPlainDir, "SKILL.md"), userPlainContent)
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "codex",
-      "--codex-home",
-      codexRoot,
-      "--agents-home",
-      agentsRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "codex",
+        "--codex-home",
+        codexRoot,
+        "--agents-home",
+        agentsRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -441,7 +492,9 @@ describe("CLI", () => {
     // (2) User-authored symlink and its target both survive intact.
     expect(await exists(path.join(agentsRoot, "skills", "ce-update"))).toBe(true)
     expect(await exists(path.join(userOwnedTarget, "SKILL.md"))).toBe(true)
-    expect(await fs.readFile(path.join(userOwnedTarget, "SKILL.md"), "utf8")).toBe(userSymlinkContent)
+    expect(await fs.readFile(path.join(userOwnedTarget, "SKILL.md"), "utf8")).toBe(
+      userSymlinkContent,
+    )
 
     // (3) User-authored plain directory survives with its original content.
     expect(await exists(userPlainDir)).toBe(true)
@@ -464,34 +517,39 @@ describe("CLI", () => {
     // Namespaced managed skills dir with stale agent-as-skill entries and one
     // current-named skill that must survive.
     const staleAgentSkills = [
-      "ce-correctness-reviewer",  // current agent name, old generated-skill emission
-      "ce-feasibility-reviewer",  // same
-      "ce-adversarial-reviewer",  // same
+      "ce-correctness-reviewer", // current agent name, old generated-skill emission
+      "ce-feasibility-reviewer", // same
+      "ce-adversarial-reviewer", // same
     ]
     for (const skillName of staleAgentSkills) {
-      const dir = path.join(codexRoot, "skills", "compound-engineering", skillName)
+      const dir = path.join(codexRoot, "skills", "i484-engineering", skillName)
       await fs.mkdir(dir, { recursive: true })
       await fs.writeFile(path.join(dir, "SKILL.md"), `stale agent-as-skill ${skillName}`)
     }
     // A current-named skill the prior install also tracked.
-    await fs.mkdir(path.join(codexRoot, "skills", "compound-engineering", "ce-plan"), { recursive: true })
+    await fs.mkdir(path.join(codexRoot, "skills", "i484-engineering", "ce-plan"), {
+      recursive: true,
+    })
     await fs.writeFile(
-      path.join(codexRoot, "skills", "compound-engineering", "ce-plan", "SKILL.md"),
+      path.join(codexRoot, "skills", "i484-engineering", "ce-plan", "SKILL.md"),
       "current namespaced skill",
     )
     // Stale prompt from the prior install.
     await fs.mkdir(path.join(codexRoot, "prompts"), { recursive: true })
-    await fs.writeFile(path.join(codexRoot, "prompts", "ce-plan.md"), "stale prompt from prior CE version")
+    await fs.writeFile(
+      path.join(codexRoot, "prompts", "ce-plan.md"),
+      "stale prompt from prior CE version",
+    )
 
     // Install manifest listing all the prior-install artifacts.
-    const managedDir = path.join(codexRoot, "compound-engineering")
+    const managedDir = path.join(codexRoot, "i484-engineering")
     await fs.mkdir(managedDir, { recursive: true })
     await fs.writeFile(
       path.join(managedDir, "install-manifest.json"),
       JSON.stringify(
         {
           version: 1,
-          pluginName: "compound-engineering",
+          pluginName: "i484-engineering",
           skills: [...staleAgentSkills, "ce-plan"],
           prompts: ["ce-plan.md"],
           agents: [],
@@ -501,22 +559,25 @@ describe("CLI", () => {
       ),
     )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "codex",
-      "--codex-home",
-      codexRoot,
-      "--agents-home",
-      agentsRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "codex",
+        "--codex-home",
+        codexRoot,
+        "--agents-home",
+        agentsRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -528,14 +589,16 @@ describe("CLI", () => {
 
     // Stale agent-skills migrated to legacy-backup.
     for (const skillName of staleAgentSkills) {
-      expect(await exists(path.join(codexRoot, "skills", "compound-engineering", skillName))).toBe(false)
+      expect(await exists(path.join(codexRoot, "skills", "i484-engineering", skillName))).toBe(
+        false,
+      )
     }
     // Current-named namespaced skill survives (it's in the current bundle).
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "ce-plan"))).toBe(true)
+    expect(await exists(path.join(codexRoot, "skills", "i484-engineering", "ce-plan"))).toBe(true)
     // Stale prompt migrated (ce-plan is a skill now, not a command/prompt in current CE).
     expect(await exists(path.join(codexRoot, "prompts", "ce-plan.md"))).toBe(false)
     // Backup tree created.
-    expect(await exists(path.join(codexRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(codexRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup backs up legacy OpenCode artifacts on demand", async () => {
@@ -544,33 +607,42 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(opencodeRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(opencodeRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(opencodeRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(opencodeRoot, "agents"), { recursive: true })
     await fs.writeFile(
       path.join(opencodeRoot, "agents", "bug-reproduction-validator.md"),
-      agentContent("bug-reproduction-validator", historicalAgentDescription("bug-reproduction-validator")),
+      agentContent(
+        "bug-reproduction-validator",
+        historicalAgentDescription("bug-reproduction-validator"),
+      ),
     )
     await fs.mkdir(path.join(opencodeRoot, "commands", "compound"), { recursive: true })
     await fs.writeFile(path.join(opencodeRoot, "commands", "compound", "plan.md"), "legacy command")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "opencode",
-      "--opencode-home",
-      opencodeRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "opencode",
+        "--opencode-home",
+        opencodeRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -582,9 +654,11 @@ describe("CLI", () => {
 
     expect(stdout).toContain("Cleaned opencode")
     expect(await exists(path.join(opencodeRoot, "skills", "reproduce-bug"))).toBe(false)
-    expect(await exists(path.join(opencodeRoot, "agents", "bug-reproduction-validator.md"))).toBe(false)
+    expect(await exists(path.join(opencodeRoot, "agents", "bug-reproduction-validator.md"))).toBe(
+      false,
+    )
     expect(await exists(path.join(opencodeRoot, "commands", "compound", "plan.md"))).toBe(false)
-    expect(await exists(path.join(opencodeRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(opencodeRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup backs up legacy Pi artifacts on demand", async () => {
@@ -593,28 +667,34 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(piRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(piRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(piRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(piRoot, "prompts"), { recursive: true })
     await fs.writeFile(path.join(piRoot, "prompts", "compound-plan.md"), "legacy command prompt")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "pi",
-      "--pi-home",
-      piRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "pi",
+        "--pi-home",
+        piRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -627,7 +707,7 @@ describe("CLI", () => {
     expect(stdout).toContain("Cleaned pi")
     expect(await exists(path.join(piRoot, "skills", "reproduce-bug"))).toBe(false)
     expect(await exists(path.join(piRoot, "prompts", "compound-plan.md"))).toBe(false)
-    expect(await exists(path.join(piRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(piRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup backs up legacy Copilot workspace artifacts for native migration", async () => {
@@ -651,29 +731,41 @@ describe("CLI", () => {
     // removed (users now install via `copilot plugin install`), so these
     // were never installed by CE — cleanup must leave them alone.
     await fs.mkdir(path.join(githubRoot, "skills", "ce-debug"), { recursive: true })
-    await fs.writeFile(path.join(githubRoot, "skills", "ce-debug", "SKILL.md"), "user-authored skill")
+    await fs.writeFile(
+      path.join(githubRoot, "skills", "ce-debug", "SKILL.md"),
+      "user-authored skill",
+    )
     await fs.mkdir(path.join(githubRoot, "skills", "my-user-skill"), { recursive: true })
-    await fs.writeFile(path.join(githubRoot, "skills", "my-user-skill", "SKILL.md"), "user-authored skill")
-    await fs.writeFile(path.join(githubRoot, "agents", "ce-adversarial-reviewer.agent.md"), "user-authored agent")
+    await fs.writeFile(
+      path.join(githubRoot, "skills", "my-user-skill", "SKILL.md"),
+      "user-authored skill",
+    )
+    await fs.writeFile(
+      path.join(githubRoot, "agents", "ce-adversarial-reviewer.agent.md"),
+      "user-authored agent",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "copilot",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "copilot",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -685,12 +777,16 @@ describe("CLI", () => {
 
     expect(stdout).toContain("Cleaned copilot")
     expect(await exists(path.join(githubRoot, "skills", "git-commit-push-pr"))).toBe(false)
-    expect(await exists(path.join(githubRoot, "agents", "repo-research-analyst.agent.md"))).toBe(false)
-    expect(await exists(path.join(githubRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(githubRoot, "agents", "repo-research-analyst.agent.md"))).toBe(
+      false,
+    )
+    expect(await exists(path.join(githubRoot, "i484-engineering", "legacy-backup"))).toBe(true)
 
     expect(await exists(path.join(githubRoot, "skills", "ce-debug"))).toBe(true)
     expect(await exists(path.join(githubRoot, "skills", "my-user-skill"))).toBe(true)
-    expect(await exists(path.join(githubRoot, "agents", "ce-adversarial-reviewer.agent.md"))).toBe(true)
+    expect(await exists(path.join(githubRoot, "agents", "ce-adversarial-reviewer.agent.md"))).toBe(
+      true,
+    )
   })
 
   test("cleanup backs up legacy Droid artifacts for native migration", async () => {
@@ -699,38 +795,56 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(droidRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(droidRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(droidRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(droidRoot, "droids"), { recursive: true })
     await fs.writeFile(
       path.join(droidRoot, "droids", "bug-reproduction-validator.md"),
-      agentContent("bug-reproduction-validator", historicalAgentDescription("bug-reproduction-validator")),
+      agentContent(
+        "bug-reproduction-validator",
+        historicalAgentDescription("bug-reproduction-validator"),
+      ),
     )
     await fs.mkdir(path.join(droidRoot, "commands"), { recursive: true })
     await fs.writeFile(path.join(droidRoot, "commands", "plan.md"), "legacy flattened command")
 
-    await fs.writeFile(path.join(droidRoot, "droids", "ce-adversarial-reviewer.md"), "user-authored droid")
-    await fs.writeFile(path.join(droidRoot, "commands", "my-user-command.md"), "user-authored command")
+    await fs.writeFile(
+      path.join(droidRoot, "droids", "ce-adversarial-reviewer.md"),
+      "user-authored droid",
+    )
+    await fs.writeFile(
+      path.join(droidRoot, "commands", "my-user-command.md"),
+      "user-authored command",
+    )
     await fs.mkdir(path.join(droidRoot, "skills", "my-user-skill"), { recursive: true })
-    await fs.writeFile(path.join(droidRoot, "skills", "my-user-skill", "SKILL.md"), "user-authored skill")
+    await fs.writeFile(
+      path.join(droidRoot, "skills", "my-user-skill", "SKILL.md"),
+      "user-authored skill",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "droid",
-      "--droid-home",
-      droidRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "droid",
+        "--droid-home",
+        droidRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -742,9 +856,11 @@ describe("CLI", () => {
 
     expect(stdout).toContain("Cleaned droid")
     expect(await exists(path.join(droidRoot, "skills", "reproduce-bug"))).toBe(false)
-    expect(await exists(path.join(droidRoot, "droids", "bug-reproduction-validator.md"))).toBe(false)
+    expect(await exists(path.join(droidRoot, "droids", "bug-reproduction-validator.md"))).toBe(
+      false,
+    )
     expect(await exists(path.join(droidRoot, "commands", "plan.md"))).toBe(false)
-    expect(await exists(path.join(droidRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(droidRoot, "i484-engineering", "legacy-backup"))).toBe(true)
 
     expect(await exists(path.join(droidRoot, "droids", "ce-adversarial-reviewer.md"))).toBe(true)
     expect(await exists(path.join(droidRoot, "commands", "my-user-command.md"))).toBe(true)
@@ -757,43 +873,61 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(windsurfRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(windsurfRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(windsurfRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(windsurfRoot, "skills", "repo-research-analyst"), { recursive: true })
     await fs.writeFile(
       path.join(windsurfRoot, "skills", "repo-research-analyst", "SKILL.md"),
       skillContent("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
     )
     await fs.mkdir(path.join(windsurfRoot, "global_workflows"), { recursive: true })
-    await fs.writeFile(path.join(windsurfRoot, "global_workflows", "workflows-plan.md"), "legacy workflow")
+    await fs.writeFile(
+      path.join(windsurfRoot, "global_workflows", "workflows-plan.md"),
+      "legacy workflow",
+    )
 
     // User-authored artifacts whose names match current CE bundle output but
     // are NOT on the historical allow-list. Windsurf's writer has been
     // removed, so these were never installed by CE — cleanup must leave them
     // alone.
     await fs.mkdir(path.join(windsurfRoot, "skills", "ce-debug"), { recursive: true })
-    await fs.writeFile(path.join(windsurfRoot, "skills", "ce-debug", "SKILL.md"), "user-authored skill")
+    await fs.writeFile(
+      path.join(windsurfRoot, "skills", "ce-debug", "SKILL.md"),
+      "user-authored skill",
+    )
     await fs.mkdir(path.join(windsurfRoot, "skills", "my-user-skill"), { recursive: true })
-    await fs.writeFile(path.join(windsurfRoot, "skills", "my-user-skill", "SKILL.md"), "user-authored skill")
-    await fs.writeFile(path.join(windsurfRoot, "global_workflows", "my-user-workflow.md"), "user-authored workflow")
+    await fs.writeFile(
+      path.join(windsurfRoot, "skills", "my-user-skill", "SKILL.md"),
+      "user-authored skill",
+    )
+    await fs.writeFile(
+      path.join(windsurfRoot, "global_workflows", "my-user-workflow.md"),
+      "user-authored workflow",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "windsurf",
-      "--windsurf-home",
-      windsurfRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "windsurf",
+        "--windsurf-home",
+        windsurfRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -806,37 +940,47 @@ describe("CLI", () => {
     expect(stdout).toContain("Cleaned windsurf")
     expect(await exists(path.join(windsurfRoot, "skills", "reproduce-bug"))).toBe(false)
     expect(await exists(path.join(windsurfRoot, "skills", "repo-research-analyst"))).toBe(false)
-    expect(await exists(path.join(windsurfRoot, "global_workflows", "workflows-plan.md"))).toBe(false)
-    expect(await exists(path.join(windsurfRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(windsurfRoot, "global_workflows", "workflows-plan.md"))).toBe(
+      false,
+    )
+    expect(await exists(path.join(windsurfRoot, "i484-engineering", "legacy-backup"))).toBe(true)
 
     // User-authored files that only match current CE bundle names (not on
     // the historical allow-list) must be left untouched.
     expect(await exists(path.join(windsurfRoot, "skills", "ce-debug"))).toBe(true)
     expect(await exists(path.join(windsurfRoot, "skills", "my-user-skill"))).toBe(true)
-    expect(await exists(path.join(windsurfRoot, "global_workflows", "my-user-workflow.md"))).toBe(true)
+    expect(await exists(path.join(windsurfRoot, "global_workflows", "my-user-workflow.md"))).toBe(
+      true,
+    )
   })
 
   test("cleanup backs up legacy Qwen Bun artifacts for native migration", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-cleanup-qwen-"))
     const qwenRoot = path.join(tempRoot, ".qwen")
-    const extensionRoot = path.join(qwenRoot, "extensions", "compound-engineering")
+    const extensionRoot = path.join(qwenRoot, "extensions", "i484-engineering")
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(extensionRoot, { recursive: true })
     await fs.writeFile(
       path.join(extensionRoot, "qwen-extension.json"),
       JSON.stringify({
-        name: "compound-engineering",
+        name: "i484-engineering",
         _compound_managed_mcp: [],
         _compound_managed_keys: ["name", "skills", "agents"],
       }),
     )
     await fs.mkdir(path.join(qwenRoot, "skills", "ce-plan"), { recursive: true })
-    await fs.writeFile(path.join(qwenRoot, "skills", "ce-plan", "SKILL.md"), skillContent("ce-plan", historicalSkillDescription("ce-plan")))
+    await fs.writeFile(
+      path.join(qwenRoot, "skills", "ce-plan", "SKILL.md"),
+      skillContent("ce-plan", historicalSkillDescription("ce-plan")),
+    )
     await fs.mkdir(path.join(qwenRoot, "agents"), { recursive: true })
     await fs.writeFile(
       path.join(qwenRoot, "agents", "repo-research-analyst.yaml"),
-      qwenAgentYaml("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
+      qwenAgentYaml(
+        "repo-research-analyst",
+        historicalAgentDescription("ce-repo-research-analyst"),
+      ),
     )
     await fs.mkdir(path.join(qwenRoot, "commands"), { recursive: true })
     await fs.writeFile(path.join(qwenRoot, "commands", "compound-plan.md"), "legacy command")
@@ -844,26 +988,32 @@ describe("CLI", () => {
     // landed at nested paths via resolveCommandPath; cleanup must back those up
     // too so they don't shadow native plugin commands after migration.
     await fs.mkdir(path.join(qwenRoot, "commands", "compound"), { recursive: true })
-    await fs.writeFile(path.join(qwenRoot, "commands", "compound", "plan.md"), "legacy nested command")
+    await fs.writeFile(
+      path.join(qwenRoot, "commands", "compound", "plan.md"),
+      "legacy nested command",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "qwen",
-      "--qwen-home",
-      qwenRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "qwen",
+        "--qwen-home",
+        qwenRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -879,7 +1029,7 @@ describe("CLI", () => {
     expect(await exists(path.join(qwenRoot, "agents", "repo-research-analyst.yaml"))).toBe(false)
     expect(await exists(path.join(qwenRoot, "commands", "compound-plan.md"))).toBe(false)
     expect(await exists(path.join(qwenRoot, "commands", "compound", "plan.md"))).toBe(false)
-    expect(await exists(path.join(qwenRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(qwenRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup preserves user-authored Qwen files at current-bundle names", async () => {
@@ -891,7 +1041,10 @@ describe("CLI", () => {
     // to `ce-plan`, `compound:plan` flattens to `compound-plan.md` and nests to
     // `compound/plan.md`). These MUST be backed up.
     await fs.mkdir(path.join(qwenRoot, "skills", "ce-plan"), { recursive: true })
-    await fs.writeFile(path.join(qwenRoot, "skills", "ce-plan", "SKILL.md"), skillContent("ce-plan", historicalSkillDescription("ce-plan")))
+    await fs.writeFile(
+      path.join(qwenRoot, "skills", "ce-plan", "SKILL.md"),
+      skillContent("ce-plan", historicalSkillDescription("ce-plan")),
+    )
     await fs.mkdir(path.join(qwenRoot, "agents"), { recursive: true })
     await fs.writeFile(
       path.join(qwenRoot, "agents", "repo-research-analyst.md"),
@@ -899,7 +1052,10 @@ describe("CLI", () => {
     )
     await fs.mkdir(path.join(qwenRoot, "commands", "compound"), { recursive: true })
     await fs.writeFile(path.join(qwenRoot, "commands", "compound-plan.md"), "legacy flat command")
-    await fs.writeFile(path.join(qwenRoot, "commands", "compound", "plan.md"), "legacy nested command")
+    await fs.writeFile(
+      path.join(qwenRoot, "commands", "compound", "plan.md"),
+      "legacy nested command",
+    )
 
     // User-authored artifacts at names that match the CURRENT CE bundle but
     // are NOT on the historical allow-list. The Qwen writer is native
@@ -908,28 +1064,40 @@ describe("CLI", () => {
     await fs.mkdir(path.join(qwenRoot, "skills", "ce-debug"), { recursive: true })
     await fs.writeFile(path.join(qwenRoot, "skills", "ce-debug", "SKILL.md"), "user-authored skill")
     await fs.mkdir(path.join(qwenRoot, "skills", "my-user-skill"), { recursive: true })
-    await fs.writeFile(path.join(qwenRoot, "skills", "my-user-skill", "SKILL.md"), "user-authored skill")
-    await fs.writeFile(path.join(qwenRoot, "agents", "ce-correctness-reviewer.md"), "user-authored agent")
-    await fs.writeFile(path.join(qwenRoot, "commands", "my-user-command.md"), "user-authored command")
+    await fs.writeFile(
+      path.join(qwenRoot, "skills", "my-user-skill", "SKILL.md"),
+      "user-authored skill",
+    )
+    await fs.writeFile(
+      path.join(qwenRoot, "agents", "ce-correctness-reviewer.md"),
+      "user-authored agent",
+    )
+    await fs.writeFile(
+      path.join(qwenRoot, "commands", "my-user-command.md"),
+      "user-authored command",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "qwen",
-      "--qwen-home",
-      qwenRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "qwen",
+        "--qwen-home",
+        qwenRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -960,34 +1128,49 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(kiroRoot, "skills", "ce-plan"), { recursive: true })
-    await fs.writeFile(path.join(kiroRoot, "skills", "ce-plan", "SKILL.md"), skillContent("ce-plan", historicalSkillDescription("ce-plan")))
+    await fs.writeFile(
+      path.join(kiroRoot, "skills", "ce-plan", "SKILL.md"),
+      skillContent("ce-plan", historicalSkillDescription("ce-plan")),
+    )
     await fs.mkdir(path.join(kiroRoot, "skills", "compound-plan"), { recursive: true })
-    await fs.writeFile(path.join(kiroRoot, "skills", "compound-plan", "SKILL.md"), "user-authored command-like skill")
+    await fs.writeFile(
+      path.join(kiroRoot, "skills", "compound-plan", "SKILL.md"),
+      "user-authored command-like skill",
+    )
     await fs.mkdir(path.join(kiroRoot, "agents", "prompts"), { recursive: true })
     await fs.writeFile(
       path.join(kiroRoot, "agents", "ce-repo-research-analyst.json"),
-      kiroAgentConfigContent("ce-repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
+      kiroAgentConfigContent(
+        "ce-repo-research-analyst",
+        historicalAgentDescription("ce-repo-research-analyst"),
+      ),
     )
-    await fs.writeFile(path.join(kiroRoot, "agents", "prompts", "ce-repo-research-analyst.md"), "legacy agent prompt")
+    await fs.writeFile(
+      path.join(kiroRoot, "agents", "prompts", "ce-repo-research-analyst.md"),
+      "legacy agent prompt",
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "kiro",
-      "--kiro-home",
-      kiroRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "kiro",
+        "--kiro-home",
+        kiroRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1001,15 +1184,20 @@ describe("CLI", () => {
     expect(await exists(path.join(kiroRoot, "skills", "ce-plan"))).toBe(false)
     expect(await exists(path.join(kiroRoot, "skills", "compound-plan"))).toBe(true)
     expect(await exists(path.join(kiroRoot, "agents", "ce-repo-research-analyst.json"))).toBe(false)
-    expect(await exists(path.join(kiroRoot, "agents", "prompts", "ce-repo-research-analyst.md"))).toBe(false)
-    expect(await exists(path.join(kiroRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(
+      await exists(path.join(kiroRoot, "agents", "prompts", "ce-repo-research-analyst.md")),
+    ).toBe(false)
+    expect(await exists(path.join(kiroRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("list returns a root plugin in a temp workspace", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-list-root-"))
     const pluginRoot = path.join(tempRoot, ".claude-plugin")
     await fs.mkdir(pluginRoot, { recursive: true })
-    await fs.writeFile(path.join(pluginRoot, "plugin.json"), "{\n  \"name\": \"demo-root-plugin\",\n  \"version\": \"1.0.0\"\n}\n")
+    await fs.writeFile(
+      path.join(pluginRoot, "plugin.json"),
+      '{\n  "name": "demo-root-plugin",\n  "version": "1.0.0"\n}\n',
+    )
 
     const repoRoot = path.join(import.meta.dir, "..")
     const proc = Bun.spawn(["bun", "run", path.join(repoRoot, "src", "index.ts"), "list"], {
@@ -1033,7 +1221,10 @@ describe("CLI", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-list-"))
     const pluginsRoot = path.join(tempRoot, "plugins", "demo-plugin", ".claude-plugin")
     await fs.mkdir(pluginsRoot, { recursive: true })
-    await fs.writeFile(path.join(pluginsRoot, "plugin.json"), "{\n  \"name\": \"demo-plugin\",\n  \"version\": \"1.0.0\"\n}\n")
+    await fs.writeFile(
+      path.join(pluginsRoot, "plugin.json"),
+      '{\n  "name": "demo-plugin",\n  "version": "1.0.0"\n}\n',
+    )
 
     const repoRoot = path.join(import.meta.dir, "..")
     const proc = Bun.spawn(["bun", "run", path.join(repoRoot, "src", "index.ts"), "list"], {
@@ -1072,25 +1263,31 @@ describe("CLI", () => {
     await runGit(["init"], repoRoot, gitEnv)
     await runGit(["add", "."], repoRoot, gitEnv)
     await runGit(["commit", "-m", "fixture"], repoRoot, gitEnv)
+    await runGit(["branch", "fixture-remote"], repoRoot, gitEnv)
 
     const projectRoot = path.join(import.meta.dir, "..")
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      "compound-engineering",
-      "--to",
-      "opencode",
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: envWithoutOpenCodeConfig({
-        HOME: tempRoot,
-        COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
-      }),
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        "compound-engineering",
+        "--to",
+        "opencode",
+        "--branch",
+        "fixture-remote",
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: envWithoutOpenCodeConfig({
+          HOME: tempRoot,
+          COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
+        }),
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1103,35 +1300,40 @@ describe("CLI", () => {
     expect(stdout).toContain("Installed compound-engineering")
     // OpenCode global config lives at ~/.config/opencode per XDG spec
     expect(await exists(path.join(tempRoot, ".config", "opencode", "opencode.json"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".config", "opencode", "skills", "ce-plan", "SKILL.md"))).toBe(true)
+    expect(
+      await exists(path.join(tempRoot, ".config", "opencode", "skills", "skill-one", "SKILL.md")),
+    ).toBe(true)
   })
 
-  test("install uses bundled compound-engineering plugin for codex output", async () => {
+  test("install uses bundled i484-engineering plugin for codex output", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-bundled-codex-home-"))
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-bundled-codex-workspace-"))
     const projectRoot = path.join(import.meta.dir, "..")
     const codexRoot = path.join(tempRoot, ".codex")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      "compound-engineering",
-      "--to",
-      "codex",
-      "--include-skills",
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        CODEX_HOME: codexRoot,
-        COMPOUND_PLUGIN_GITHUB_SOURCE: "/definitely-not-a-valid-plugin-source",
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        "i484-engineering",
+        "--to",
+        "codex",
+        "--include-skills",
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          CODEX_HOME: codexRoot,
+          COMPOUND_PLUGIN_GITHUB_SOURCE: "/definitely-not-a-valid-plugin-source",
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1141,9 +1343,11 @@ describe("CLI", () => {
       throw new Error(`CLI failed (exit ${exitCode}).\nstdout: ${stdout}\nstderr: ${stderr}`)
     }
 
-    expect(stdout).toContain("Installed compound-engineering")
+    expect(stdout).toContain("Installed i484-engineering")
     expect(stdout).toContain(codexRoot)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "ce-plan", "SKILL.md"))).toBe(true)
+    expect(
+      await exists(path.join(codexRoot, "skills", "i484-engineering", "ce-plan", "SKILL.md")),
+    ).toBe(true)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "ce-plan"))).toBe(false)
     // Native Codex no longer needs a managed Claude-compat tool map in AGENTS.md.
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
@@ -1155,25 +1359,28 @@ describe("CLI", () => {
     const projectRoot = path.join(import.meta.dir, "..")
     const codexRoot = path.join(tempRoot, ".codex")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      "compound-engineering",
-      "--to",
-      "codex",
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        CODEX_HOME: codexRoot,
-        COMPOUND_PLUGIN_GITHUB_SOURCE: "/definitely-not-a-valid-plugin-source",
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        "i484-engineering",
+        "--to",
+        "codex",
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          CODEX_HOME: codexRoot,
+          COMPOUND_PLUGIN_GITHUB_SOURCE: "/definitely-not-a-valid-plugin-source",
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1183,13 +1390,15 @@ describe("CLI", () => {
       throw new Error(`CLI failed (exit ${exitCode}).\nstdout: ${stdout}\nstderr: ${stderr}`)
     }
 
-    expect(stdout).toContain("Installed compound-engineering")
+    expect(stdout).toContain("Installed i484-engineering")
     // Default omits skills; they're expected from native Codex plugin install.
     expect(await exists(path.join(codexRoot, "skills", "ce-plan", "SKILL.md"))).toBe(false)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "ce-plan", "SKILL.md"))).toBe(false)
+    expect(
+      await exists(path.join(codexRoot, "skills", "i484-engineering", "ce-plan", "SKILL.md")),
+    ).toBe(false)
     // Compound Engineering no longer ships standalone agents, so the default
     // Codex converter followup has no CE payload to emit.
-    expect(await exists(path.join(codexRoot, "agents", "compound-engineering"))).toBe(false)
+    expect(await exists(path.join(codexRoot, "agents", "i484-engineering"))).toBe(false)
     // Convert/install no longer creates AGENTS.md; it only strips a legacy tool map if present.
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
   })
@@ -1212,24 +1421,27 @@ describe("CLI", () => {
       ].join("\n"),
     )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "codex",
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        CODEX_HOME: codexRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "codex",
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          CODEX_HOME: codexRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1251,24 +1463,27 @@ describe("CLI", () => {
     const projectRoot = path.join(import.meta.dir, "..")
     const codexHome = path.join(tempRoot, "profiles", "sstk")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "codex",
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        CODEX_HOME: codexHome,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "codex",
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          CODEX_HOME: codexHome,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1279,8 +1494,16 @@ describe("CLI", () => {
     }
 
     expect(stdout).toContain(codexHome)
-    expect(await exists(path.join(codexHome, "agents", "compound-engineering", "security-sentinel.toml"))).toBe(true)
-    expect(await exists(path.join(tempRoot, ".codex", "agents", "compound-engineering", "security-sentinel.toml"))).toBe(false)
+    expect(
+      await exists(
+        path.join(codexHome, "agents", "compound-engineering", "security-sentinel.toml"),
+      ),
+    ).toBe(true)
+    expect(
+      await exists(
+        path.join(tempRoot, ".codex", "agents", "compound-engineering", "security-sentinel.toml"),
+      ),
+    ).toBe(false)
   })
 
   test("install --to codex treats --codex-home as the Codex root even when it is not named .codex", async () => {
@@ -1289,25 +1512,28 @@ describe("CLI", () => {
     const projectRoot = path.join(import.meta.dir, "..")
     const codexHome = path.join(tempRoot, "profiles", "sstk")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "codex",
-      "--codex-home",
-      codexHome,
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "codex",
+        "--codex-home",
+        codexHome,
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1317,8 +1543,16 @@ describe("CLI", () => {
       throw new Error(`CLI failed (exit ${exitCode}).\nstdout: ${stdout}\nstderr: ${stderr}`)
     }
 
-    expect(await exists(path.join(codexHome, "agents", "compound-engineering", "security-sentinel.toml"))).toBe(true)
-    expect(await exists(path.join(codexHome, ".codex", "agents", "compound-engineering", "security-sentinel.toml"))).toBe(false)
+    expect(
+      await exists(
+        path.join(codexHome, "agents", "compound-engineering", "security-sentinel.toml"),
+      ),
+    ).toBe(true)
+    expect(
+      await exists(
+        path.join(codexHome, ".codex", "agents", "compound-engineering", "security-sentinel.toml"),
+      ),
+    ).toBe(false)
   })
 
   test("install by name ignores same-named local directory", async () => {
@@ -1347,26 +1581,29 @@ describe("CLI", () => {
     await runGit(["commit", "-m", "fixture"], repoRoot, gitEnv)
 
     const projectRoot = path.join(import.meta.dir, "..")
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      "compound-engineering",
-      "--to",
-      "opencode",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: workspaceRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        "compound-engineering",
+        "--to",
+        "opencode",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: workspaceRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1406,28 +1643,31 @@ describe("CLI", () => {
     await runGit(["checkout", "main"], repoRoot, gitEnv)
 
     const projectRoot = path.join(import.meta.dir, "..")
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(projectRoot, "src", "index.ts"),
-      "install",
-      "compound-engineering",
-      "--to",
-      "opencode",
-      "--output",
-      tempRoot,
-      "--branch",
-      "feat/test-branch",
-    ], {
-      cwd: tempRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(projectRoot, "src", "index.ts"),
+        "install",
+        "compound-engineering",
+        "--to",
+        "opencode",
+        "--output",
+        tempRoot,
+        "--branch",
+        "feat/test-branch",
+      ],
+      {
+        cwd: tempRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          COMPOUND_PLUGIN_GITHUB_SOURCE: repoRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1444,21 +1684,24 @@ describe("CLI", () => {
   test("convert writes OpenCode output", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-convert-"))
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "convert",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "convert",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1476,22 +1719,25 @@ describe("CLI", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-codex-home-"))
     const codexRoot = path.join(tempRoot, ".codex")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "convert",
-      fixtureRoot,
-      "--to",
-      "codex",
-      "--codex-home",
-      codexRoot,
-      "--include-skills",
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "convert",
+        fixtureRoot,
+        "--to",
+        "codex",
+        "--codex-home",
+        codexRoot,
+        "--include-skills",
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1504,7 +1750,11 @@ describe("CLI", () => {
     expect(stdout).toContain("Converted compound-engineering")
     expect(stdout).toContain(codexRoot)
     expect(await exists(path.join(codexRoot, "prompts", "workflows-review.md"))).toBe(true)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "workflows-review", "SKILL.md"))).toBe(true)
+    expect(
+      await exists(
+        path.join(codexRoot, "skills", "compound-engineering", "workflows-review", "SKILL.md"),
+      ),
+    ).toBe(true)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "workflows-review"))).toBe(false)
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
   })
@@ -1513,26 +1763,29 @@ describe("CLI", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-also-"))
     const codexRoot = path.join(tempRoot, ".codex")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--also",
-      "codex",
-      "--codex-home",
-      codexRoot,
-      "--output",
-      tempRoot,
-      "--include-skills",
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--also",
+        "codex",
+        "--codex-home",
+        codexRoot,
+        "--output",
+        tempRoot,
+        "--include-skills",
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1545,8 +1798,14 @@ describe("CLI", () => {
     expect(stdout).toContain("Installed compound-engineering")
     expect(stdout).toContain(codexRoot)
     expect(await exists(path.join(codexRoot, "prompts", "workflows-review.md"))).toBe(true)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "workflows-review", "SKILL.md"))).toBe(true)
-    expect(await exists(path.join(codexRoot, "skills", "compound-engineering", "skill-one", "SKILL.md"))).toBe(true)
+    expect(
+      await exists(
+        path.join(codexRoot, "skills", "compound-engineering", "workflows-review", "SKILL.md"),
+      ),
+    ).toBe(true)
+    expect(
+      await exists(path.join(codexRoot, "skills", "compound-engineering", "skill-one", "SKILL.md")),
+    ).toBe(true)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "workflows-review"))).toBe(false)
     expect(await exists(path.join(tempRoot, ".agents", "skills", "skill-one"))).toBe(false)
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
@@ -1563,30 +1822,33 @@ describe("CLI", () => {
     const codexRoot = path.join(tempRoot, ".codex")
     const repoRoot = path.join(import.meta.dir, "..")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "codex",
-      "--also",
-      "opencode",
-      "--codex-home",
-      codexRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        // Strip any inherited OPENCODE_CONFIG_DIR so we exercise the XDG
-        // fallback path deterministically.
-        OPENCODE_CONFIG_DIR: "",
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "codex",
+        "--also",
+        "opencode",
+        "--codex-home",
+        codexRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          // Strip any inherited OPENCODE_CONFIG_DIR so we exercise the XDG
+          // fallback path deterministically.
+          OPENCODE_CONFIG_DIR: "",
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1600,7 +1862,9 @@ describe("CLI", () => {
     // Flat global layout, not nested under .opencode/. The bug previously
     // wrote to `<global>/opencode/...` which is invisible to OpenCode.
     expect(await exists(path.join(opencodeGlobalRoot, "opencode.json"))).toBe(true)
-    expect(await exists(path.join(opencodeGlobalRoot, "agents", "repo-research-analyst.md"))).toBe(true)
+    expect(await exists(path.join(opencodeGlobalRoot, "agents", "repo-research-analyst.md"))).toBe(
+      true,
+    )
     expect(await exists(path.join(opencodeGlobalRoot, "opencode", "opencode.json"))).toBe(false)
     // Codex still landed at the explicit --codex-home without creating AGENTS.md.
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
@@ -1615,28 +1879,31 @@ describe("CLI", () => {
     const codexRoot = path.join(tempRoot, ".codex")
     const repoRoot = path.join(import.meta.dir, "..")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--also",
-      "codex",
-      "--codex-home",
-      codexRoot,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        OPENCODE_CONFIG_DIR: "",
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--also",
+        "codex",
+        "--codex-home",
+        codexRoot,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          OPENCODE_CONFIG_DIR: "",
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1648,7 +1915,9 @@ describe("CLI", () => {
 
     const opencodeGlobalRoot = path.join(tempRoot, ".config", "opencode")
     expect(await exists(path.join(opencodeGlobalRoot, "opencode.json"))).toBe(true)
-    expect(await exists(path.join(opencodeGlobalRoot, "agents", "repo-research-analyst.md"))).toBe(true)
+    expect(await exists(path.join(opencodeGlobalRoot, "agents", "repo-research-analyst.md"))).toBe(
+      true,
+    )
     expect(await exists(path.join(codexRoot, "AGENTS.md"))).toBe(false)
   })
 
@@ -1657,24 +1926,27 @@ describe("CLI", () => {
     const customRoot = path.join(tempRoot, "custom-opencode-config")
     const repoRoot = path.join(import.meta.dir, "..")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        OPENCODE_CONFIG_DIR: customRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          OPENCODE_CONFIG_DIR: customRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1699,30 +1971,32 @@ describe("CLI", () => {
     const repoRoot = path.join(import.meta.dir, "..")
 
     await fs.mkdir(path.join(customRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(customRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(customRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(customRoot, "agents"), { recursive: true })
     await fs.writeFile(
       path.join(customRoot, "agents", "bug-reproduction-validator.md"),
-      agentContent("bug-reproduction-validator", historicalAgentDescription("bug-reproduction-validator")),
+      agentContent(
+        "bug-reproduction-validator",
+        historicalAgentDescription("bug-reproduction-validator"),
+      ),
     )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "opencode",
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        OPENCODE_CONFIG_DIR: customRoot,
+    const proc = Bun.spawn(
+      ["bun", "run", path.join(repoRoot, "src", "index.ts"), "cleanup", "--target", "opencode"],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          OPENCODE_CONFIG_DIR: customRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1735,8 +2009,10 @@ describe("CLI", () => {
     expect(stdout).toContain("Cleaned opencode")
     expect(stdout).toContain(customRoot)
     expect(await exists(path.join(customRoot, "skills", "reproduce-bug"))).toBe(false)
-    expect(await exists(path.join(customRoot, "agents", "bug-reproduction-validator.md"))).toBe(false)
-    expect(await exists(path.join(customRoot, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(await exists(path.join(customRoot, "agents", "bug-reproduction-validator.md"))).toBe(
+      false,
+    )
+    expect(await exists(path.join(customRoot, "i484-engineering", "legacy-backup"))).toBe(true)
   })
 
   test("cleanup --target opencode --output <workspace> scans workspace .opencode", async () => {
@@ -1752,37 +2028,49 @@ describe("CLI", () => {
 
     // Stale artifacts in the workspace install — these must be cleaned up.
     await fs.mkdir(path.join(workspaceOpenCode, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(workspaceOpenCode, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(workspaceOpenCode, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
     await fs.mkdir(path.join(workspaceOpenCode, "agents"), { recursive: true })
     await fs.writeFile(
       path.join(workspaceOpenCode, "agents", "bug-reproduction-validator.md"),
-      agentContent("bug-reproduction-validator", historicalAgentDescription("bug-reproduction-validator")),
+      agentContent(
+        "bug-reproduction-validator",
+        historicalAgentDescription("bug-reproduction-validator"),
+      ),
     )
 
     // A lookalike stale artifact in the global root — this must be UNTOUCHED
     // because the user scoped the cleanup to the workspace via `--output`.
     await fs.mkdir(path.join(globalRoot, "skills", "reproduce-bug"), { recursive: true })
-    await fs.writeFile(path.join(globalRoot, "skills", "reproduce-bug", "SKILL.md"), skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")))
+    await fs.writeFile(
+      path.join(globalRoot, "skills", "reproduce-bug", "SKILL.md"),
+      skillContent("reproduce-bug", historicalSkillDescription("reproduce-bug")),
+    )
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "cleanup",
-      "--target",
-      "opencode",
-      "--output",
-      workspace,
-    ], {
-      cwd: repoRoot,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        ...process.env,
-        HOME: tempRoot,
-        OPENCODE_CONFIG_DIR: globalRoot,
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        path.join(repoRoot, "src", "index.ts"),
+        "cleanup",
+        "--target",
+        "opencode",
+        "--output",
+        workspace,
+      ],
+      {
+        cwd: repoRoot,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: {
+          ...process.env,
+          HOME: tempRoot,
+          OPENCODE_CONFIG_DIR: globalRoot,
+        },
       },
-    })
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1796,8 +2084,12 @@ describe("CLI", () => {
     expect(stdout).toContain(workspaceOpenCode)
     // Workspace install stale artifacts cleaned.
     expect(await exists(path.join(workspaceOpenCode, "skills", "reproduce-bug"))).toBe(false)
-    expect(await exists(path.join(workspaceOpenCode, "agents", "bug-reproduction-validator.md"))).toBe(false)
-    expect(await exists(path.join(workspaceOpenCode, "compound-engineering", "legacy-backup"))).toBe(true)
+    expect(
+      await exists(path.join(workspaceOpenCode, "agents", "bug-reproduction-validator.md")),
+    ).toBe(false)
+    expect(await exists(path.join(workspaceOpenCode, "i484-engineering", "legacy-backup"))).toBe(
+      true,
+    )
     // Global root must NOT be swept — `--output` scoped the cleanup.
     expect(await exists(path.join(globalRoot, "skills", "reproduce-bug"))).toBe(true)
     expect(stdout).not.toContain(globalRoot)
@@ -1807,21 +2099,14 @@ describe("CLI", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-pi-home-"))
     const piRoot = path.join(tempRoot, ".pi")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "convert",
-      fixtureRoot,
-      "--to",
-      "pi",
-      "--pi-home",
-      piRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      ["bun", "run", "src/index.ts", "convert", fixtureRoot, "--to", "pi", "--pi-home", piRoot],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1840,7 +2125,9 @@ describe("CLI", () => {
     // Pi installs no longer ship a plugin-authored compat extension. MCP
     // servers declared in plugin.json are still translated to mcporter.json so
     // plugins with MCP wiring keep their backends after conversion.
-    expect(await exists(path.join(piRoot, "extensions", "compound-engineering-compat.ts"))).toBe(false)
+    expect(await exists(path.join(piRoot, "extensions", "compound-engineering-compat.ts"))).toBe(
+      false,
+    )
     expect(await exists(path.join(piRoot, "compound-engineering", "mcporter.json"))).toBe(true)
   })
 
@@ -1848,25 +2135,28 @@ describe("CLI", () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-also-pi-"))
     const piRoot = path.join(tempRoot, ".pi")
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--also",
-      "pi",
-      "--pi-home",
-      piRoot,
-      "--output",
-      tempRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--also",
+        "pi",
+        "--pi-home",
+        piRoot,
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1879,27 +2169,32 @@ describe("CLI", () => {
     expect(stdout).toContain("Installed compound-engineering")
     expect(stdout).toContain(piRoot)
     expect(await exists(path.join(piRoot, "prompts", "workflows-review.md"))).toBe(true)
-    expect(await exists(path.join(piRoot, "extensions", "compound-engineering-compat.ts"))).toBe(false)
+    expect(await exists(path.join(piRoot, "extensions", "compound-engineering-compat.ts"))).toBe(
+      false,
+    )
   })
 
   test("install --to opencode uses permissions:none by default", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-perms-none-"))
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1922,23 +2217,26 @@ describe("CLI", () => {
   test("install --to opencode --permissions broad writes permission block", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-perms-broad-"))
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      "src/index.ts",
-      "install",
-      fixtureRoot,
-      "--to",
-      "opencode",
-      "--permissions",
-      "broad",
-      "--output",
-      tempRoot,
-    ], {
-      cwd: path.join(import.meta.dir, ".."),
-      stdout: "pipe",
-      stderr: "pipe",
-    })
+    const proc = Bun.spawn(
+      [
+        "bun",
+        "run",
+        "src/index.ts",
+        "install",
+        fixtureRoot,
+        "--to",
+        "opencode",
+        "--permissions",
+        "broad",
+        "--output",
+        tempRoot,
+      ],
+      {
+        cwd: path.join(import.meta.dir, ".."),
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -1973,23 +2271,18 @@ describe("CLI", () => {
     await fs.mkdir(path.join(tempHome, ".qwen"), { recursive: true })
     await fs.mkdir(path.join(tempCwd, ".cursor"), { recursive: true })
 
-    const proc = Bun.spawn([
-      "bun",
-      "run",
-      path.join(repoRoot, "src", "index.ts"),
-      "install",
-      fixtureRoot,
-      "--to",
-      "all",
-    ], {
-      cwd: tempCwd,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: envWithoutOpenCodeConfig({
-        HOME: tempHome,
-        CODEX_HOME: path.join(tempHome, ".codex"),
-      }),
-    })
+    const proc = Bun.spawn(
+      ["bun", "run", path.join(repoRoot, "src", "index.ts"), "install", fixtureRoot, "--to", "all"],
+      {
+        cwd: tempCwd,
+        stdout: "pipe",
+        stderr: "pipe",
+        env: envWithoutOpenCodeConfig({
+          HOME: tempHome,
+          CODEX_HOME: path.join(tempHome, ".codex"),
+        }),
+      },
+    )
 
     const exitCode = await proc.exited
     const stdout = await new Response(proc.stdout).text()
@@ -2012,11 +2305,25 @@ describe("CLI", () => {
     expect(await exists(path.join(tempHome, ".config", "opencode", "opencode.json"))).toBe(true)
     // Codex `--to all` for the fixture plugin still uses the agents-only
     // default; skills come from native plugin install.
-    expect(await exists(path.join(tempHome, ".codex", "agents", "compound-engineering", "security-sentinel.toml"))).toBe(true)
-    expect(await exists(path.join(tempHome, ".codex", "skills", "compound-engineering", "skill-one", "SKILL.md"))).toBe(false)
-    expect(await exists(path.join(tempHome, ".pi", "agent", "skills", "skill-one", "SKILL.md"))).toBe(true)
+    expect(
+      await exists(
+        path.join(tempHome, ".codex", "agents", "compound-engineering", "security-sentinel.toml"),
+      ),
+    ).toBe(true)
+    expect(
+      await exists(
+        path.join(tempHome, ".codex", "skills", "compound-engineering", "skill-one", "SKILL.md"),
+      ),
+    ).toBe(false)
+    expect(
+      await exists(path.join(tempHome, ".pi", "agent", "skills", "skill-one", "SKILL.md")),
+    ).toBe(true)
     expect(await exists(path.join(tempCwd, ".agy", "skills", "skill-one", "SKILL.md"))).toBe(true)
     expect(await exists(path.join(tempCwd, ".kiro", "skills", "skill-one", "SKILL.md"))).toBe(false)
-    expect(await exists(path.join(tempHome, ".qwen", "extensions", "compound-engineering", "qwen-extension.json"))).toBe(false)
+    expect(
+      await exists(
+        path.join(tempHome, ".qwen", "extensions", "compound-engineering", "qwen-extension.json"),
+      ),
+    ).toBe(false)
   })
 })

@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test"
 import { access, readdir, readFile } from "fs/promises"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 
 const specialistRoots = [
   "skills/i484-product-design",
@@ -22,8 +22,11 @@ async function markdownFiles(root: string): Promise<string[]> {
   const files: string[] = []
   for (const entry of entries) {
     const full = path.join(root, entry.name)
-    if (entry.isDirectory()) files.push(...(await markdownFiles(full)))
-    else if (entry.isFile() && entry.name.endsWith(".md")) files.push(full)
+    if (entry.isDirectory()) {
+      files.push(...(await markdownFiles(full)))
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      files.push(full)
+    }
   }
   return files
 }
@@ -37,7 +40,8 @@ describe("i484 specialist references", () => {
         for (const target of localMarkdownLinks(content)) {
           const resolved = path.resolve(path.dirname(markdownPath), target)
           expect(resolved.startsWith(root + path.sep)).toBe(true)
-          await expect(access(resolved)).resolves.toBeUndefined()
+          // access rejects for missing targets; its success value differs across runtimes.
+          await access(resolved)
         }
       }
     }

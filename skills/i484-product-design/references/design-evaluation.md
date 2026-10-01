@@ -15,6 +15,10 @@ Choose representative states by what can change the design judgment: short and l
 
 If the observation needed for a claim is unavailable, keep the claim unverified rather than inferring success from implementation intent.
 
+## 観測条件
+
+見た目の主張には実render、操作の主張には実際のstate transitionやfocus/recovery、native host固有の主張にはそのhostでの観測が関係する。Responsiveは名前付きdeviceを消化するのではなく、content pressureやlayout transitionが起きる条件を見る。観測できない主張は未確認のままにする。
+
 ## Judge repeated components as systems
 
 A repeated component is stable only when its internal role structure survives realistic content and state variation.

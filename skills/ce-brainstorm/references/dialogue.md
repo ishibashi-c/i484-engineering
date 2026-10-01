@@ -1,5 +1,7 @@
 # Phase 1: understand the idea
 
+The Phase 1.1 grounding scout, the Phase 2.6 claim verifier, and the opt-in Slack researcher are tiered by task shape, never hardcoded to a model name; read `references/model-tiers.md` before dispatching one. Model elevation is a separate mechanism (`references/reasoning-elevation.md`).
+
 #### 1.1 Existing Context Scan
 
 **Pack discovery (every tier).** Compound Packs declared in CE config constrain the Product Contract on every repo-backed software path that reaches synthesis — Lightweight, Standard, Deep, and the Phase 0.2 route that skips the scan below for already-clear requirements — so resolve them before the tier split, by running this skill's resolver:

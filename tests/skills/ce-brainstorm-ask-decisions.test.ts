@@ -1,15 +1,12 @@
+import { describe, expect, test } from "bun:test"
 import { readFileSync } from "fs"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 
 // 2026-08-19: facts-vs-decisions and the live CONCEPTS/code conflict gate
 // closed a demonstrated dialogue seam (ask the user what the repo can
 // answer; let conflicting terms slide until the write-up). Pin the
 // owning files, not incidental wording.
-const SKILL_BODY = readFileSync(
-  path.join(process.cwd(), "skills/ce-brainstorm/SKILL.md"),
-  "utf8",
-)
+const SKILL_BODY = readFileSync(path.join(process.cwd(), "skills/ce-brainstorm/SKILL.md"), "utf8")
 const INTERACTION_RULES = readFileSync(
   path.join(process.cwd(), "skills/ce-brainstorm/references/interaction-rules.md"),
   "utf8",
@@ -41,7 +38,9 @@ describe("ce-brainstorm ask-only-decisions", () => {
     expect(rulesStart).toBeGreaterThan(-1)
     const rules = INTERACTION_RULES.slice(rulesStart)
 
-    expect(SKILL_BODY).toContain("batch related questions that can be answered independently")
+    expect(SKILL_BODY).toMatch(
+      /before the first question[^\n]*Read `references\/interaction-rules\.md`/,
+    )
     expect(rules).toContain("Batch independent related questions")
     expect(rules).toContain("each can be answered independently from the same context")
     expect(rules).toContain("materially depends on the previous answer")
@@ -62,7 +61,9 @@ describe("ce-brainstorm ask-only-decisions", () => {
     const rules = INTERACTION_RULES.slice(rulesStart)
 
     expect(SKILL_BODY).toContain("references/interaction-rules.md")
-    expect(SKILL_BODY).toContain("ask only decisions the environment cannot settle")
+    expect(SKILL_BODY).toMatch(
+      /before the first question[^\n]*Read `references\/interaction-rules\.md`/,
+    )
 
     expect(rules).toContain("Ask only for user decisions")
     expect(
