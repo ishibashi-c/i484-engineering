@@ -4,7 +4,7 @@ End-user-facing documentation for compound-engineering plugin skills. Each page 
 
 For runtime behavior and contributor reference, the `SKILL.md` in each skill's source folder under `skills/` is authoritative.
 
-The [root README adoption inventory](../../README.md#39-skills) owns why each shipped skill is included, its expected outcome, and its activation boundary. This catalog owns usage descriptions and links. Update both affected entries in the same capability change; do not maintain a separate Behavior Studio inventory. Generic external review/debug/QA skills are alternatives by explicit request or narrow knowledge providers, while CE remains the default workflow owner.
+The [root README adoption inventory](../../README.md#37-skills) owns why each shipped skill is included, its expected outcome, and its activation boundary. This catalog owns usage descriptions and links. Update both affected entries in the same capability change; do not maintain a separate Behavior Studio inventory. Generic external review/debug/QA skills are alternatives by explicit request or narrow knowledge providers, while CE remains the default workflow owner.
 
 For the personally adopted Codex environment and AI setup handoff, see [Personal development environment](./personal-environment.md). This profile is not a required configuration for all plugin users.
 
