@@ -51,7 +51,7 @@ Natural Japanese、mattpocock系、superpowers系、gstackのqa、Emil Kowalski�
 
 i484 Engineeringの通常テスト入口は、worker起動前にテスト内の危険なシグナル送信を検査します。対象はrepository内のTypeScript、JavaScript、Pythonのテストファイルと、明示されたテストファイルです。共通ルールは [`tests/helpers/process-safety.ts`](../../tests/helpers/process-safety.ts)、事前検査は [`scripts/check-process-test-safety.ts`](../../scripts/check-process-test-safety.ts) です。macOSではクラッシュ通知につながるシグナルと未登録のシグナル検査を理由付きで除外し、`SIGINT`、`SIGTERM`、`SIGHUP`の確認を残します。Linuxの既存`SIGQUIT`検査も維持します。
 
-事前検査は静的検査です。`bun test`を直接呼ぶと事前検査を通りません。実行文字列、生成コード、計算されたメソッド別名、`tests/`外からのimportは完全には追跡できず、外部から指定するdirectoryやglobの列挙も検査対象として保証しません。これらは手動で確認してください。この仕組みはPythonのあらゆる異常終了を防ぐものではなく、macOSのCrashReporter設定も変更しません。
+事前検査は完全な言語解析器ではなく、曖昧な構文は手動確認が必要です。JSX・TSXにシグナルAPI名がある場合は、文字列内の例示や安全なシグナルも含めて通常の入口で停止し、手動確認を求めます。`bun test`を直接呼ぶと事前検査を通りません。実行文字列、生成コード、計算されたメソッド別名、`tests/`外からのimportは完全には追跡できず、外部から指定するdirectoryやglobの列挙も検査対象として保証しません。これらは手動で確認してください。この仕組みはPythonのあらゆる異常終了を防ぐものではなく、macOSのCrashReporter設定も変更しません。
 
 ネイティブsubagentの委託判断は、依頼を受ける各CE Skillが行います。範囲、入力、合否基準が起動前に定まった限定作業では、利用可能性と親モデル以下の能力を確認したうえでLunaを先に指定します。個人環境のCodex設定例は次のとおりです。
 
