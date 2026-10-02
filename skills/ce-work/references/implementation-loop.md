@@ -1,6 +1,6 @@
 # Implementation Loop
 
-**i484 specialist knowledge is additive, never a second workflow.** When the task changes a user-facing product UI and the installed skill catalog exposes `i484-product-design`, load it for product-design judgment before making the relevant UI decisions. Use its UX, composition, interaction, accessibility, content-stress, and visual-language criteria as domain knowledge; this `ce-work` flow still owns task execution, evidence strategy, verification, commits, review, and shipping. Other i484 specialists may be used when their artifact/domain description directly matches the requested work, without transferring engineering authority to them.
+**i484 specialist knowledge is additive, never a second workflow.** When the task changes a user-facing product UI and the installed skill catalog exposes `i484-style`, load its product-ui domain for product-design judgment before making the relevant UI decisions. Use its UX, composition, interaction, accessibility, content-stress, and visual-language criteria as domain knowledge; this `ce-work` flow still owns task execution, evidence strategy, verification, commits, review, and shipping. Other i484 specialists may be used when their artifact/domain description directly matches the requested work, without transferring engineering authority to them.
 
 1. **Task Execution Loop**
 

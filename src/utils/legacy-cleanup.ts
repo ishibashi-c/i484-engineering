@@ -14,13 +14,21 @@
  */
 
 import fs from "fs/promises"
+import { load } from "js-yaml"
 import path from "path"
 import { fileURLToPath } from "url"
-import { load } from "js-yaml"
 import { parseFrontmatter } from "./frontmatter"
+
+const AGENT_SUFFIX = /\.agent$/
+const TOML_DESCRIPTION = /^description\s*=\s*"((?:\\.|[^"\\])*)"/m
 
 /** Old skill directory names that no longer exist after the v3 rename. */
 export const STALE_SKILL_DIRS = [
+  // Consolidated into i484-style. Ownership fingerprints protect unrelated user skills.
+  "i484-product-design",
+  "i484-visualize",
+  "i484-geometric-illustration",
+
   // ce: -> ce-. Some targets sanitized these to ce-*; others left raw colon
   // directories on filesystems that permit them.
   "ce:brainstorm",
@@ -246,17 +254,21 @@ const STALE_PROMPT_FILES = [
 ]
 
 const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
+  // Initial i484 Engineering release (dd6d3a86); later descriptions use the retired fingerprint below.
+  "i484-product-design": [
+    "プロダクトUIの設計判断を支える専門Knowledge Skill。ユーザーの仕事、情報構造、composition、interaction、content、accessibility、visual hierarchy、状態と回復を評価し、設計上の制約・改善案・品質基準を与える。実装工程、作業分解、テスト量、レビュー起動、Gitやshippingはengineering frameworkに委ねる。",
+  ],
   "ce-brainstorm": [
-    "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+    'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
   ],
   "ce:brainstorm": [
-    "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+    'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
   ],
   "workflows-brainstorm": [
-    "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+    'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
   ],
   "workflows:brainstorm": [
-    "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+    'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
   ],
   "ce-code-review": [
     "Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. In interactive mode it applies safe, verified fixes and commits them when the working tree is clean (it never pushes); in mode:agent it reports only and the caller applies. Use when reviewing code changes before creating a PR.",
@@ -271,10 +283,10 @@ const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. In interactive mode it applies safe, verified fixes and commits them when the working tree is clean (it never pushes); in mode:agent it reports only and the caller applies. Use when reviewing code changes before creating a PR.",
   ],
   "ce-commit": [
-    "Create a git commit with a clear, value-communicating message. Use when the user says \"commit\", \"commit this\", \"save my changes\", \"create a commit\", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.",
+    'Create a git commit with a clear, value-communicating message. Use when the user says "commit", "commit this", "save my changes", "create a commit", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.',
   ],
   "git-commit": [
-    "Create a git commit with a clear, value-communicating message. Use when the user says \"commit\", \"commit this\", \"save my changes\", \"create a commit\", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.",
+    'Create a git commit with a clear, value-communicating message. Use when the user says "commit", "commit this", "save my changes", "create a commit", or wants to commit staged or unstaged work. Produces well-structured commit messages that follow repo conventions when they exist, and defaults to conventional commit format otherwise.',
   ],
   "ce-plan": [
     "Create structured plans for multi-step tasks -- software features, research workflows, events, study plans, or any goal that benefits from breakdown. Also deepens existing plans with interactive sub-agent review. Use when the user says 'plan this', 'create a plan', 'how should we build', 'break this down', or when a brainstorm doc is ready for planning. Use 'deepen the plan' or 'deepening pass' for the deepening flow. For exploratory requests, prefer ce-brainstorm first.",
@@ -289,7 +301,7 @@ const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "Create structured plans for multi-step tasks -- software features, research workflows, events, study plans, or any goal that benefits from breakdown. Also deepens existing plans with interactive sub-agent review. Use when the user says 'plan this', 'create a plan', 'how should we build', 'break this down', or when a brainstorm doc is ready for planning. Use 'deepen the plan' or 'deepening pass' for the deepening flow. For exploratory requests, prefer ce-brainstorm first.",
   ],
   "git-commit-push-pr": [
-    "Commit, push, and open a PR with an adaptive, value-first description that scales in depth with the change. Use when the user says \"commit and PR\", \"ship this\", \"create a PR\", or \"open a pull request\". Also handles description-only flows (\"write a PR description\", \"rewrite the PR body\", \"describe this PR\") without committing or pushing.",
+    'Commit, push, and open a PR with an adaptive, value-first description that scales in depth with the change. Use when the user says "commit and PR", "ship this", "create a PR", or "open a pull request". Also handles description-only flows ("write a PR description", "rewrite the PR body", "describe this PR") without committing or pushing.',
   ],
   "ce-compound": [
     "Document a recently solved problem to compound your team's knowledge or CONCEPTS.md, the project's shared domain vocabulary.",
@@ -304,10 +316,10 @@ const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "Document a recently solved problem to compound your team's knowledge or CONCEPTS.md, the project's shared domain vocabulary.",
   ],
   "ce-compound-refresh": [
-    "Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to \"refresh my learnings\", \"audit docs/solutions/\", \"clean up stale learnings\", or \"consolidate overlapping docs\", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.",
+    'Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to "refresh my learnings", "audit docs/solutions/", "clean up stale learnings", or "consolidate overlapping docs", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.',
   ],
   "ce:compound-refresh": [
-    "Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to \"refresh my learnings\", \"audit docs/solutions/\", \"clean up stale learnings\", or \"consolidate overlapping docs\", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.",
+    'Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to "refresh my learnings", "audit docs/solutions/", "clean up stale learnings", or "consolidate overlapping docs", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.',
   ],
   "ce-doc-review": [
     "Review requirements or plan documents using parallel persona agents that surface role-specific issues. Use when a requirements document or plan document exists and the user wants to improve it.",
@@ -331,7 +343,7 @@ const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "[BETA] Hands-off end-to-end branch dogfood pass with browser testing, auto-fixes, regression tests, and fix commits.",
   ],
   proof: [
-    "Publish, view, comment on, and edit markdown via Proof (proofeditor.ai) — create a shareable doc, read a shared doc, and make comment/suggestion/block edits over its API. Use when the user says \"view this in proof\", \"share to proof\", \"publish to proof\", or wants a shareable markdown surface for a spec, plan, or draft, including publish handoffs from ce-brainstorm, ce-ideate, or ce-plan. Do not trigger on \"proof\" meaning evidence, math proofs, proof-of-concept, or \"proofread this\".",
+    'Publish, view, comment on, and edit markdown via Proof (proofeditor.ai) — create a shareable doc, read a shared doc, and make comment/suggestion/block edits over its API. Use when the user says "view this in proof", "share to proof", "publish to proof", or wants a shareable markdown surface for a spec, plan, or draft, including publish handoffs from ce-brainstorm, ce-ideate, or ce-plan. Do not trigger on "proof" meaning evidence, math proofs, proof-of-concept, or "proofread this".',
   ],
   "ce-resolve-pr-feedback": [
     "Resolve PR review feedback by evaluating validity and fixing issues in parallel. Use when addressing PR review comments, resolving review threads, or fixing code review feedback.",
@@ -367,9 +379,7 @@ const LEGACY_SKILL_DESCRIPTION_ALIASES: Record<string, string[]> = {
   "git-worktree": [
     "Ensure work happens in an isolated git worktree without disturbing the current checkout. Use when starting work that should stay isolated, or when `ce-work` or `ce-code-review` offers a worktree option. Detects existing isolation first, prefers the harness's native worktree tool, and falls back to plain git.",
   ],
-  "test-browser": [
-    "Run browser tests on pages affected by current PR or branch",
-  ],
+  "test-browser": ["Run browser tests on pages affected by current PR or branch"],
   "test-xcode": [
     "Build and test iOS apps on simulator using XcodeBuildMCP. Use after making iOS code changes, before creating a PR, or when verifying app behavior and checking for crashes on simulator.",
   ],
@@ -420,7 +430,7 @@ const LEGACY_PROMPT_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "[BETA] Execute work with external delegate support. Same as ce:work but includes experimental Codex delegation mode for token-conserving code implementation.",
   ],
   "ce-brainstorm.md": [
-    "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+    'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
     "Explore requirements and approaches through collaborative dialogue before writing a right-sized requirements document and planning implementation. Use for feature ideas, problem framing, when the user says 'let's brainstorm', or when they want to think through options before deciding what to build. Also use when a user describes a vague or ambitious feature request, asks 'what should we build', 'help me think through X', presents a problem with multiple valid solutions, or seems unsure about scope or direction — even if they don't explicitly ask to brainstorm.",
   ],
   "ce-ideate.md": [
@@ -431,7 +441,7 @@ const LEGACY_PROMPT_DESCRIPTION_ALIASES: Record<string, string[]> = {
     "Document a recently solved problem to compound your team's knowledge",
   ],
   "ce-compound-refresh.md": [
-    "Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to \"refresh my learnings\", \"audit docs/solutions/\", \"clean up stale learnings\", or \"consolidate overlapping docs\", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.",
+    'Refresh stale learning and pattern docs under docs/solutions/ by reviewing them against the current codebase, then updating, consolidating, or deleting drifted ones. Use when the user asks to "refresh my learnings", "audit docs/solutions/", "clean up stale learnings", or "consolidate overlapping docs", or when ce-compound flags an older doc as superseded. Do not trigger for general refactor, debugging, or code-review work unless the user has explicitly pointed at docs/solutions/.',
     "Refresh stale or drifting learnings and pattern docs in docs/solutions/ by reviewing, updating, consolidating, replacing, or deleting them against the current codebase. Use after refactors, migrations, dependency upgrades, or when a retrieved learning feels outdated or wrong. Also use when reviewing docs/solutions/ for accuracy, when a recently solved problem contradicts an existing learning, when pattern docs no longer reflect current code, or when multiple docs seem to cover the same topic and might benefit from consolidation.",
   ],
   "ce-review.md": [
@@ -467,8 +477,15 @@ const LEGACY_PROMPT_CURRENT_SKILL_FOR_FILE: Record<string, string> = {
  * — the exact string is the ownership proof.
  */
 const LEGACY_ONLY_SKILL_DESCRIPTIONS: Record<string, string> = {
+  "i484-product-design":
+    "プロダクトUIをdurableなproduct truth、design truth、surface intentに分けて判断する専門Knowledge Skill。Use when user-facing product UI is designed, changed, or evaluated and UX、composition、interaction、content、accessibility、visual hierarchyの判断が必要なとき。実装工程、作業分解、検証、Gitやshippingはengineering frameworkに委ねる。",
+  "i484-visualize":
+    "説明・比較・図解・技術引き継ぎを単一の自己完結型HTMLファイルにする。ポータブルなページが必要な場合、または指定された視覚言語をHTML/SVGへ適応する場合に使い、通常の文章回答や小さなインライン図には適用しない。",
+  "i484-geometric-illustration":
+    "ミニマル幾何学イラストの生成・参照画像変換・視覚レビューを行う専門Skill。都市景観、建築、風景、乗り物、植物などを、認識アンカーと関係を保った限定色の平面・量塊・帯・反射へ抽象化する。プロダクトUIや一般的なengineering workflowは扱わない。",
+
   "claude-permissions-optimizer":
-    "Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on \"optimize permissions\", \"reduce permission prompts\", \"allowlist commands\", \"too many permission prompts\", \"permission fatigue\", \"permission setup\", or complaints about clicking approve too often.",
+    'Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on "optimize permissions", "reduce permission prompts", "allowlist commands", "too many permission prompts", "permission fatigue", "permission setup", or complaints about clicking approve too often.',
   "feature-video":
     "Record a video walkthrough of a feature and add it to the PR description. Use when a PR needs a visual demo for reviewers, when the user asks to demo a feature, create a PR video, record a walkthrough, show what changed visually, or add a video to a pull request.",
   "orchestrating-swarms":
@@ -483,18 +500,14 @@ const LEGACY_ONLY_SKILL_DESCRIPTIONS: Record<string, string> = {
     "[BETA] Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. Use when reviewing code changes before creating a PR.",
   "ce-review-beta":
     "[BETA] Structured code review using tiered persona agents, confidence-gated findings, and a merge/dedup pipeline. Use when reviewing code changes before creating a PR.",
-  "ce:work-beta":
-    "[BETA] Execute ce-work with external delegate support.",
-  "ce-work-beta":
-    "[BETA] Execute ce-work with external delegate support.",
+  "ce:work-beta": "[BETA] Execute ce-work with external delegate support.",
+  "ce-work-beta": "[BETA] Execute ce-work with external delegate support.",
   "ce-onboarding":
     "Generate or regenerate ONBOARDING.md to help new contributors understand a codebase. Use when the user asks to 'create onboarding docs', 'generate ONBOARDING.md', 'document this project for new developers', 'write onboarding documentation', 'vonboard', 'vonboarding', 'prepare this repo for a new contributor', 'refresh the onboarding doc', or 'update ONBOARDING.md'. Also use when someone needs to onboard a new team member and wants a written artifact, or when a codebase lacks onboarding documentation and the user wants to generate one.",
   "ce-andrew-kane-gem-writer":
-    "This skill should be used when writing Ruby gems following Andrew Kane's proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like \"create a gem\", \"write a Ruby library\", \"design a gem API\", or mentions of Andrew Kane's style.",
-  "ce-changelog":
-    "Create engaging changelogs for recent merges to main branch",
-  "ce-deploy-docs":
-    "Validate and prepare documentation for GitHub Pages deployment",
+    'This skill should be used when writing Ruby gems following Andrew Kane\'s proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like "create a gem", "write a Ruby library", "design a gem API", or mentions of Andrew Kane\'s style.',
+  "ce-changelog": "Create engaging changelogs for recent merges to main branch",
+  "ce-deploy-docs": "Validate and prepare documentation for GitHub Pages deployment",
   "ce-demo-reel":
     "Capture a visual demo reel (GIF, terminal recording, screenshots) for PR descriptions. Use when shipping UI changes, CLI features, or any work with observable behavior that benefits from visual proof. Also use when asked to add a demo, record a GIF, screenshot a feature, show what changed visually, create a demo reel, capture evidence, add proof to a PR, or create a before/after comparison.",
   "ce-dspy-ruby":
@@ -512,23 +525,22 @@ const LEGACY_ONLY_SKILL_DESCRIPTIONS: Record<string, string> = {
   "ce-agent-native-architecture":
     "Build applications where agents are first-class citizens. Use this skill when designing autonomous agents, creating MCP tools, implementing self-modifying systems, or building apps where features are outcomes achieved by agents operating in a loop.",
   "ce-clean-gone-branches":
-    "Clean up local branches whose remote tracking branch is gone. Use when the user says \"clean up branches\", \"delete gone branches\", \"prune local branches\", \"clean gone\", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.",
+    'Clean up local branches whose remote tracking branch is gone. Use when the user says "clean up branches", "delete gone branches", "prune local branches", "clean gone", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.',
   "ce-dhh-rails-style":
-    "This skill should be used when writing Ruby and Rails code in DHH's distinctive 37signals style. It applies when writing Ruby code, Rails applications, creating models, controllers, or any Ruby file. Triggers on Ruby/Rails code generation, refactoring requests, code review, or when the user mentions DHH, 37signals, Basecamp, HEY, or Campfire style. Embodies REST purity, fat models, thin controllers, Current attributes, Hotwire patterns, and the \"clarity over cleverness\" philosophy.",
+    'This skill should be used when writing Ruby and Rails code in DHH\'s distinctive 37signals style. It applies when writing Ruby code, Rails applications, creating models, controllers, or any Ruby file. Triggers on Ruby/Rails code generation, refactoring requests, code review, or when the user mentions DHH, 37signals, Basecamp, HEY, or Campfire style. Embodies REST purity, fat models, thin controllers, Current attributes, Hotwire patterns, and the "clarity over cleverness" philosophy.',
   "ce-frontend-design":
     "Build web interfaces with genuine design quality, not AI slop. Use for any frontend work - landing pages, web apps, dashboards, admin panels, components, interactive experiences. Activates for both greenfield builds and modifications to existing applications. Detects existing design systems and respects them. Covers composition, typography, color, motion, and copy. Verifies results via screenshots before declaring done.",
   "ce-gemini-imagegen":
     "This skill should be used when generating and editing images using the Gemini API (Nano Banana Pro). It applies when creating images from text prompts, editing existing images, applying style transfers, generating logos with text, creating stickers, product mockups, or any image generation/manipulation task. Supports text-to-image, image editing, multi-turn refinement, and composition from multiple reference images.",
   "ce-release-notes":
-    "Summarize recent compound-engineering plugin releases, or answer a specific question about a past release with a version citation. Use when the user types `/ce-release-notes` or asks \"what changed in compound-engineering recently?\" or \"what happened to `<skill-name>`?\".",
-  "ce-report-bug":
-    "Report a bug in the compound-engineering plugin",
+    'Summarize recent compound-engineering plugin releases, or answer a specific question about a past release with a version citation. Use when the user types `/ce-release-notes` or asks "what changed in compound-engineering recently?" or "what happened to `<skill-name>`?".',
+  "ce-report-bug": "Report a bug in the compound-engineering plugin",
   "ce-sessions":
     "Search and ask questions about coding agent session history across Claude Code, Codex, and Cursor. Use when asking what was worked on, what was tried before, how a problem was investigated across sessions, what happened recently, or any question about past agent sessions. Also use when the user references prior sessions, previous attempts, or past investigations — even without saying 'sessions' explicitly.",
   "ce-slack-research":
     "Search Slack for interpreted organizational context -- decisions, constraints, and discussion arcs -- and produce a synthesized research digest with cross-cutting analysis. Use when the user says 'search slack for', 'what did we discuss about', 'slack context for', or 'what does the team think about'. Differs from slack:find-discussions, which returns raw message results without synthesis.",
   "ce-update":
-    "Check if the compound-engineering plugin is up to date and recommend the\nupdate command if not. Use when the user says \"update compound engineering\",\n\"check compound engineering version\", \"ce update\", \"is compound engineering\nup to date\", \"update ce plugin\", or reports issues that might stem from a\nstale compound-engineering plugin version. This skill only works in Claude\nCode — it relies on the plugin harness cache layout.\n",
+    'Check if the compound-engineering plugin is up to date and recommend the\nupdate command if not. Use when the user says "update compound engineering",\n"check compound engineering version", "ce update", "is compound engineering\nup to date", "update ce plugin", or reports issues that might stem from a\nstale compound-engineering plugin version. This skill only works in Claude\nCode — it relies on the plugin harness cache layout.\n',
 }
 
 /**
@@ -626,8 +638,7 @@ const LEGACY_ONLY_AGENT_DESCRIPTIONS: Record<string, string> = {
 
   "bug-reproduction-validator":
     "Systematically reproduces and validates bug reports to confirm whether reported behavior is an actual bug. Use when you receive a bug report or issue that needs verification.",
-  "lint":
-    "Use this agent when you need to run linting and code quality checks on Ruby and ERB files. Run before pushing to origin.",
+  lint: "Use this agent when you need to run linting and code quality checks on Ruby and ERB files. Run before pushing to origin.",
   "cli-agent-readiness-reviewer":
     "Reviews CLI source code, plans, or specs for AI agent readiness using a severity-based rubric focused on whether a CLI is merely usable by agents or genuinely optimized for them.",
   "ce-cli-agent-readiness-reviewer":
@@ -679,11 +690,15 @@ function currentAgentNameForLegacy(legacyName: string): string {
 }
 
 function currentSkillNameForLegacy(legacyName: string): string {
-  if (legacyName === "ce:review" || legacyName === "workflows:review" || legacyName === "workflows-review") {
+  if (
+    legacyName === "ce:review" ||
+    legacyName === "workflows:review" ||
+    legacyName === "workflows-review"
+  ) {
     return "ce-code-review"
   }
   if (legacyName.startsWith("ce:")) {
-    return legacyName.replace(/^ce:/, "ce-")
+    return `ce-${legacyName.slice("ce:".length)}`
   }
   if (legacyName.startsWith("workflows:")) {
     return `ce-${legacyName.slice("workflows:".length)}`
@@ -732,13 +747,19 @@ async function pathExists(targetPath: string): Promise<boolean> {
 
 async function findRepoRoot(startDir: string): Promise<string | null> {
   let current = startDir
-  while (true) {
+  for (;;) {
     const rootPluginManifest = path.join(current, ".claude-plugin", "plugin.json")
-    if (await pathExists(rootPluginManifest)) return current
+    if (await pathExists(rootPluginManifest)) {
+      return current
+    }
     const legacyPluginRoot = path.join(current, "plugins", "compound-engineering")
-    if (await pathExists(legacyPluginRoot)) return current
+    if (await pathExists(legacyPluginRoot)) {
+      return current
+    }
     const parent = path.dirname(current)
-    if (parent === current) return null
+    if (parent === current) {
+      return null
+    }
     current = parent
   }
 }
@@ -747,7 +768,9 @@ async function buildSkillIndex(skillsRoot: string): Promise<Map<string, string>>
   const entries = await fs.readdir(skillsRoot, { withFileTypes: true })
   const index = new Map<string, string>()
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue
+    if (!entry.isDirectory()) {
+      continue
+    }
     const skillPath = path.join(skillsRoot, entry.name, "SKILL.md")
     if (await pathExists(skillPath)) {
       index.set(entry.name, skillPath)
@@ -758,12 +781,16 @@ async function buildSkillIndex(skillsRoot: string): Promise<Map<string, string>>
 
 async function buildAgentIndex(dir: string): Promise<Map<string, string>> {
   const index = new Map<string, string>()
-  if (!(await pathExists(dir))) return index
+  if (!(await pathExists(dir))) {
+    return index
+  }
   const stack = [dir]
 
   while (stack.length > 0) {
     const current = stack.pop()
-    if (!current) continue
+    if (!current) {
+      continue
+    }
     const entries = await fs.readdir(current, { withFileTypes: true })
     for (const entry of entries) {
       const fullPath = path.join(current, entry.name)
@@ -772,7 +799,7 @@ async function buildAgentIndex(dir: string): Promise<Map<string, string>> {
         continue
       }
       if (entry.isFile() && entry.name.endsWith(".md")) {
-        index.set(path.basename(entry.name, ".md").replace(/\.agent$/, ""), fullPath)
+        index.set(path.basename(entry.name, ".md").replace(AGENT_SUFFIX, ""), fullPath)
       }
     }
   }
@@ -794,8 +821,10 @@ async function readYamlDescription(filePath: string): Promise<string | null> {
   try {
     const raw = await fs.readFile(filePath, "utf8")
     const parsed = load(raw)
-    if (!parsed || typeof parsed !== "object") return null
-    const description = (parsed as Record<string, unknown>).description
+    if (!parsed || typeof parsed !== "object") {
+      return null
+    }
+    const { description } = parsed as Record<string, unknown>
     return typeof description === "string" ? description : null
   } catch {
     return null
@@ -805,8 +834,10 @@ async function readYamlDescription(filePath: string): Promise<string | null> {
 async function readTomlDescription(filePath: string): Promise<string | null> {
   try {
     const raw = await fs.readFile(filePath, "utf8")
-    const match = raw.match(/^description\s*=\s*"((?:\\.|[^"\\])*)"/m)
-    if (!match) return null
+    const match = raw.match(TOML_DESCRIPTION)
+    if (!match) {
+      return null
+    }
     return match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\")
   } catch {
     return null
@@ -826,12 +857,15 @@ function descriptionsMatch(
   expectedDescription: string | undefined,
   aliases: string[] = [],
 ): boolean {
-  if (!actualDescription || !expectedDescription) return false
+  if (!(actualDescription && expectedDescription)) {
+    return false
+  }
   const normalizedActual = normalizeDescriptionFingerprint(actualDescription)
   const candidates = [expectedDescription, ...aliases].map(normalizeDescriptionFingerprint)
   return candidates.includes(normalizedActual)
 }
 
+// biome-ignore lint/suspicious/useAwait: Preserve the async promise-adoption contract for the cached lookup.
 async function loadLegacyFingerprints(): Promise<LegacyFingerprints> {
   if (!legacyFingerprintsPromise) {
     legacyFingerprintsPromise = (async () => {
@@ -841,7 +875,7 @@ async function loadLegacyFingerprints(): Promise<LegacyFingerprints> {
       }
 
       const rootPluginManifest = path.join(repoRoot, ".claude-plugin", "plugin.json")
-      const pluginRoot = await pathExists(rootPluginManifest)
+      const pluginRoot = (await pathExists(rootPluginManifest))
         ? repoRoot
         : path.join(repoRoot, "plugins", "compound-engineering")
       const [skillIndex, agentIndex] = await Promise.all([
@@ -855,41 +889,55 @@ async function loadLegacyFingerprints(): Promise<LegacyFingerprints> {
 
       for (const [skillName, skillPath] of skillIndex.entries()) {
         const description = await readDescription(skillPath)
-        if (description) skills.set(skillName, description)
+        if (description) {
+          skills.set(skillName, description)
+        }
       }
 
       for (const legacyName of STALE_SKILL_DIRS) {
         const currentPath = skillIndex.get(currentSkillNameForLegacy(legacyName))
         if (currentPath) {
           const description = await readDescription(currentPath)
-          if (description) skills.set(legacyName, description)
+          if (description) {
+            skills.set(legacyName, description)
+          }
           continue
         }
         // No current ce-* replacement shipped. Fall back to the hardcoded
         // historical description so cleanup can still fingerprint the
         // legacy-only artifact on upgrade.
-        const legacyOnly = LEGACY_ONLY_SKILL_DESCRIPTIONS[legacyName]
-          ?? LEGACY_ONLY_SKILL_DESCRIPTIONS[currentSkillNameForLegacy(legacyName)]
-        if (legacyOnly) skills.set(legacyName, legacyOnly)
+        const legacyOnly =
+          LEGACY_ONLY_SKILL_DESCRIPTIONS[legacyName] ??
+          LEGACY_ONLY_SKILL_DESCRIPTIONS[currentSkillNameForLegacy(legacyName)]
+        if (legacyOnly) {
+          skills.set(legacyName, legacyOnly)
+        }
       }
 
       for (const legacyName of STALE_AGENT_NAMES) {
         const currentPath = agentIndex.get(currentAgentNameForLegacy(legacyName))
         if (currentPath) {
           const description = await readDescription(currentPath)
-          if (description) agents.set(legacyName, description)
+          if (description) {
+            agents.set(legacyName, description)
+          }
           continue
         }
-        const legacyOnly = LEGACY_ONLY_AGENT_DESCRIPTIONS[legacyName]
-          ?? LEGACY_ONLY_AGENT_DESCRIPTIONS[currentAgentNameForLegacy(legacyName)]
-        if (legacyOnly) agents.set(legacyName, legacyOnly)
+        const legacyOnly =
+          LEGACY_ONLY_AGENT_DESCRIPTIONS[legacyName] ??
+          LEGACY_ONLY_AGENT_DESCRIPTIONS[currentAgentNameForLegacy(legacyName)]
+        if (legacyOnly) {
+          agents.set(legacyName, legacyOnly)
+        }
       }
 
       for (const [fileName, skillName] of Object.entries(LEGACY_PROMPT_CURRENT_SKILL_FOR_FILE)) {
         const currentPath = skillIndex.get(skillName)
         if (currentPath) {
           const description = await readDescription(currentPath)
-          if (description) prompts.set(fileName, description)
+          if (description) {
+            prompts.set(fileName, description)
+          }
           continue
         }
         // The mapped skill no longer ships (fully retired, e.g. ce-work-beta).
@@ -902,7 +950,9 @@ async function loadLegacyFingerprints(): Promise<LegacyFingerprints> {
         // fallbacks above; the prompts dir is cross-plugin, so a description
         // fingerprint (not a name-only match) is required to sweep safely.
         const historicalFingerprint = LEGACY_PROMPT_DESCRIPTION_ALIASES[fileName]?.[0]
-        if (historicalFingerprint) prompts.set(fileName, historicalFingerprint)
+        if (historicalFingerprint) {
+          prompts.set(fileName, historicalFingerprint)
+        }
       }
 
       return { skills, agents, prompts }
@@ -919,11 +969,9 @@ function promptSkillNamesForLegacy(fileName: string): string[] {
     default: {
       const skillName = path.basename(fileName, ".md")
       const legacyWorkflowName = skillName.startsWith("ce-")
-        ? skillName.replace(/^ce-/, "ce:")
+        ? `ce:${skillName.slice("ce-".length)}`
         : skillName
-      return legacyWorkflowName === skillName
-        ? [skillName]
-        : [skillName, legacyWorkflowName]
+      return legacyWorkflowName === skillName ? [skillName] : [skillName, legacyWorkflowName]
     }
   }
 }
@@ -941,7 +989,9 @@ async function isLegacyPluginOwned(
     return isLegacyKiroPrompt(targetPath, expectedDescription)
   }
 
-  if (!expectedDescription) return false
+  if (!expectedDescription) {
+    return false
+  }
   if (extension === ".yaml") {
     const actualDescription = await readYamlDescription(targetPath)
     return descriptionsMatch(actualDescription, expectedDescription)
@@ -953,10 +1003,11 @@ async function isLegacyPluginOwned(
 
   const filePath = extension === null ? path.join(targetPath, "SKILL.md") : targetPath
   const actualDescription = await readDescription(filePath)
-  const aliases = extension === null
-    ? LEGACY_SKILL_DESCRIPTION_ALIASES[path.basename(targetPath)] ?? []
-    : []
-  if (descriptionsMatch(actualDescription, expectedDescription, aliases)) return true
+  const aliases =
+    extension === null ? (LEGACY_SKILL_DESCRIPTION_ALIASES[path.basename(targetPath)] ?? []) : []
+  if (descriptionsMatch(actualDescription, expectedDescription, aliases)) {
+    return true
+  }
 
   return false
 }
@@ -1028,11 +1079,18 @@ async function isLegacyPromptWrapper(
     const { data, body } = parseFrontmatter(raw, targetPath)
     const fileName = path.basename(targetPath)
 
-    const bodyMatches = promptSkillNamesForLegacy(fileName).some((skillName) =>
-      body.includes(`Use the $${skillName} skill for this command and follow its instructions.`)
-      || body.includes(`Use the ${skillName} skill for this workflow and follow its instructions exactly.`)
+    const bodyMatches = promptSkillNamesForLegacy(fileName).some(
+      (skillName) =>
+        body.includes(
+          `Use the $${skillName} skill for this command and follow its instructions.`,
+        ) ||
+        body.includes(
+          `Use the ${skillName} skill for this workflow and follow its instructions exactly.`,
+        ),
     )
-    if (!bodyMatches) return false
+    if (!bodyMatches) {
+      return false
+    }
 
     const actualDescription = typeof data.description === "string" ? data.description : null
     const historicalAliases = LEGACY_PROMPT_DESCRIPTION_ALIASES[fileName] ?? []
@@ -1046,7 +1104,9 @@ async function isLegacyKiroAgentConfig(
   targetPath: string,
   expectedDescription: string | undefined,
 ): Promise<boolean> {
-  if (!expectedDescription) return false
+  if (!expectedDescription) {
+    return false
+  }
 
   try {
     const raw = await fs.readFile(targetPath, "utf8")
@@ -1057,23 +1117,26 @@ async function isLegacyKiroAgentConfig(
     const description = typeof parsed.description === "string" ? parsed.description : null
     const welcomeMessage = typeof parsed.welcomeMessage === "string" ? parsed.welcomeMessage : null
 
-    return parsed.name === fileName
-      && descriptionsMatch(description, expectedDescription)
-      && descriptionsMatch(
+    return (
+      parsed.name === fileName &&
+      descriptionsMatch(description, expectedDescription) &&
+      descriptionsMatch(
         welcomeMessage,
         `Switching to the ${fileName} agent. ${expectedDescription}`,
-      )
-      && parsed.prompt === `file://./prompts/${fileName}.md`
-      && parsed.includeMcpJson === true
-      && tools.length === 1
-      && tools[0] === "*"
-      && resources.includes("file://.kiro/steering/**/*.md")
-      && resources.includes("skill://.kiro/skills/**/SKILL.md")
+      ) &&
+      parsed.prompt === `file://./prompts/${fileName}.md` &&
+      parsed.includeMcpJson === true &&
+      tools.length === 1 &&
+      tools[0] === "*" &&
+      resources.includes("file://.kiro/steering/**/*.md") &&
+      resources.includes("skill://.kiro/skills/**/SKILL.md")
+    )
   } catch {
     return false
   }
 }
 
+// biome-ignore lint/suspicious/useAwait: Preserve the async error and promise-adoption contract of this adapter.
 async function isLegacyKiroPrompt(
   targetPath: string,
   expectedDescription: string | undefined,
@@ -1093,7 +1156,9 @@ async function removeIfExists(targetPath: string): Promise<boolean> {
     }
     return true
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return false
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      return false
+    }
     throw err
   }
 }
@@ -1107,8 +1172,12 @@ export async function cleanupStaleSkillDirs(skillsRoot: string): Promise<number>
   let removed = 0
   for (const name of STALE_SKILL_DIRS) {
     const targetPath = path.join(skillsRoot, name)
-    if (!(await isLegacyPluginOwned(targetPath, skills.get(name), null))) continue
-    if (await removeIfExists(targetPath)) removed++
+    if (!(await isLegacyPluginOwned(targetPath, skills.get(name), null))) {
+      continue
+    }
+    if (await removeIfExists(targetPath)) {
+      removed++
+    }
   }
   return removed
 }
@@ -1129,8 +1198,12 @@ export async function cleanupStaleAgents(
     const target = extension
       ? path.join(dir, `${namePrefix}${name}${extension}`)
       : path.join(dir, `${namePrefix}${name}`)
-    if (!(await isLegacyPluginOwned(target, agents.get(name), extension))) continue
-    if (await removeIfExists(target)) removed++
+    if (!(await isLegacyPluginOwned(target, agents.get(name), extension))) {
+      continue
+    }
+    if (await removeIfExists(target)) {
+      removed++
+    }
   }
   return removed
 }
@@ -1152,8 +1225,12 @@ export async function cleanupStalePrompts(promptsDir: string): Promise<number> {
   let removed = 0
   for (const file of STALE_PROMPT_FILES) {
     const targetPath = path.join(promptsDir, file)
-    if (!(await isLegacyPromptWrapper(targetPath, prompts.get(file)))) continue
-    if (await removeIfExists(targetPath)) removed++
+    if (!(await isLegacyPromptWrapper(targetPath, prompts.get(file)))) {
+      continue
+    }
+    if (await removeIfExists(targetPath)) {
+      removed++
+    }
   }
   return removed
 }
@@ -1194,7 +1271,9 @@ export async function classifyCodexLegacyPromptOwnership(
   const fileName = path.basename(promptPath)
   const { prompts } = await loadLegacyFingerprints()
   const hasFingerprint = prompts.has(fileName) || fileName in LEGACY_PROMPT_DESCRIPTION_ALIASES
-  if (!hasFingerprint) return "unknown"
+  if (!hasFingerprint) {
+    return "unknown"
+  }
   const ceOwned = await isLegacyPromptWrapper(promptPath, prompts.get(fileName))
   return ceOwned ? "ce-owned" : "foreign"
 }

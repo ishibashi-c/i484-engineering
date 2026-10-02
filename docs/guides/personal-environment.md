@@ -18,7 +18,7 @@
 
 ## i484 Engineering
 
-[ishibashi-c/i484-engineering](https://github.com/ishibashi-c/i484-engineering)を、計画・実装・検証・レビュー・Git操作・shippingの工程を担当するプラグインとして導入します。i484-product-design、i484-visualize、i484-geometric-illustrationは専門判断や成果物を担当します。各Skillの導入目的と使う条件は[READMEの採用一覧](../../README.md#39-skills)を参照してください。
+[ishibashi-c/i484-engineering](https://github.com/ishibashi-c/i484-engineering)を、計画・実装・検証・レビュー・Git操作・shippingの工程を担当するプラグインとして導入します。i484-styleは共通の好みと3つの内部領域で専門判断や成果物を担当します。自動適用の対象は新規UI・説明資料です。幾何学イラストは、その表現の指定時だけ使います。既存ブランドと明示指定を優先し、工程はCEに残します。各Skillの導入目的と使う条件は[READMEの採用一覧](../../README.md#37-skills)を参照してください。
 
 CodexアプリとCLI、Gitを用意し、導入前にCLIのhelpで構文を確認してください。確認時のコマンドは次のとおりです。
 
@@ -104,11 +104,11 @@ UI Skills MCPはi484本体の外部知識取得に使います。個人設定の
 
 本人認証はユーザーへ任せ、秘密情報を記録しないでください。GitHubの既定アカウントは`ishibashi-c`です。別アカウントや認証失敗を理由に勝手に切り替えないでください。既存の未commit変更を保護し、依頼範囲外の破壊、force push、履歴改変へ委託範囲を広げないでください。
 
-新規プロジェクトは`~/Workspace/Projects/`直下に作成します。永続成果物は`~/Workspace/Codex/`の`active/`、`artifacts/`、`scratch/`、`archive/`へ用途に応じて保存してください。Project固有の保存先を優先し、指定がないportable HTMLは`html-docs/i484-visualize/`へ保存します。公開名義が未定の新規成果物には`IshibashiCustomize`を使い、既存成果物の名義・ライセンス・著作権表示を保持してください。
+新規プロジェクトは`~/Workspace/Projects/`直下に作成します。永続成果物は`~/Workspace/Codex/`の`active/`、`artifacts/`、`scratch/`、`archive/`へ用途に応じて保存してください。Project固有の保存先を優先し、指定がないportable HTMLは`html-docs/i484-style/communication/`へ保存します。公開名義が未定の新規成果物には`IshibashiCustomize`を使い、既存成果物の名義・ライセンス・著作権表示を保持してください。
 
 ## 導入完了の確認
 
-プラグインの登録名と採用版、外部Skill2個の配置先と出典、MCP6接続の登録名を照合してください。新しいCodexセッションでSkillが公開され、必要な参照ファイルを読めることも確認します。可能な範囲で、yomiyasuのlint、プロジェクトのUltracite検査、MCPの読み取り操作を試してください。検証のために課金や本番データの変更を行わないでください。
+プラグインの登録名と採用版、外部Skill2個の配置先と出典、MCP6接続の登録名を照合してください。新しいCodexセッションでi484-styleが公開され、旧3入口が残っていないことと、必要な参照ファイルを読めることも確認します。具体的な適用条件は[i484-styleガイド](i484-style.md)を参照してください。可能な範囲で、yomiyasuのlint、プロジェクトのUltracite検査、MCPの読み取り操作を試してください。検証のために課金や本番データの変更を行わないでください。
 
 報告では「導入済み」「セッションに公開」「読み込み確認」「実行確認」を区別してください。MCPは「設定あり」「認証済み」「接続確認」「実操作確認」を分けます。未認証・未実行は未確認として残し、導入したことだけで動作確認済みとしないでください。
 

@@ -15,10 +15,6 @@ Choose representative states by what can change the design judgment: short and l
 
 If the observation needed for a claim is unavailable, keep the claim unverified rather than inferring success from implementation intent.
 
-## 観測条件
-
-見た目の主張には実render、操作の主張には実際のstate transitionやfocus/recovery、native host固有の主張にはそのhostでの観測が関係する。Responsiveは名前付きdeviceを消化するのではなく、content pressureやlayout transitionが起きる条件を見る。観測できない主張は未確認のままにする。
-
 ## Judge repeated components as systems
 
 A repeated component is stable only when its internal role structure survives realistic content and state variation.
@@ -39,15 +35,9 @@ Do not let success in one dimension stand in for another.
 
 A control that works can still be visually misleading or inaccessible. A visually polished surface can still have broken recovery or semantics.
 
-## Review order
+## Review priority
 
-Prioritize findings by user consequence rather than polish visibility.
-
-1. Meaning or task failure: hidden actions, misleading state, unreadable content, wrong order, broken recovery.
-2. Product-pattern inconsistency: the same role changes hierarchy, placement, label, or behavior without a task reason.
-3. Composition failure: clipping, overlap, fragile wrapping, poor measure, broken hierarchy, or misplaced actions.
-4. Accessibility or interaction-feedback failure: focus, contrast, target size, state visibility, reduced-motion needs, or equivalent barriers.
-5. Polish: rhythm, alignment, optical balance, typography, palette coherence, or unnecessary chrome.
+Prioritize findings by their consequence for task completion, comprehension, safety, accessibility, and recovery. A category's position in a list does not determine severity: a focus barrier or unreadable contrast may block the primary task, while a small spacing inconsistency may not.
 
 Stable product patterns should change because the task, content, accessibility, or responsive behavior requires it, not merely because a different treatment is visually novel.
 

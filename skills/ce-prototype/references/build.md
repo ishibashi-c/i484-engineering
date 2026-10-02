@@ -4,7 +4,7 @@ Keep a run capsule at `decisions.md` in this run's directory, so the next skill 
 
 Default substrate: the web, whatever the product is written in — a native app's navigation feel gets a web approximation, not SwiftUI. `references/build.md` defines yields and artifacts.
 
-**i484 product-design knowledge is additive, never a second prototype workflow.** When the prototype is settling how a user-facing product interface should work, feel, or read and the installed skill catalog exposes `i484-product-design`, load it before making the relevant design judgments. Use it only as product-design domain knowledge; this skill still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff.
+**i484 product-design knowledge is additive, never a second prototype workflow.** When the prototype is settling how a user-facing product interface should work, feel, or read and the installed skill catalog exposes `i484-style`, load its product-ui domain before making the relevant design judgments. Use it only as product-design domain knowledge; this skill still owns prototype scope, build/preview mechanics, user evaluation, decision capture, and handoff.
 
 Required read before you write any prototype code, alongside `references/preview.md`.
 

@@ -8,7 +8,7 @@
 
 [![Build Status](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/ishibashi-c/i484-engineering/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-39-black.svg)](docs/guides/README.md)
+[![Skills](https://img.shields.io/badge/skills-37-black.svg)](docs/guides/README.md)
 
 </div>
 
@@ -16,7 +16,7 @@
 
 **i484 Engineering** は、[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) をエンジニアリングの中核に据え、その上へi484固有の専門判断と外部専門知識を必要なときだけ重ねるAI coding environmentです。
 
-planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、**開発をどう進めるかはCompound Engineeringが所有**します。i484は第二のworkflowを作らず、Product Design・構造可視化・幾何学イラストレーションなど、CEが一般化して所有すべきでないdomain judgmentを追加します。
+planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、**開発をどう進めるかはCompound Engineeringが所有**します。i484は第二のworkflowを作らず、i484-styleの共通方針と媒体別の判断など、CEが一般化して所有すべきでないdomain judgmentを追加します。
 
 外部能力も同じ原則で接続します。UI Skills MCPは不足したUI専門知識を補うregistry、Checklist Designは具体化したscreen / flow / componentの抜け漏れを調べるauditor、yomiyasuとUltraciteはquality providerです。いずれもCEのworkflow authorityを置き換えません。
 
@@ -30,18 +30,18 @@ planning、implementation、debugging、verification、review、Git、shipping�
 flowchart TB
     Agent["AI coding agent"] --> CE["Compound Engineering<br/>engineering workflow authority"]
 
-    CE --> PD["i484-product-design<br/>Product Design judgment"]
-    CE --> VIZ["i484-visualize<br/>portable HTML visualization"]
-    CE --> GEO["i484-geometric-illustration<br/>geometric visual language"]
-
-    PD -. "必要な専門知識だけ取得" .-> UIS["UI Skills MCP<br/>external knowledge registry"]
-    PD -. "具体化したsurfaceの抜け漏れ監査" .-> CD["Checklist Design<br/>completeness audit"]
+    CE --> STYLE["i484-style<br/>共通の好みと媒体別の制作契約"]
+    STYLE --> UI["product-ui"]
+    STYLE --> COM["communication"]
+    STYLE --> ILL["illustration<br/>幾何学表現の指定時"]
+    UI -. "不足する専門知識だけ取得" .-> UIS["UI Skills MCP"]
+    UI -. "利用可能な場合の抜け漏れ監査" .-> CD["Checklist Design"]
 
     CE -. "日本語品質" .-> YOMI["yomiyasu<br/>quality provider"]
     CE -. "JS / TS lint・format" .-> UL["Ultracite<br/>quality provider"]
 
     Project["Project context<br/>requirements / design decisions / local rules"] --> CE
-    Project --> PD
+    Project --> STYLE
 ```
 
 > 矢印は責務と参照関係を示します。固定されたphase順序や第二workflowを表すものではありません。
@@ -51,9 +51,7 @@ flowchart TB
 | Layer | 主な責務 | 所有しないもの |
 | --- | --- | --- |
 | **Compound Engineering** | planning、実装、debug、verification、review、Git、shipping、knowledge compounding | Product Design固有の良し悪し |
-| **i484-product-design** | UX、interaction、accessibility、composition、visual language、design evidence | engineering workflow、Git、shipping |
-| **i484-visualize** | 説明・構造・比較をportable HTML artifactへ変換 | 一般的なWeb開発workflow |
-| **i484-geometric-illustration** | i484固有の幾何学visual language | 一般的なsoftware engineering |
+| **i484-style** | 共通の好み、UIの設計判断、説明資料・独立HTML、指定された幾何学イラスト | engineering workflow、Git、shipping |
 | **UI Skills MCP** | i484内蔵知識で不足する狭いUI専門知識の取得 | routing、workflow、review、Git |
 | **Checklist Design** | 具体化したscreen / flow / componentのcompleteness audit | 一般的なdesign critique、最終設計判断 |
 | **yomiyasu / Ultracite** | language / lintなど特定品質の判定 | quality gate全体の実行順序 |
@@ -86,69 +84,23 @@ i484 Skillは、固定されたstate machineを増やすためのものではあ
 
 旧i484からの移行判断、CEとの責務境界、upstreamとの差分台帳は [`I484_ENGINEERING.md`](I484_ENGINEERING.md) を参照してください。
 
-## i484 Specialist Skills
+## i484 Style
 
-### `i484-product-design`
+`i484-style`は、既存の制作機能と基本品質を保ちながら、個人の好みを成果物へ重ねる単一のSkillです。共通方針を中心に、UI、説明・図解、幾何学イラストの3領域を内蔵し、必要な資料だけ読みます。
 
-プロダクトUIに対する設計判断を支えるKnowledge Skillです。
+新規UI・説明資料には自動適用します。既存ブランドと今回の明示指定を優先し、軽微な修正を全面的な再デザインへ広げません。幾何学イラストは、その表現を指定した場合だけ適用します。写真や写実指定、一般的な文章校正、画面に影響しない内部処理は対象外です。
 
-主な対象:
+| 内部領域 | 担当するもの | 保持する品質条件 |
+|---|---|---|
+| product-ui | UIの構成、文字、色、密度、操作の設計判断 | 意味、操作、状態、復旧、アクセシビリティ |
+| communication | 説明資料の視覚設計と独立HTML | 根拠、読み順、図の意味、可搬性 |
+| illustration | 指定された幾何学表現の生成仕様と評価 | 主題の認識、入力画像の役割、実画像による確認 |
 
-- UX heuristics
-- information hierarchy
-- composition
-- component semantics
-- interaction design
-- accessibility
-- content stress
-- error prevention / recovery
-- data / visual / interaction parity
-- design claimとevidenceの対応
+好みは、関係を構成に反映すること、役割のある文字と色、明快な幾何学、密度と静かな領域の対比を中心にしています。色数や形状を全媒体へ一律に当てはめません。AIの品質評価とユーザーの採用判断も分けます。
 
-実装工程やGit操作を指揮せず、**何を良いProduct Designと判断するか**に責務を限定しています。
+UXに影響するUI変更では、設計前に関連するUX条件を読みます。具体化した画面の抜け漏れには、利用可能なChecklist Designのauditだけを補助的に使えます。重要な判断に専門知識が不足する場合は、UI Skills MCPから狭く一致する知識を取得できます。CEの工程は統括したままです。
 
-#### Product Design内の判断レイヤー
-
-```mermaid
-flowchart LR
-    Task["Product UI task"] --> PD["i484-product-design"]
-
-    PD --> UX{"task理解・action・state・recoveryに<br/>影響しうるか"}
-    UX -- "Yes" --> HC["usability-checklist.md<br/>risk-triggered UX coverage"]
-    UX -- "No / purely presentational" --> J["Product Design judgment"]
-
-    PD --> Known{"具体化した既知の<br/>screen / flow / componentか"}
-    Known -- "Yes + omission risk" --> CD["Checklist Design<br/>audit"]
-    Known -- "No" --> J
-
-    PD --> Gap{"内蔵知識だけで<br/>重要判断を支えられるか"}
-    Gap -- "No" --> UIS["UI Skills MCP<br/>narrow specialist knowledge"]
-    Gap -- "Yes" --> J
-
-    HC --> J
-    CD --> J
-    UIS --> J
-    J --> CE["Compound Engineering<br/>implementation / verification"]
-```
-
-この3つは競合するchecklistではありません。
-
-- **UX coverage** — 「このUIはユーザーtaskとして成立しているか」をheuristicから確認する。UX-bearingな変更では`usability-checklist.md`を必ず読み、関係する観点だけ選ぶ。
-- **Checklist Design** — 「LoginやSettingsなど、その種類のsurfaceとして重要な要素・stateが抜けていないか」を確認する。既定は`audit`で、一般的な`critique`はi484 Product Designの代替にしない。
-- **UI Skills MCP** — 「この判断に必要な専門知識がi484内に足りない」ときだけ、最も狭く一致する外部Skillを取得する。
-
-
-### `i484-visualize`
-
-説明、構造、関係性、比較などを**単一のportable HTML artifact**として視覚化する専門Skillです。
-
-一般的なWeb開発workflowではなく、「説明のためのartifactそのもの」が成果物である場合に使います。
-
-### `i484-geometric-illustration`
-
-i484独自の幾何学的なvisual languageでイラストレーションを設計・生成・評価する専門Skillです。
-
-構図、面、余白、色、layer、series consistencyなどの視覚判断を担当し、software engineering全般はCompound Engineeringへ委ねます。
+Luna 6を想定して入口と分岐を整理しました。詳しい適用方法、出典、検証の範囲は[i484-styleガイド](docs/guides/i484-style.md)を参照してください。
 
 ## External Specialist Registry
 
@@ -160,20 +112,20 @@ UI Skillsはi484へ一括導入せず、MCP経由の外部専門知識registry�
 - discovery: `list_skills`
 - fetch: `get_skill`
 
-`i484-product-design`の内蔵知識だけでは重要なUI判断を十分に扱えず、現在のrunにも同等の専門知識がない場合だけ、最も狭く一致するSkillを取得します。取得したSkillのworkflowやrouterは採用せず、domain knowledgeだけをDesign判断へ加えます。
+`i484-style`のproduct-ui領域の内蔵知識だけでは重要なUI判断を十分に扱えず、現在のrunにも同等の専門知識がない場合だけ、最も狭く一致するSkillを取得します。取得したSkillのworkflowやrouterは採用せず、domain knowledgeだけをDesign判断へ加えます。
 
 このrepositoryにはUI Skills catalogを複製しません。Codexでは`.mcp.json`経由で`ui_skills`接続を配布しますが、MCPが無効・未接続でもi484 Engineeringの通常機能はblockされません。
 
 ### Checklist Design
 
-Checklist Designは、具体化したscreen / flow / componentに対する**completeness audit**として利用します。一般的なdesign critiqueは`i484-product-design`が担当し、Checklist Designは「その種類の画面・flowとして重要なものが抜けていないか」を補助的に確認します。
+Checklist Designは、具体化したscreen / flow / componentに対する**completeness audit**として利用します。一般的なdesign critiqueはi484-styleのproduct-ui領域が担当し、Checklist Designは「その種類の画面・flowとして重要なものが抜けていないか」を補助的に確認します。
 
 - upstream: `Checklist-Design/skills`
 - default mode: `audit`
 - `critique`: ユーザーがChecklist Design自身のcritiqueを明示的に求めた場合だけ
 - unavailable / no match: blockせず、i484 Product Designで継続
 
-Skill本体とchecklist corpusはこのrepositoryへ複製しません。利用するagent環境へ公式Skillを導入して使います。
+Skill本体とchecklist corpusはこのrepositoryへ複製しません。利用環境に存在する場合だけ使います。導入済みであることを前提にせず、独立した外部Skillへ自動追加しません。
 
 ## Quality Provider
 
@@ -189,11 +141,11 @@ JS / TS ProjectでUltraciteを採用している場合、Project固有のlint / 
 
 Compound Engineeringは「どの段階で品質確認を行うか」を所有し、Ultraciteは「JS / TSをどうlintするか」を担当します。
 
-## 39 Skills
+## 37 Skills
 
-i484 Engineeringは39個のSkillを提供します。Compound Engineering由来の36個と、i484独自の3個です。次の表を、各Skillを含める理由と期待する成果の正本とします。詳しい使い方は[Skillガイド](docs/guides/README.md)、実行時の契約は各Skillの`SKILL.md`を参照してください。
+i484 Engineeringは37個のSkillを提供します。Compound Engineering由来の36個と、i484独自の1個です。次の表を、各Skillを含める理由と期待する成果の正本とします。詳しい使い方は[Skillガイド](docs/guides/README.md)、実行時の契約は各Skillの`SKILL.md`を参照してください。
 
-「明示呼び出し」は`disable-model-invocation: true`のSkillです。9個が該当し、自動選択の候補には入りません。残る30個も毎回まとめて実行するものではありません。依頼と各Skillの説明が一致したときに選びます。上流由来の能力を同梱していることは、外部サービスの接続や継続監視の開始を意味しません。
+「明示呼び出し」は`disable-model-invocation: true`のSkillです。9個が該当し、自動選択の候補には入りません。残る28個も毎回まとめて実行するものではありません。依頼と各Skillの説明が一致したときに選びます。上流由来の能力を同梱していることは、外部サービスの接続や継続監視の開始を意味しません。
 
 ### 開発の中心
 
@@ -233,9 +185,7 @@ i484 Engineeringは39個のSkillを提供します。Compound Engineering由来�
 
 | Skill | 導入して期待する成果 | 使用する場面 | 選択 |
 | --- | --- | --- | --- |
-| `i484-product-design` | UX、構成、操作、アクセシビリティの設計判断を補う | 製品UIの判断が必要なとき。工程はCEが担当 | 説明に応じて選択 |
-| `i484-visualize` | 説明や比較を持ち運べる単一HTMLへまとめる | 説明用HTML自体が成果物のとき | 説明に応じて選択 |
-| `i484-geometric-illustration` | i484の幾何学表現で図版を生成・評価する | その視覚表現のイラストが必要なとき | 説明に応じて選択 |
+| `i484-style` | 基本品質を保ち、UI・説明資料・指定された幾何学イラストへ好みを重ねる | 新規UI・説明資料、関連する変更・評価、幾何学表現の指定時。工程はCEが担当 | 説明に応じて選択 |
 
 ### 調査資料
 
@@ -316,15 +266,9 @@ codex plugin add i484-engineering@i484-engineering-plugin
 
 ### Optional external specialists
 
-Codex向けi484 EngineeringにはUI Skills MCPの**接続定義**を同梱しています。catalog本文はvendoringせず、利用可能な場合だけ`i484-product-design`から必要な知識を取得します。
+Codex向けi484 EngineeringにはUI Skills MCPの**接続定義**を同梱しています。catalog本文はvendoringせず、利用可能な場合だけ`i484-style`のproduct-ui領域から必要な知識を取得します。
 
-Checklist Designは公式Skillを外部のまま導入します。
-
-```bash
-npx skills add checklist-design/skills -a codex
-```
-
-Checklist Designが未導入でもi484 Engineeringはblockされません。導入されている場合だけ、具体化したscreen / flow / componentに直接一致するchecklistをcompleteness auditへ利用します。
+Checklist Designは任意の外部知識です。利用可能な場合だけ、具体化したscreen / flow / componentに一致するchecklistをcompleteness auditへ使います。個人用環境の採用一覧には含めていません。追加する場合は、導入目的と使う条件を[導入書](docs/guides/personal-environment.md)へ記録してください。
 
 ### その他のhost
 

@@ -19,6 +19,9 @@ const EXTRA_LEGACY_ARTIFACTS_BY_PLUGIN: Record<string, LegacyPluginArtifacts> = 
     // Historical CE artifacts derived from git history. Keep these explicit so
     // cleanup can remove stale flat installs without touching unrelated skills.
     skills: [
+      "i484-product-design",
+      "i484-visualize",
+      "i484-geometric-illustration",
       "agent-browser",
       "agent-native-architecture",
       "agent-native-audit",

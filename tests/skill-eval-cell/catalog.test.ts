@@ -239,8 +239,8 @@ describe("skill-eval-cell catalog", () => {
         "ce-work/requirements-only-stops:references/input-triage.md",
         "ce-work/return-to-caller-no-pr:references/input-triage.md",
         "ce-work/return-to-caller-no-pr:references/return-to-caller.md",
-        "i484-product-design/checklist-design-audit-route:references/completeness-audit.md",
-        "i484-product-design/ux-coverage-required:references/usability-checklist.md",
+        "i484-style/checklist-design-audit-route:references/product-ui/completeness-audit.md",
+        "i484-style/ux-coverage-required:references/product-ui/usability-checklist.md",
         "lfg/plan-first:references/plan-brief.md",
       ].sort(),
     )
@@ -322,9 +322,9 @@ describe("skill-eval-cell catalog", () => {
       "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision",
       "ce-setup/instruction-file-covered-offers-nothing",
       "ce-setup/instruction-file-gap-offers-store-and-directive",
-      "i484-product-design/checklist-design-audit-route",
-      "i484-product-design/ux-coverage-decorative-skip",
-      "i484-product-design/ux-coverage-required",
+      "i484-style/checklist-design-audit-route",
+      "i484-style/ux-coverage-decorative-skip",
+      "i484-style/ux-coverage-required",
     ])
   })
 

@@ -45,7 +45,7 @@ When triage selects Return-to-Caller Mode, read `references/return-to-caller.md`
 
 Before the first implementation write, including on the Trivial route, read `references/implementation-loop.md` and follow its implementation and evidence protocol.
 
-**i484 specialist knowledge is additive, never a second workflow.** The required implementation-loop read governs `i484-product-design` and other specialist routing before relevant decisions.
+**i484 specialist knowledge is additive, never a second workflow.** The required implementation-loop read governs `i484-style` (product-ui domain) and other specialist routing before relevant decisions.
 
 The commit rule from this file stays in force throughout: every implementation commit names only that unit's owned files. A bare `git commit` can absorb the user's pre-existing index, so it is forbidden.
 
@@ -53,7 +53,7 @@ The commit rule from this file stays in force throughout: every implementation c
 
 After the tasks and local verification are complete, standalone mode reads `references/shipping-workflow.md` before any quality check or delivery, and follows it through delivery.
 
-**i484 quality providers stay inside CE's quality gate.** The required shipping-workflow read governs `natural-japanese`, Ultracite, and specialist edits before quality checks.
+**i484 quality providers stay inside CE's quality gate.** The required shipping-workflow read governs `yomiyasu`, Ultracite, and specialist edits before quality checks.
 
 **Code-review completion gate (standalone only).** Code review must actually happen before shipping. The run is not done, must not call a commit or shipping skill, and must not report that shipping is complete until the shipping reference has recorded either an actual completed `ce-code-review` receipt or one of its exact authorized skip states. Never substitute a mental self-review or findings already applied earlier. This rule does not apply in Return-to-Caller Mode.
 

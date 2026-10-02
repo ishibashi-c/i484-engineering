@@ -27,7 +27,7 @@ Read `references/scoping.md` before you ask the user anything or touch the repo.
 
 Read `references/build.md` and `references/preview.md` before writing anything. Once an isolated web preview is up, load `references/annotation-loop.md`. Overlay runs and non-web runs stay on chat.
 
-**i484 product-design knowledge is additive, never a second prototype workflow.** The required build read governs `i484-product-design` as product-design domain knowledge before design judgments.
+**i484 product-design knowledge is additive, never a second prototype workflow.** The required build read governs `i484-style` (product-ui domain) as product-design domain knowledge before design judgments.
 
 After they proceed, speak only when they can act on something new, in one short line naming what happened: a screen is up, the helper URL is live, or a blocker only they can lift. That annotation loop defines the line after an applied revision and silence while a wait is parked.
 

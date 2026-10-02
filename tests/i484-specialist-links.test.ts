@@ -2,11 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { access, readdir, readFile } from "fs/promises"
 import path from "path"
 
-const specialistRoots = [
-  "skills/i484-product-design",
-  "skills/i484-visualize",
-  "skills/i484-geometric-illustration",
-] as const
+const specialistRoots = ["skills/i484-style"] as const
 
 function localMarkdownLinks(markdown: string): string[] {
   const links = [...markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)]
@@ -62,7 +58,10 @@ describe("i484 specialist references", () => {
     const combined = (
       await Promise.all(
         files.map((file) =>
-          readFile(path.join(process.cwd(), "skills/i484-product-design/references", file), "utf8"),
+          readFile(
+            path.join(process.cwd(), "skills/i484-style/references/product-ui", file),
+            "utf8",
+          ),
         ),
       )
     ).join("\n")

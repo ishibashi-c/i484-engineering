@@ -36,5 +36,5 @@ Checklist Design is an optional external completeness auditor for concrete scree
 - Skill repository: https://github.com/Checklist-Design/skills
 - Product site: https://www.checklist.design
 - License observed during integration: MIT
-- Integration rule: use the external skill's audit mode when a concrete surface maps to a relevant checklist and omission risk matters; keep general critique and product-design judgment in i484-product-design.
+- Integration rule: use the external skill's audit mode when a concrete surface maps to a relevant checklist and omission risk matters; keep general critique and product-design judgment in i484-style’s product-ui domain.
 - Failure rule: if the skill is unavailable or no checklist matches, continue with i484 Product Design and leave checklist-specific completeness unverified rather than blocking the engineering workflow.

@@ -13,7 +13,7 @@ Put a working feature in front of the user and turn their live observations into
 
 **Boundaries:** the user drives what to inspect and change; do not invent an autonomous checklist or expand into general QA. Never work on the repository's default branch. This workflow may edit and locally commit the requested polish, and in live mode the disclosed riffrec setup commit, but it never pushes or opens a PR.
 
-When the requested polish concerns a user-facing product interface and the installed skill catalog exposes `i484-product-design`, load it for product-design judgment inside the user's requested surface. Its knowledge does not authorize a broader audit, autonomous checklist, or scope expansion; this skill's user-directed boundary still governs the loop.
+When the requested polish concerns a user-facing product interface and the installed skill catalog exposes `i484-style`, load its product-ui domain for product-design judgment inside the user's requested surface. Its knowledge does not authorize a broader audit, autonomous checklist, or scope expansion; this skill's user-directed boundary still governs the loop.
 
 ## Run
 
