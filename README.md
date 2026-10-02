@@ -18,6 +18,8 @@
 
 planning、implementation、debugging、verification、review、Git、shipping、knowledge compoundingなど、**開発をどう進めるかはCompound Engineeringが所有**します。i484は第二のworkflowを作らず、i484-styleの共通方針と媒体別の判断など、CEが一般化して所有すべきでないdomain judgmentを追加します。
 
+プロセステストの安全を支えるのは共通ヘルパーと起動前検査です。ネイティブ委託では条件の定まった限定作業に設定モデルを起動引数として渡し、重要判断は親モデルが担当します。提供モデルの確認、成果の合格、費用の実測は別の記録項目です。適用条件と限界は[個人用開発環境の導入書](docs/guides/personal-environment.md)にまとめました。
+
 外部能力も同じ原則で接続します。UI Skills MCPは不足したUI専門知識を補うregistry、Checklist Designは具体化したscreen / flow / componentの抜け漏れを調べるauditor、yomiyasuとUltraciteはquality providerです。いずれもCEのworkflow authorityを置き換えません。
 
 ## 個人用開発環境の導入書

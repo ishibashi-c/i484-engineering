@@ -28,7 +28,7 @@ codex plugin add i484-engineering@i484-engineering-plugin
 codex plugin list --json
 ```
 
-既に登録済みの場合は、公式の更新手順を使ってください。確認済みプラグイン版は3.30.1、ソースcommitは`f264f908d3a72ea91b8e940aa54d917300b59d42`です。固定版を再現する場合は、marketplace追加時の`--ref`でこのcommitを指定できます。
+既に登録済みの場合は、公式の更新手順を使ってください。確認済みプラグイン版は3.31.0、ソースcommitは`9f4a0d3c9dce789d7f74b0dfd39bfba0add6efbc`です。固定版を再現する場合は、marketplace追加時の`--ref`でこのcommitを指定できます。
 
 導入後は新しいCodexセッションでSkillの公開状態を確かめてください。同じSkillの手動コピーを別の検索先へ追加しないでください。プラグイン同梱の`ui_skills`接続は本体側で管理します。
 
@@ -46,6 +46,29 @@ codex plugin list --json
 CodexのSkill導入機能、または上流の公式手順で指定したSkillだけを導入してください。リポジトリ内の全Skillをまとめて追加しないでください。取得後は`SKILL.md`が参照するファイルの存在を確認します。yomiyasuの同梱lintを使う場合はPython、ローカルのMCPやJS/TS品質検査には対応するNode.js環境も必要です。
 
 Natural Japanese、mattpocock系、superpowers系、gstackのqa、Emil Kowalski系の独立Skillは採用一覧に含めません。導入先に既存の未採用Skillがある場合は報告し、今回の導入だけを根拠に削除しないでください。
+
+### プロセステストの安全とネイティブ委託モデル
+
+i484 Engineeringの通常テスト入口は、worker起動前にテスト内の危険なシグナル送信を検査します。対象はrepository内のTypeScript、JavaScript、Pythonのテストファイルと、明示されたテストファイルです。共通ルールは [`tests/helpers/process-safety.ts`](../../tests/helpers/process-safety.ts)、事前検査は [`scripts/check-process-test-safety.ts`](../../scripts/check-process-test-safety.ts) です。macOSではクラッシュ通知につながるシグナルと未登録のシグナル検査を理由付きで除外し、`SIGINT`、`SIGTERM`、`SIGHUP`の確認を残します。Linuxの既存`SIGQUIT`検査も維持します。
+
+事前検査は静的検査です。`bun test`を直接呼ぶと事前検査を通りません。実行文字列、生成コード、計算されたメソッド別名、`tests/`外からのimportは完全には追跡できず、外部から指定するdirectoryやglobの列挙も検査対象として保証しません。これらは手動で確認してください。この仕組みはPythonのあらゆる異常終了を防ぐものではなく、macOSのCrashReporter設定も変更しません。
+
+ネイティブsubagentの委託判断は、依頼を受ける各CE Skillが行います。範囲、入力、合否基準が起動前に定まった限定作業では、利用可能性と親モデル以下の能力を確認したうえでLunaを先に指定します。個人環境のCodex設定例は次のとおりです。
+
+```yaml
+native_subagent_models:
+  codex:
+    model: gpt-6-luna
+    effort: medium
+```
+
+設定階層はcheckout-localの`config.local.yaml`、teamの`config.yaml`、Skillの既定値の順です。map内のhost entryは全体を置換し、空のmapは設定上書きを無効にします。Global指示と実行中のユーザー指示が優先です。利用host、指定引数、親以下の能力を確認できない場合は親を継承し、その理由を記録してください。
+
+正しさ・security・adversarial review、全体architecture、research全体の解釈、最終統合判断は親モデルが担当します。短い作業を節約だけのために委託せず、明示された実装engineやreview targetも置き換えません。起動前の引数修正は1回までです。容量待ちは枠が空くまで待ちます。利用不可や合否不合格ではworkerを停止し、成果物と差分を親へ渡して引き継ぎます。別providerや有料APIへ自動で切り替えません。
+
+既存の実行記録へ作業、分類、選択理由、要求モデル・推論設定、起動結果、成果の検証、提供モデルの証拠、fallback理由を記録します。モデル指定の成功は実際の提供モデルの確認を意味せず、提供モデルが不明でも再実行の理由にはなりません。成果の合格は別に検証します。費用の実測がない場合、削減効果を断定せず、Luna指定件数・親への引き継ぎ件数・不合格理由を報告してください。
+
+実行時の共通契約は、[ce-work](../../skills/ce-work/references/native-model-policy.md)、[ce-code-review](../../skills/ce-code-review/references/native-model-policy.md)、[ce-doc-review](../../skills/ce-doc-review/references/native-model-policy.md)、[ce-explain](../../skills/ce-explain/references/native-model-policy.md)、[ce-plan](../../skills/ce-plan/references/native-model-policy.md)、[ce-simplify-code](../../skills/ce-simplify-code/references/native-model-policy.md)の各参照文書に詳細があります。
 
 ## 個人設定として残すMCP
 
