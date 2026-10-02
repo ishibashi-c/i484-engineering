@@ -31,8 +31,10 @@ The migration intentionally does not preserve the previous i484 architecture as 
 - Visualize retains portable-HTML authoring, structural visualization, accessibility, and artifact-specific validation while delegating general engineering flow to CE.
 - Geometric Illustration retains its visual language, prompt contract, artifact-specific review, and bounded image-authoring loop. Large style-anchor binaries and detailed historical validation remain in the original repository as provenance rather than being duplicated into this fork.
 
-`natural-japanese` and `ultracite` are independently installed quality providers in the active environment; their contents are not copied into this repository. i484 Engineering integrates them through CE's existing quality workflow when they are available and applicable.
+`yomiyasu` and `ultracite` are independently installed quality providers in the active environment; their contents are not copied into this repository. i484 Engineering integrates them through CE's existing quality workflow when they are available and applicable.
 
 ## Design principle
 
 Where upstream Compound Engineering and an i484 engineering rule disagree, Compound Engineering takes precedence. i484-specific behavior should remain additive, specialist, and non-conflicting.
+
+The current `i484-style` package consolidates those three extraction sources. Their baselines and attribution remain in domain source records; consolidation does not change upstream copyright or license conditions.

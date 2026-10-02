@@ -10,7 +10,7 @@
 
 active harnessで外部Skill `checklist-design` が利用でき、対象へ直接一致するchecklistがある場合は、そのSkillの **audit** を使ってcompleteness evidenceを得る。auditのpresent / partially present / missing / not needed / can't tellという区別を、欠落の有無と重要度を考えるinputとして扱う。
 
-`checklist-design` の **critique** は既定では使わない。hierarchy、composition、interaction、accessibility、visual coherenceなどの一般的なProduct Design判断は `i484-product-design` が所有する。ユーザーがChecklist Design自身のcritiqueを明示的に求めた場合だけ、その依頼として利用できる。
+`checklist-design` の **critique** は既定では使わない。hierarchy、composition、interaction、accessibility、visual coherenceなどの一般的なProduct Design判断は i484-styleのproduct-ui領域 が所有する。ユーザーがChecklist Design自身のcritiqueを明示的に求めた場合だけ、その依頼として利用できる。
 
 Checklist上でmissingでも、ProjectのProduct truth、Design truth、surface intentに照らして不要なら追加しない。逆にchecklistにない問題でも、主要task、安全、回復を損なうならProduct Design findingとして扱える。Checklistは仕様ではなく、抜け漏れ発見のevidence sourceである。
 

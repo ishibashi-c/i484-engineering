@@ -24,7 +24,7 @@ Writing the file, checking confidence, and running or explicitly skipping `ce-do
 
 Read `references/intake.md` before asking any question; follow its interaction method. Ask one question at a time. If no feature description was supplied, ask what to plan and wait.
 
-**i484 product-design knowledge is additive, never a second planning workflow.** Read `references/intake.md` before design-dependent planning decisions; it governs `i484-product-design` routing.
+**i484 product-design knowledge is additive, never a second planning workflow.** Read `references/intake.md` before design-dependent planning decisions; it governs `i484-style` (product-ui domain) routing.
 
 ## Output Contract
 

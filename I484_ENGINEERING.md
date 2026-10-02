@@ -11,6 +11,7 @@ Keep the root documentation split by purpose:
 | Document | Owns |
 | --- | --- |
 | [README.md](README.md) | User-facing overview, installation, per-skill adoption expectations and activation boundaries, and the high-level relationship to CE |
+| [docs/guides/personal-environment.md](docs/guides/personal-environment.md) | Adopted external environment, purposes, activation conditions, boundaries, and setup handoff |
 | [I484_ENGINEERING.md](I484_ENGINEERING.md) | Maintainer architecture, legacy migration decisions, intentional upstream differences, and upstream-sync policy |
 | [ATTRIBUTION.md](ATTRIBUTION.md) | Provenance, upstream credit, extraction sources, and licensing context |
 | [LICENSE](LICENSE) | License text and copyright notices |
@@ -34,25 +35,17 @@ Project context       = what this product/repository requires
 
 ## Specialist layer
 
-### i484-product-design
+### i484-style
 
-`skills/i484-product-design` is intentionally knowledge-oriented. It retains UX heuristics, composition, interaction, accessibility, content stress, visual language, and data / visual / interaction parity while leaving implementation workflow to CE.
+`skills/i484-style` is the single specialist entry. Shared preferences live in the same package, with conditional product-ui, communication, and illustration references. CE owns engineering; the specialist supplies design judgment and artifact-specific contracts.
 
-```text
-CE decides how to implement and verify.
-i484-product-design identifies what makes the product design good or bad
-and which observable states matter to that judgment.
-```
+New UI and explanatory materials apply the preferences automatically. Explicit requests and existing brand contracts take precedence. Incremental edits stay within the requested scope. Geometric illustration is opt-in; an unspecified image request does not select that visual language.
 
-### i484-visualize and i484-geometric-illustration
-
-`skills/i484-visualize` and `skills/i484-geometric-illustration` are specialist/artifact capabilities rather than engineering frameworks. Their domain-specific authoring contracts remain where sequence is intrinsic to producing and judging the artifact; planning, Git, code review, repository verification, and shipping remain with CE.
-
-The geometric specialist keeps its runtime visual-language knowledge text-only. Larger historical style-anchor assets and detailed validation records remain in the previous repository as provenance.
+Preserve the portable HTML contract, interaction-dependent UX reads, actual artifact evidence, input-image roles, and user ownership of preference approval. Read only the relevant domain. Do not concatenate all references or launch a second engineering workflow. The geometric direction remains text-only; historical source repositories provide provenance rather than present execution evidence.
 
 ### External specialist knowledge registry
 
-UI Skills MCP is optional external knowledge infrastructure for `i484-product-design`, not a workflow or router owned by i484.
+UI Skills MCP is optional external knowledge infrastructure for `i484-style`, not a workflow or router owned by i484.
 
 - Endpoint: `https://www.ui-skills.com/mcp`
 - Codex packaging: `.codex-plugin/plugin.json` points to `./.mcp.json`, which declares the remote `ui_skills` HTTP server. This packages the connection, not the registry content.
@@ -70,15 +63,15 @@ Checklist Design is an optional external auditor for concrete screens, flows, an
 
 - Upstream: `Checklist-Design/skills`
 - Use its audit mode only when the surface maps directly to a known checklist and omission risk can affect task completion, safety, or recovery.
-- General product-design critique remains owned by `i484-product-design`; Checklist Design critique is not a default routing target.
+- General product-design critique remains owned by `i484-style`; Checklist Design critique is not a default routing target.
 - The skill and checklist corpus are not vendored into i484 Engineering.
 - If unavailable or unmatched, engineering continues and checklist-specific completeness remains unverified.
 
 ### External quality providers
 
-`natural-japanese` and Ultracite remain external quality providers rather than workflow owners.
+`yomiyasu` and Ultracite remain external quality providers rather than workflow owners.
 
-- User-facing Japanese changes may use `natural-japanese` when it is available.
+- User-facing Japanese changes may use `yomiyasu` when it is available.
 - JS/TS projects that adopt Ultracite expose it through their configured lint/check path.
 - CE owns when those checks run, whether later changes require reruns, and when engineering verification is complete.
 
@@ -92,10 +85,10 @@ The previous i484 environment is treated as source material, not as a second fra
 | --- | --- | --- |
 | `i484-workflow` | Retired from runtime architecture | CE owns engineering workflow and routing semantics. |
 | `i484-review` | Not imported by default | CE review is the baseline. Reintroduce only a clearly distinct capability after a demonstrated gap. |
-| `i484-product-design` | Rebuilt and embedded | Preserve design-domain knowledge; remove engineering orchestration. |
-| `i484-visualize` | Rebuilt and embedded | Preserve portable-HTML and structural-visualization capability; delegate engineering flow to CE. |
-| `i484-geometric-illustration` | Rebuilt and embedded | Preserve geometric visual-language and artifact-specific judgment. |
-| `natural-japanese` | External provider | Language-quality specialist, not a router. |
+| `i484-product-design` | Consolidated into i484-style / product-ui | Preserve design-domain knowledge; remove engineering orchestration. |
+| `i484-visualize` | Consolidated into i484-style / communication | Preserve portable-HTML and structural-visualization capability; delegate engineering flow to CE. |
+| `i484-geometric-illustration` | Consolidated into i484-style / illustration | Preserve geometric visual-language and artifact-specific judgment. |
+| `yomiyasu` | External provider | Language-quality specialist, not a router. |
 | Ultracite | External provider | Project lint/check provider, not a second CE phase. |
 | `i484-core` runtime routing | Not migrated | Do not retain a second top-level engineering authority. |
 | Behavior Studio | Retired | Maintain the README adoption inventory when adding, removing, or changing an environment capability; no replacement routing or inventory application. |
@@ -113,7 +106,7 @@ Retired workflow-era runtime tooling and obsolete evaluations are not current ac
 
 The public README records the expected outcome and activation boundary for every shipped skill. A local environment README records external skills, plugins, and MCP connections, including why each is present and how overlaps are resolved. Additions, removals, and responsibility changes update their corresponding row in the same change. Installed or registered capabilities must not be reported as used or verified without execution evidence.
 
-CE remains the default owner for implementation, debugging, code review, and browser verification. Generic review/debug/QA skills are explicit-request alternatives or narrow knowledge providers; do not stack their full workflows onto CE. `i484-product-design` supplies normal product-UI judgment. Official Product Design skills may handle image-based alternatives, remixing, and implementing a selected image or URL when that specific deliverable is requested; they do not replace CE's repository verification or delivery.
+CE remains the default owner for implementation, debugging, code review, and browser verification. Generic review/debug/QA skills are explicit-request alternatives or narrow knowledge providers; do not stack their full workflows onto CE. `i484-style` supplies normal product-UI judgment. Official Product Design skills may handle image-based alternatives, remixing, and implementing a selected image or URL when that specific deliverable is requested; they do not replace CE's repository verification or delivery.
 
 README maintenance is documentation, not another workflow or runtime router. Historical model-dependent measurements do not establish the performance of the current environment.
 
@@ -130,10 +123,10 @@ There are two classes:
 
 | ID | Addition | Main surfaces | Why it exists | Introduced |
 | --- | --- | --- | --- | --- |
-| F1 | i484 specialist layer | `skills/i484-product-design/**`, `skills/i484-visualize/**`, `skills/i484-geometric-illustration/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
+| F1 | i484 specialist layer | `skills/i484-style/**`, corresponding guides/tests | Adds specialist domain knowledge CE does not own without creating a second engineering workflow. | [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1) |
 | F2 | i484 distribution identity | plugin/package manifests, root README, i484 identity tests, attribution/license metadata | Ships the fork as **i484 Engineering** while preserving CE-derived skill names and upstream attribution. | [PR #2](https://github.com/ishibashi-c/i484-engineering/pull/2) |
-| F3 | UI Skills MCP knowledge fallback | `skills/i484-product-design/**`, `.codex-plugin/plugin.json`, `.mcp.json`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. Codex packages the remote MCP connection definition with the plugin. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
-| F4 | Risk-triggered UX coverage + Checklist Design completeness audit | `skills/i484-product-design/**`, product-design guide, README, specialist contract/eval tests | Makes UX heuristics a required read when interaction/state/recovery can change, while routing concrete category completeness to the external Checklist Design audit without transferring general critique or workflow authority. | [PR #13](https://github.com/ishibashi-c/i484-engineering/pull/13) |
+| F3 | UI Skills MCP knowledge fallback | `skills/i484-style/references/product-ui/**`, `.codex-plugin/plugin.json`, `.mcp.json`, product-design guide, README, specialist contract tests | Supplies narrow external UI specialist knowledge on demand without vendoring the catalog or adding a second router/workflow. Codex packages the remote MCP connection definition with the plugin. | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) |
+| F4 | Risk-triggered UX coverage + Checklist Design completeness audit | `skills/i484-style/references/product-ui/**`, product-design guide, README, specialist contract/eval tests | Makes UX heuristics a required read when interaction/state/recovery can change, while routing concrete category completeness to the external Checklist Design audit without transferring general critique or workflow authority. | [PR #13](https://github.com/ishibashi-c/i484-engineering/pull/13) |
 
 ### CE-native patches
 
@@ -149,14 +142,14 @@ There are two classes:
 - `skills/ce-work/SKILL.md`
 
 **Behavior retained:**
-- `ce-brainstorm` loads `i484-product-design` before design-dependent product-UI questions or requirements decisions when the specialist is available.
+- `ce-brainstorm` loads `i484-style` before design-dependent product-UI questions or requirements decisions when the specialist is available.
 - `ce-plan` loads it before design-dependent UI planning decisions.
 - `ce-prototype` loads it when a prototype is settling product-UI behavior, feel, or reading experience.
 - `ce-polish` loads it for requested product-UI refinement without expanding the user-directed scope.
 - `ce-work` loads it before relevant product-UI implementation decisions.
 - The specialist contributes product/design/surface context, surface-intent, UX, composition, interaction, accessibility, content-stress, and visual-language judgment without owning CE workflow.
-- Other i484 specialists remain additive and domain-scoped.
-- `natural-japanese` and Ultracite may participate inside `ce-work`'s quality gate when available/applicable.
+- The communication and illustration domains remain additive and artifact-scoped.
+- `yomiyasu` and Ultracite may participate inside `ce-work`'s quality gate when available/applicable.
 
 **Introduced:** [PR #1](https://github.com/ishibashi-c/i484-engineering/pull/1)
 
@@ -288,10 +281,10 @@ A machine is on the intended architecture when:
 
 1. `i484-engineering` is the CE implementation in use.
 2. CE skills such as `ce-work`, `ce-debug`, `ce-code-review`, and `ce-setup` are visible to the active harness.
-3. `i484-product-design`, `i484-visualize`, and `i484-geometric-illustration` are visible from the same skill tree.
+3. `i484-style` is visible from the skill tree; the three retired entries are absent.
 4. Active global/project instructions do not require `i484-workflow` as the entry point.
 5. No second top-level i484 engineering workflow shadows CE.
-6. `natural-japanese` and Ultracite may remain independently installed as quality providers.
+6. `yomiyasu` and Ultracite may remain independently installed as quality providers.
 7. CE's setup/health check passes for the active project, subject to any explicitly accepted local limitations.
 
 UI Skills MCP is optional. Connecting or disconnecting it does not determine whether the core i484 Engineering cutover is valid.
@@ -311,7 +304,7 @@ CE remains responsible for deciding when engineering verification is complete. S
 Examples:
 
 - Product Design: focus, error recovery, long content, and responsive transitions are relevant observations.
-- Natural Japanese: changed user-facing Japanese should be checked for naturalness and semantic accuracy.
+- yomiyasu: changed user-facing Japanese should be checked for naturalness and semantic accuracy.
 - Ultracite: the project's configured JS/TS lint/check provider must pass.
 
 CE owns execution, ordering, reruns after later changes, review, and shipping.
@@ -321,3 +314,11 @@ CE owns execution, ordering, reruns after later changes, review, and shipping.
 Compound Engineering remains the foundational upstream project. Its MIT license and original copyright notice are preserved in [LICENSE](LICENSE).
 
 See [ATTRIBUTION.md](ATTRIBUTION.md) for explicit upstream credit, extraction baselines, and provenance details.
+
+## i484-style consolidation
+
+The 2026-10-02 consolidation replaces the three public specialist entries with `i484-style`. Domain sources preserve the original extraction baselines and license context. Existing UX and artifact contracts remain explicit; duplicate observation prose and repeated shared preference descriptions are removed. A priority rule based on user impact replaces fixed ordering of issue categories. Subject/edit image preservation is distinguished from style-reference copying.
+
+The target is Luna 6. Official model guidance supports conditional loading but does not prove output quality or token savings. Mechanical tests protect packaging, references, domain boundaries, and ownership-safe legacy cleanup. Runtime evals require fresh current-source contexts. The deleted entries have pinned historical description fingerprints so same-named independent user skills survive cleanup.
+
+Runtime callers, both cleanup registries, README counts, guides, and the eval catalog change together. Release-owned versions remain the release automation's responsibility. Global and host observations are updated separately on this machine; a repository update does not silently synchronize every PC.

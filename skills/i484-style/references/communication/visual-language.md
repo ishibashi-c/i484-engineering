@@ -43,4 +43,3 @@ containerを先に並べず、情報の関係からcompositionを選ぶ。同じ
 
 対象Projectに正本のデザインシステムがあればReuseを優先する。参考資料からは、構成、文字のrole、surface、挙動の関係をAdaptし、固有のartworkや見た目を複製しない。適合する方向がない場合だけCreateし、その選択を成果物内または報告で説明できる状態にする。
 
-`i484-product-design`から適応したのは、archetypeを先に選ぶこと、spacing・alignment・scaleをcontainerより先に使うこと、typographyとcolorをroleで扱うこと、汎用テンプレートを主題固有のcompositionへ変えること、Reuse／Adapt／Createの判断である。プロダクトUI固有のcomponent規則やV-routeは複製しない。

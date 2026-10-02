@@ -8,11 +8,7 @@ const SKILLS_DIR = path.join(PLUGIN_ROOT, "skills")
 const AGENTS_DIR = path.join(PLUGIN_ROOT, "agents")
 const PREFIX = "ce-"
 // The fork keeps its specialist namespace distinct from CE workflow skills.
-const SPECIALISTS = new Set([
-  "i484-product-design",
-  "i484-visualize",
-  "i484-geometric-illustration",
-])
+const SPECIALISTS = new Set(["i484-style"])
 const REF = `AGENTS.md "Naming Convention"`
 
 // Exemptions from the ce- prefix rule. Add entries here only with a written

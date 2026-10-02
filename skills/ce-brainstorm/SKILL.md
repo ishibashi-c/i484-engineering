@@ -18,7 +18,7 @@ Brainstorming answers **WHAT** to build through dialogue; `ce-plan` then enriche
 
 The feature description is what the invocation carries, whether the user wrote it or a calling skill passed it. If none came, ask the user what they want to explore and do not proceed until you have one.
 
-**i484 product-design knowledge is additive, never a second brainstorm workflow.** Read `references/interaction-rules.md` before design-dependent questions; it governs `i484-product-design` routing.
+**i484 product-design knowledge is additive, never a second brainstorm workflow.** Read `references/interaction-rules.md` before design-dependent questions; it governs `i484-style` (product-ui domain) routing.
 
 **`mode:return-to-caller`** (a leading token a calling skill such as `lfg` sets): strip it, run the dialogue unchanged, and replace Phase 4 with the structured return `references/handoff.md` defines: no menu, no `lfg` or `ce-plan` invocation.
 

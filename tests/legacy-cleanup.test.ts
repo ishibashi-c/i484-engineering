@@ -1,9 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
-import path from "path"
 import os from "os"
+import path from "path"
 import { parseFrontmatter } from "../src/utils/frontmatter"
-import { cleanupStaleSkillDirs, cleanupStaleAgents, cleanupStalePrompts } from "../src/utils/legacy-cleanup"
+import {
+  cleanupStaleAgents,
+  cleanupStalePrompts,
+  cleanupStaleSkillDirs,
+  isLegacySkillArtifactOwned,
+} from "../src/utils/legacy-cleanup"
 
 async function createDir(dir: string, content = "placeholder") {
   await fs.mkdir(dir, { recursive: true })
@@ -54,7 +59,9 @@ const HISTORICAL_AGENT_DESCRIPTIONS: Record<string, string> = {
 
 function historicalAgentDescription(name: string): string {
   const description = HISTORICAL_AGENT_DESCRIPTIONS[name]
-  if (!description) throw new Error(`Missing historical agent description for ${name}`)
+  if (!description) {
+    throw new Error(`Missing historical agent description for ${name}`)
+  }
   return description
 }
 
@@ -80,10 +87,7 @@ function kiroAgentConfigContent(name: string, description: string) {
     description,
     prompt: `file://./prompts/${name}.md`,
     tools: ["*"],
-    resources: [
-      "file://.kiro/steering/**/*.md",
-      "skill://.kiro/skills/**/SKILL.md",
-    ],
+    resources: ["file://.kiro/steering/**/*.md", "skill://.kiro/skills/**/SKILL.md"],
     includeMcpJson: true,
     welcomeMessage: `Switching to the ${name} agent. ${description}`,
   })
@@ -94,24 +98,15 @@ describe("cleanupStaleSkillDirs", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-skills-"))
     await createDir(
       path.join(root, "git-commit"),
-      skillContent(
-        "git-commit",
-        await pluginDescription("skills/ce-commit/SKILL.md"),
-      ),
+      skillContent("git-commit", await pluginDescription("skills/ce-commit/SKILL.md")),
     )
     await createDir(
       path.join(root, "setup"),
-      skillContent(
-        "setup",
-        await pluginDescription("skills/ce-setup/SKILL.md"),
-      ),
+      skillContent("setup", await pluginDescription("skills/ce-setup/SKILL.md")),
     )
     await createDir(
       path.join(root, "document-review"),
-      skillContent(
-        "document-review",
-        await pluginDescription("skills/ce-doc-review/SKILL.md"),
-      ),
+      skillContent("document-review", await pluginDescription("skills/ce-doc-review/SKILL.md")),
     )
 
     const removed = await cleanupStaleSkillDirs(root)
@@ -140,17 +135,11 @@ describe("cleanupStaleSkillDirs", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-renamed-"))
     await createDir(
       path.join(root, "ce-review"),
-      skillContent(
-        "ce-review",
-        await pluginDescription("skills/ce-code-review/SKILL.md"),
-      ),
+      skillContent("ce-review", await pluginDescription("skills/ce-code-review/SKILL.md")),
     )
     await createDir(
       path.join(root, "ce-document-review"),
-      skillContent(
-        "ce-document-review",
-        await pluginDescription("skills/ce-doc-review/SKILL.md"),
-      ),
+      skillContent("ce-document-review", await pluginDescription("skills/ce-doc-review/SKILL.md")),
     )
 
     const removed = await cleanupStaleSkillDirs(root)
@@ -193,17 +182,11 @@ describe("cleanupStaleSkillDirs", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-colon-workflows-"))
     await createDir(
       path.join(root, "ce:plan"),
-      skillContent(
-        "ce:plan",
-        await pluginDescription("skills/ce-plan/SKILL.md"),
-      ),
+      skillContent("ce:plan", await pluginDescription("skills/ce-plan/SKILL.md")),
     )
     await createDir(
       path.join(root, "workflows:review"),
-      skillContent(
-        "workflows:review",
-        await pluginDescription("skills/ce-code-review/SKILL.md"),
-      ),
+      skillContent("workflows:review", await pluginDescription("skills/ce-code-review/SKILL.md")),
     )
     await createDir(
       path.join(root, "ce:plan-beta"),
@@ -224,7 +207,7 @@ describe("cleanupStaleSkillDirs", () => {
   test("removes workflow skill dirs whose shipped descriptions drifted", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-workflow-drifted-desc-"))
     const oldBrainstormDescription =
-      "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm."
+      'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.'
     const oldPlanDescription =
       "Create structured plans for multi-step tasks -- software features, research workflows, events, study plans, or any goal that benefits from breakdown. Also deepens existing plans with interactive sub-agent review. Use when the user says 'plan this', 'create a plan', 'how should we build', 'break this down', or when a brainstorm doc is ready for planning. Use 'deepen the plan' or 'deepening pass' for the deepening flow. For exploratory requests, prefer ce-brainstorm first."
     const previousWorkDescription =
@@ -247,10 +230,7 @@ describe("cleanupStaleSkillDirs", () => {
       skillContent("workflows:plan", oldPlanDescription),
     )
     for (const name of ["ce:work", "workflows-work", "workflows:work"]) {
-      await createDir(
-        path.join(root, name),
-        skillContent(name, previousWorkDescription),
-      )
+      await createDir(path.join(root, name), skillContent(name, previousWorkDescription))
     }
 
     const removed = await cleanupStaleSkillDirs(root)
@@ -340,7 +320,7 @@ describe("cleanupStaleSkillDirs", () => {
       path.join(root, "claude-permissions-optimizer"),
       skillContent(
         "claude-permissions-optimizer",
-        "Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on \"optimize permissions\", \"reduce permission prompts\", \"allowlist commands\", \"too many permission prompts\", \"permission fatigue\", \"permission setup\", or complaints about clicking approve too often.",
+        'Optimize Claude Code permissions by finding safe Bash commands from session history and auto-applying them to settings.json. Can run from any coding agent but targets Claude Code specifically. Use when experiencing permission fatigue, too many permission prompts, wanting to optimize permissions, or needing to set up allowlists. Triggers on "optimize permissions", "reduce permission prompts", "allowlist commands", "too many permission prompts", "permission fatigue", "permission setup", or complaints about clicking approve too often.',
       ),
     )
     await createDir(
@@ -354,7 +334,7 @@ describe("cleanupStaleSkillDirs", () => {
       path.join(root, "ce-andrew-kane-gem-writer"),
       skillContent(
         "ce-andrew-kane-gem-writer",
-        "This skill should be used when writing Ruby gems following Andrew Kane's proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like \"create a gem\", \"write a Ruby library\", \"design a gem API\", or mentions of Andrew Kane's style.",
+        'This skill should be used when writing Ruby gems following Andrew Kane\'s proven patterns and philosophy. It applies when creating new Ruby gems, refactoring existing gems, designing gem APIs, or when clean, minimal, production-ready Ruby library code is needed. Triggers on requests like "create a gem", "write a Ruby library", "design a gem API", or mentions of Andrew Kane\'s style.',
       ),
     )
     await createDir(
@@ -363,7 +343,10 @@ describe("cleanupStaleSkillDirs", () => {
     )
     await createDir(
       path.join(root, "ce-deploy-docs"),
-      skillContent("ce-deploy-docs", "Validate and prepare documentation for GitHub Pages deployment"),
+      skillContent(
+        "ce-deploy-docs",
+        "Validate and prepare documentation for GitHub Pages deployment",
+      ),
     )
     await createDir(
       path.join(root, "ce-dspy-ruby"),
@@ -399,7 +382,7 @@ description: |
       path.join(root, "git-clean-gone-branches"),
       skillContent(
         "git-clean-gone-branches",
-        "Clean up local branches whose remote tracking branch is gone. Use when the user says \"clean up branches\", \"delete gone branches\", \"prune local branches\", \"clean gone\", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.",
+        'Clean up local branches whose remote tracking branch is gone. Use when the user says "clean up branches", "delete gone branches", "prune local branches", "clean gone", or wants to remove stale local branches that no longer exist on the remote. Also handles removing associated worktrees for branches that have them.',
       ),
     )
 
@@ -423,7 +406,10 @@ description: |
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-legacy-only-user-"))
     await createDir(
       path.join(root, "reproduce-bug"),
-      skillContent("reproduce-bug", "A project-local reproduce-bug helper unrelated to compound-engineering."),
+      skillContent(
+        "reproduce-bug",
+        "A project-local reproduce-bug helper unrelated to compound-engineering.",
+      ),
     )
 
     const removed = await cleanupStaleSkillDirs(root)
@@ -438,17 +424,11 @@ describe("cleanupStaleAgents", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-agents-md-"))
     await createFile(
       path.join(root, "adversarial-reviewer.md"),
-      agentContent(
-        "adversarial-reviewer",
-        historicalAgentDescription("ce-adversarial-reviewer"),
-      ),
+      agentContent("adversarial-reviewer", historicalAgentDescription("ce-adversarial-reviewer")),
     )
     await createFile(
       path.join(root, "learnings-researcher.md"),
-      agentContent(
-        "learnings-researcher",
-        historicalAgentDescription("ce-learnings-researcher"),
-      ),
+      agentContent("learnings-researcher", historicalAgentDescription("ce-learnings-researcher")),
     )
 
     const removed = await cleanupStaleAgents(root, ".md")
@@ -468,17 +448,11 @@ describe("cleanupStaleAgents", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-agents-copilot-"))
     await createFile(
       path.join(root, "security-sentinel.agent.md"),
-      agentContent(
-        "security-sentinel",
-        historicalAgentDescription("ce-security-sentinel"),
-      ),
+      agentContent("security-sentinel", historicalAgentDescription("ce-security-sentinel")),
     )
     await createFile(
       path.join(root, "performance-oracle.agent.md"),
-      agentContent(
-        "performance-oracle",
-        historicalAgentDescription("ce-performance-oracle"),
-      ),
+      agentContent("performance-oracle", historicalAgentDescription("ce-performance-oracle")),
     )
 
     const removed = await cleanupStaleAgents(root, ".agent.md")
@@ -491,10 +465,7 @@ describe("cleanupStaleAgents", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-agents-kiro-"))
     await createFile(
       path.join(root, "slack-researcher.json"),
-      kiroAgentConfigContent(
-        "slack-researcher",
-        historicalAgentDescription("ce-slack-researcher"),
-      ),
+      kiroAgentConfigContent("slack-researcher", historicalAgentDescription("ce-slack-researcher")),
     )
     await createFile(
       path.join(root, "session-historian.json"),
@@ -530,10 +501,7 @@ describe("cleanupStaleAgents", () => {
     )
     await createDir(
       path.join(root, "repo-research-analyst"),
-      skillContent(
-        "repo-research-analyst",
-        historicalAgentDescription("ce-repo-research-analyst"),
-      ),
+      skillContent("repo-research-analyst", historicalAgentDescription("ce-repo-research-analyst")),
     )
 
     const removed = await cleanupStaleAgents(root, null)
@@ -545,8 +513,14 @@ describe("cleanupStaleAgents", () => {
 
   test("preserves ce-prefixed agent files", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-agents-keep-"))
-    await createFile(path.join(root, "ce-adversarial-reviewer.md"), agentContent("ce-adversarial-reviewer", "custom"))
-    await createFile(path.join(root, "ce-learnings-researcher.md"), agentContent("ce-learnings-researcher", "custom"))
+    await createFile(
+      path.join(root, "ce-adversarial-reviewer.md"),
+      agentContent("ce-adversarial-reviewer", "custom"),
+    )
+    await createFile(
+      path.join(root, "ce-learnings-researcher.md"),
+      agentContent("ce-learnings-researcher", "custom"),
+    )
 
     const removed = await cleanupStaleAgents(root, ".md")
 
@@ -617,17 +591,11 @@ describe("cleanupStalePrompts", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-prompts-"))
     await createFile(
       path.join(root, "ce-plan.md"),
-      promptWrapperContent(
-        "ce-plan",
-        await pluginDescription("skills/ce-plan/SKILL.md"),
-      ),
+      promptWrapperContent("ce-plan", await pluginDescription("skills/ce-plan/SKILL.md")),
     )
     await createFile(
       path.join(root, "ce-review.md"),
-      promptWrapperContent(
-        "ce-review",
-        await pluginDescription("skills/ce-code-review/SKILL.md"),
-      ),
+      promptWrapperContent("ce-review", await pluginDescription("skills/ce-code-review/SKILL.md")),
     )
     await createFile(
       path.join(root, "ce-brainstorm.md"),
@@ -659,7 +627,7 @@ describe("cleanupStalePrompts", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-prompts-user-"))
     await createFile(
       path.join(root, "ce-plan.md"),
-      "---\ndescription: \"A project-local ce-plan helper\"\n---\n\nCustom prompt body\n",
+      '---\ndescription: "A project-local ce-plan helper"\n---\n\nCustom prompt body\n',
     )
 
     const removed = await cleanupStalePrompts(root)
@@ -674,16 +642,14 @@ describe("cleanupStalePrompts", () => {
       path.join(root, "ce-plan.md"),
       legacyWorkflowPromptContent(
         "ce:plan",
-        (await pluginDescription("skills/ce-plan/SKILL.md"))
-          .replaceAll("ce-", "ce:"),
+        (await pluginDescription("skills/ce-plan/SKILL.md")).replaceAll("ce-", "ce:"),
       ),
     )
     await createFile(
       path.join(root, "ce-work.md"),
       legacyWorkflowPromptContent(
         "ce:work",
-        (await pluginDescription("skills/ce-work/SKILL.md"))
-          .replaceAll("ce-", "ce:"),
+        (await pluginDescription("skills/ce-work/SKILL.md")).replaceAll("ce-", "ce:"),
       ),
     )
 
@@ -741,7 +707,7 @@ describe("cleanupStalePrompts", () => {
       path.join(root, "ce-brainstorm.md"),
       promptWrapperContent(
         "ce-brainstorm",
-        "Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says \"let's brainstorm\", \"what should we build\", or \"help me think through X\", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.",
+        'Explore requirements and approaches through collaborative dialogue, then write a right-sized requirements document. Use when the user says "let\'s brainstorm", "what should we build", or "help me think through X", presents a vague or ambitious feature request, or seems unsure about scope or direction -- even without explicitly asking to brainstorm.',
       ),
     )
 
@@ -847,23 +813,73 @@ describe("idempotency", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cleanup-idempotent-"))
     await createDir(
       path.join(root, "git-commit"),
-      skillContent(
-        "git-commit",
-        await pluginDescription("skills/ce-commit/SKILL.md"),
-      ),
+      skillContent("git-commit", await pluginDescription("skills/ce-commit/SKILL.md")),
     )
     await createFile(
       path.join(root, "adversarial-reviewer.md"),
-      agentContent(
-        "adversarial-reviewer",
-        historicalAgentDescription("ce-adversarial-reviewer"),
-      ),
+      agentContent("adversarial-reviewer", historicalAgentDescription("ce-adversarial-reviewer")),
     )
 
-    const first = await cleanupStaleSkillDirs(root) + await cleanupStaleAgents(root, ".md")
+    const first = (await cleanupStaleSkillDirs(root)) + (await cleanupStaleAgents(root, ".md"))
     expect(first).toBe(2)
 
-    const second = await cleanupStaleSkillDirs(root) + await cleanupStaleAgents(root, ".md")
+    const second = (await cleanupStaleSkillDirs(root)) + (await cleanupStaleAgents(root, ".md"))
     expect(second).toBe(0)
+  })
+})
+
+describe("i484-style upgrade cleanup", () => {
+  const historical = {
+    "i484-product-design":
+      "プロダクトUIをdurableなproduct truth、design truth、surface intentに分けて判断する専門Knowledge Skill。Use when user-facing product UI is designed, changed, or evaluated and UX、composition、interaction、content、accessibility、visual hierarchyの判断が必要なとき。実装工程、作業分解、検証、Gitやshippingはengineering frameworkに委ねる。",
+    "i484-visualize":
+      "説明・比較・図解・技術引き継ぎを単一の自己完結型HTMLファイルにする。ポータブルなページが必要な場合、または指定された視覚言語をHTML/SVGへ適応する場合に使い、通常の文章回答や小さなインライン図には適用しない。",
+    "i484-geometric-illustration":
+      "ミニマル幾何学イラストの生成・参照画像変換・視覚レビューを行う専門Skill。都市景観、建築、風景、乗り物、植物などを、認識アンカーと関係を保った限定色の平面・量塊・帯・反射へ抽象化する。プロダクトUIや一般的なengineering workflowは扱わない。",
+  }
+  test("removes the three retired plugin entries, remains idempotent and protects user content", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "i484-upgrade-"))
+    try {
+      for (const [name, description] of Object.entries(historical)) {
+        await createDir(path.join(root, name), skillContent(name, description))
+      }
+      await createDir(path.join(root, "i484-style"), skillContent("i484-style", "User-owned style"))
+      expect(await cleanupStaleSkillDirs(root)).toBe(3)
+      expect(await exists(path.join(root, "i484-style"))).toBe(true)
+      expect(await cleanupStaleSkillDirs(root)).toBe(0)
+      for (const name of Object.keys(historical)) {
+        await createDir(path.join(root, name), skillContent(name, "My independent user skill"))
+      }
+      expect(await cleanupStaleSkillDirs(root)).toBe(0)
+      for (const name of Object.keys(historical)) {
+        expect(await exists(path.join(root, name))).toBe(true)
+      }
+    } finally {
+      await fs.rm(root, { recursive: true, force: true })
+    }
+  })
+
+  test("recognizes the first shipped UI skill description without adopting a foreign skill", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "i484-first-version-"))
+    const name = "i484-product-design"
+    const skillDir = path.join(root, name)
+    try {
+      await createDir(
+        skillDir,
+        skillContent(
+          name,
+          "プロダクトUIの設計判断を支える専門Knowledge Skill。ユーザーの仕事、情報構造、composition、interaction、content、accessibility、visual hierarchy、状態と回復を評価し、設計上の制約・改善案・品質基準を与える。実装工程、作業分解、テスト量、レビュー起動、Gitやshippingはengineering frameworkに委ねる。",
+        ),
+      )
+      expect(await isLegacySkillArtifactOwned(skillDir, name)).toBe(true)
+      expect(await cleanupStaleSkillDirs(root)).toBe(1)
+      expect(await exists(skillDir)).toBe(false)
+      await createDir(skillDir, skillContent(name, "My independent user skill"))
+      expect(await isLegacySkillArtifactOwned(skillDir, name)).toBe(false)
+      expect(await cleanupStaleSkillDirs(root)).toBe(0)
+      expect(await exists(skillDir)).toBe(true)
+    } finally {
+      await fs.rm(root, { recursive: true, force: true })
+    }
   })
 })

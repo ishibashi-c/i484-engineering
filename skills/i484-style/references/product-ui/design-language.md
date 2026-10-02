@@ -2,16 +2,7 @@
 
 visual direction、typography、color、spacing、geometry、densityが対象に含まれるときに読む。
 
-## 共有するdesign DNA
-
-- 装飾効果の寄せ集めではなく、editorialでgeometryが明快なhierarchyを作る。
-- colorをworld、grouping、emphasis、semantic roleのための構造媒体として使う。surface、accent、statusのroleを調和させ、必須の意味をcolorだけに依存しない。
-- temperature、saturation、area ratioが調和する制御されたpaletteを優先する。感情的・文化的な文脈は入力として使い、普遍的なcolor-psychologyの早見表には依存しない。
-- typographyをcharacterとhierarchyを運ぶ主要な媒体として扱う。1つのfamilyを3つのroleに使う場合でも、heading、body、metadataの役割を意図的に定める。
-- 中程度のinformation densityを好む。重要で頻繁に使うinformationは見える状態にし、任意またはadvancedなinformationは量が増えたときに段階的に開示する。
-- border、container、shadow、rounded rectangleを追加する前に、spacing、alignment、scale、proximityで構造を作る。
-- 同じ文脈の同じroleは、label、hierarchy、配置のlogic、見た目、挙動を安定させる。variationには意味上の理由が必要。
-- border、radius、shadow、shapeは、装飾の反射的な追加ではなく、構造やaffordanceを説明するために使う。
+共通の方向はi484-styleの共通方針で定める。ここではUI固有の適用条件を扱う。
 
 ## typographyの判断
 

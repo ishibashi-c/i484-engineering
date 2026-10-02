@@ -167,11 +167,7 @@ describe("frontmatter YAML validity", () => {
         // confused user types. No other entries should be added.
         if (pluginRoot === ".") {
           const SKILL_PREFIX_ALLOWLIST = new Set(["every-style-editor", "file-todos", "lfg", "wtf"])
-          const I484_SPECIALISTS = new Set([
-            "i484-product-design",
-            "i484-visualize",
-            "i484-geometric-illustration",
-          ])
+          const I484_SPECIALISTS = new Set(["i484-style"])
           test(`${pluginRoot}/${rel} skill name uses ce- prefix`, () => {
             const dirName = path.basename(path.dirname(rel))
             if (SKILL_PREFIX_ALLOWLIST.has(dirName)) {

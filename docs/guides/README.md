@@ -88,9 +88,7 @@ Domain-specific knowledge and artifact capabilities layered onto Compound Engine
 
 | Skill | Description |
 |-------|-------------|
-| [`/i484-product-design`](./i484-product-design.md) | Product-design judgment for UX, composition, interaction, accessibility, content stress, visual language, and UI fidelity; CE still owns implementation and verification. |
-| [`/i484-visualize`](./i484-visualize.md) | Produce a single portable HTML explanation or structural visualization when that artifact is the requested deliverable. |
-| [`/i484-geometric-illustration`](./i484-geometric-illustration.md) | Create and judge illustrations in the i484 geometric visual language without taking over general engineering workflow. |
+| [`/i484-style`](./i484-style.md) | Apply shared preferences through conditional UI, explanation/portable HTML, and explicitly requested geometric illustration domains; CE owns engineering. |
 
 ---
 
