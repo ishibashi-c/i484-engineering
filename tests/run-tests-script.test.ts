@@ -3,14 +3,25 @@ import { spawn, spawnSync } from "node:child_process"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { junitCases, lostExitMs, lostExitZombies, parsePs, passTimeoutMs, passthroughArgs, rerunCandidates } from "../scripts/run-tests"
+import {
+  junitCases,
+  lostExitMs,
+  lostExitZombies,
+  parsePs,
+  passTimeoutMs,
+  passthroughArgs,
+  rerunCandidates,
+} from "../scripts/run-tests"
 import { alive } from "./helpers/process"
 
-const junit = (suites: string) => `<?xml version="1.0"?>\n<testsuites name="bun test">\n${suites}\n</testsuites>`
-const ok = (file: string, n: number) => `<testcase name="t${n}" classname="g" time="0" file="${file}" line="${n}" />`
+const junit = (suites: string) =>
+  `<?xml version="1.0"?>\n<testsuites name="bun test">\n${suites}\n</testsuites>`
+const ok = (file: string, n: number) =>
+  `<testcase name="t${n}" classname="g" time="0" file="${file}" line="${n}" />`
 const fail = (file: string, n: number, type: string) =>
   `<testcase name="t${n}" classname="g" time="30" file="${file}" line="${n}"><failure type="${type}" /></testcase>`
-const suite = (file: string, body: string) => `<testsuite name="${file}" file="${file}"><testsuite name="g" file="${file}">${body}</testsuite></testsuite>`
+const suite = (file: string, body: string) =>
+  `<testsuite name="${file}" file="${file}"><testsuite name="g" file="${file}">${body}</testsuite></testsuite>`
 
 describe("run-tests: choosing files to re-run from a bun junit report", () => {
   test("reads cases in order, taking the file from the case or its enclosing suite", () => {
@@ -28,20 +39,36 @@ describe("run-tests: choosing files to re-run from a bun junit report", () => {
   })
 
   test("re-runs when every failed file's failures are TimeoutError, including passes after a timeout", () => {
-    const wedged = suite("tests/w.test.ts", ok("tests/w.test.ts", 1) + fail("tests/w.test.ts", 2, "TimeoutError") + fail("tests/w.test.ts", 3, "TimeoutError"))
+    const wedged = suite(
+      "tests/w.test.ts",
+      ok("tests/w.test.ts", 1) +
+        fail("tests/w.test.ts", 2, "TimeoutError") +
+        fail("tests/w.test.ts", 3, "TimeoutError"),
+    )
     expect(rerunCandidates(junitCases(junit(wedged)))).toEqual(["tests/w.test.ts"])
     // PR 1680 CI: the same worker passed later tests after a 30s spawn hang.
-    const recovered = suite("tests/r.test.ts", fail("tests/r.test.ts", 1, "TimeoutError") + ok("tests/r.test.ts", 2))
+    const recovered = suite(
+      "tests/r.test.ts",
+      fail("tests/r.test.ts", 1, "TimeoutError") + ok("tests/r.test.ts", 2),
+    )
     expect(rerunCandidates(junitCases(junit(recovered)))).toEqual(["tests/r.test.ts"])
     const interspersed = suite(
       "tests/i.test.ts",
-      fail("tests/i.test.ts", 1, "TimeoutError") + ok("tests/i.test.ts", 2) + fail("tests/i.test.ts", 3, "TimeoutError"),
+      fail("tests/i.test.ts", 1, "TimeoutError") +
+        ok("tests/i.test.ts", 2) +
+        fail("tests/i.test.ts", 3, "TimeoutError"),
     )
-    expect(rerunCandidates(junitCases(junit(interspersed + recovered)))).toEqual(["tests/i.test.ts", "tests/r.test.ts"])
+    expect(rerunCandidates(junitCases(junit(interspersed + recovered)))).toEqual([
+      "tests/i.test.ts",
+      "tests/r.test.ts",
+    ])
     // A non-timeout failure anywhere, even in another file, keeps the first result.
     const assertion = suite("tests/d.test.ts", fail("tests/d.test.ts", 1, "AssertionError"))
     expect(rerunCandidates(junitCases(junit(wedged + assertion)))).toEqual([])
-    const late = suite("tests/l.test.ts", fail("tests/l.test.ts", 1, "TimeoutError") + fail("tests/l.test.ts", 2, "AssertionError"))
+    const late = suite(
+      "tests/l.test.ts",
+      fail("tests/l.test.ts", 1, "TimeoutError") + fail("tests/l.test.ts", 2, "AssertionError"),
+    )
     expect(rerunCandidates(junitCases(junit(late)))).toEqual([])
   })
 
@@ -93,25 +120,45 @@ describe("run-tests: choosing files to re-run from a bun junit report", () => {
     expect(rerunCandidates(junitCases(junit(emptyWord)))).toEqual([])
   })
 
-
   test("re-runs nothing for a clean, errored-only, or empty report", () => {
-    expect(rerunCandidates(junitCases(junit(suite("tests/c.test.ts", ok("tests/c.test.ts", 1)))))).toEqual([])
-    const errored = junit(`<testsuite name="tests/e.test.ts" file="tests/e.test.ts"><testcase name="boom" file="tests/e.test.ts" line="1"><error message="import failed" /></testcase></testsuite>`)
+    expect(
+      rerunCandidates(junitCases(junit(suite("tests/c.test.ts", ok("tests/c.test.ts", 1))))),
+    ).toEqual([])
+    const errored = junit(
+      `<testsuite name="tests/e.test.ts" file="tests/e.test.ts"><testcase name="boom" file="tests/e.test.ts" line="1"><error message="import failed" /></testcase></testsuite>`,
+    )
     expect(junitCases(errored)).toEqual([{ file: "tests/e.test.ts", failure: "error" }])
     expect(rerunCandidates(junitCases(errored))).toEqual([])
     expect(rerunCandidates(junitCases(""))).toEqual([])
   })
 
   test("passes caller options through and drops wrapper-owned reporter flags", () => {
-    expect(passthroughArgs(["--timeout=100", "tests/a.test.ts", "--bail"])).toEqual(["--timeout=100", "--bail"])
-    expect(passthroughArgs(["--reporter", "junit", "--reporter-outfile", "/tmp/out.xml", "--timeout=5"])).toEqual(["--timeout=5"])
-    expect(passthroughArgs(["--parallel", "--reporter=junit", "--reporter-outfile=/tmp/out.xml", "-t", "foo"])).toEqual(["-t", "foo"])
+    expect(passthroughArgs(["--timeout=100", "tests/a.test.ts", "--bail"])).toEqual([
+      "--timeout=100",
+      "--bail",
+    ])
+    expect(
+      passthroughArgs(["--reporter", "junit", "--reporter-outfile", "/tmp/out.xml", "--timeout=5"]),
+    ).toEqual(["--timeout=5"])
+    expect(
+      passthroughArgs([
+        "--parallel",
+        "--reporter=junit",
+        "--reporter-outfile=/tmp/out.xml",
+        "-t",
+        "foo",
+      ]),
+    ).toEqual(["-t", "foo"])
   })
 })
 
-const RUNNER = path.join(__dirname, "../scripts/run-tests.ts")
+const RUNNER = path.join(import.meta.dirname, "../scripts/run-tests.ts")
 const fixtureRoots: string[] = []
-afterAll(() => fixtureRoots.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
+afterAll(() => {
+  for (const dir of fixtureRoots) {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
 
 function fixture(body: string): string {
   const dir = mkdtempSync(path.join(tmpdir(), "run-tests-watchdog-"))
@@ -160,12 +207,18 @@ describe("run-tests: stall watchdog", () => {
       expect(alive(worker)).toBe(false)
       expect(alive(orphan)).toBe(false)
     } finally {
-      for (const pid of [worker, orphan]) if (alive(pid)) process.kill(pid, "SIGKILL")
+      for (const pid of [worker, orphan]) {
+        if (alive(pid)) {
+          process.kill(pid, "SIGKILL")
+        }
+      }
     }
   }, 90_000)
 
   test("a pass that finishes within its limit keeps its normal result", () => {
-    const dir = fixture(`import { test, expect } from "bun:test"\ntest("ok", () => expect(1).toBe(1))\n`)
+    const dir = fixture(
+      `import { test, expect } from "bun:test"\ntest("ok", () => expect(1).toBe(1))\n`,
+    )
     const r = spawnSync(process.execPath, [RUNNER, "./fixture.test.ts"], {
       cwd: dir,
       encoding: "utf8",
@@ -181,50 +234,75 @@ describe("run-tests: stall watchdog", () => {
 import { spawnSync } from "node:child_process"
 test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/null 2>&1 & echo $! > orphan.pid"]) })
 `)
-    const r = spawnSync(process.execPath, [RUNNER, "./fixture.test.ts"], { cwd: dir, encoding: "utf8", timeout: 60_000 })
+    const r = spawnSync(process.execPath, [RUNNER, "./fixture.test.ts"], {
+      cwd: dir,
+      encoding: "utf8",
+      timeout: 60_000,
+    })
     const orphan = readPid(path.join(dir, "orphan.pid"))
     try {
       expect(r.status).toBe(0)
       expect(alive(orphan)).toBe(false)
     } finally {
-      if (alive(orphan)) process.kill(orphan, "SIGKILL")
+      if (alive(orphan)) {
+        process.kill(orphan, "SIGKILL")
+      }
     }
   }, 90_000)
 
   // Every signal a terminal or a tool sends the runner; the detached pass gets none of them directly.
-  test.each([
+  for (const [signal, status] of [
     ["SIGINT", 130],
     ["SIGTERM", 143],
     ["SIGHUP", 129],
     ["SIGQUIT", 131],
-  ] as const)("%s to the runner stops the pass it started", async (signal, status) => {
-    const dir = fixture(HANG)
-    const runner = spawn(process.execPath, [RUNNER, "./fixture.test.ts"], {
-      cwd: dir,
-      env: { ...process.env, CE_TEST_PASS_TIMEOUT_SECONDS: "120" },
-      stdio: "ignore",
-    })
-    const exited = new Promise<number | null>((resolve) => runner.on("exit", (code) => resolve(code)))
-    const deadline = Date.now() + 30_000
-    while (!existsSync(path.join(dir, "started")) && Date.now() < deadline) await Bun.sleep(100)
-    const worker = readPid(path.join(dir, "worker.pid"))
-    const orphan = readPid(path.join(dir, "orphan.pid"))
-    try {
-      runner.kill(signal)
-      // The signal's conventional status, so an interrupt is not mistaken for a test failure.
-      expect(await exited).toBe(status)
-      const settle = Date.now() + 5_000
-      while (alive(worker) && Date.now() < settle) await Bun.sleep(100)
-      expect(alive(worker)).toBe(false)
-      expect(alive(orphan)).toBe(false)
-    } finally {
-      for (const pid of [worker, orphan]) if (alive(pid)) process.kill(pid, "SIGKILL")
-      if (runner.exitCode === null) runner.kill("SIGKILL")
-    }
-  }, 90_000)
+  ] as const) {
+    // Intentional SIGQUIT deaths open macOS crash dialogs. Linux CI keeps this coverage.
+    test.skipIf(process.platform === "darwin" && signal === "SIGQUIT")(
+      `${signal} to the runner stops the pass it started`,
+      async () => {
+        const dir = fixture(HANG)
+        const runner = spawn(process.execPath, [RUNNER, "./fixture.test.ts"], {
+          cwd: dir,
+          env: { ...process.env, CE_TEST_PASS_TIMEOUT_SECONDS: "120" },
+          stdio: "ignore",
+        })
+        const exited = new Promise<number | null>((resolve) =>
+          runner.on("exit", (code) => resolve(code)),
+        )
+        const deadline = Date.now() + 30_000
+        while (!existsSync(path.join(dir, "started")) && Date.now() < deadline) {
+          await Bun.sleep(100)
+        }
+        const worker = readPid(path.join(dir, "worker.pid"))
+        const orphan = readPid(path.join(dir, "orphan.pid"))
+        try {
+          runner.kill(signal)
+          // The signal's conventional status, so an interrupt is not mistaken for a test failure.
+          expect(await exited).toBe(status)
+          const settle = Date.now() + 5000
+          while (alive(worker) && Date.now() < settle) {
+            await Bun.sleep(100)
+          }
+          expect(alive(worker)).toBe(false)
+          expect(alive(orphan)).toBe(false)
+        } finally {
+          for (const pid of [worker, orphan]) {
+            if (alive(pid)) {
+              process.kill(pid, "SIGKILL")
+            }
+          }
+          if (runner.exitCode === null) {
+            runner.kill("SIGKILL")
+          }
+        }
+      },
+      90_000,
+    )
+  }
 
   test("reads the limit override in seconds and ignores unusable values", () => {
-    expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "2" })).toBe(2_000)
+    expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "2" })).toBe(2000)
     expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "abc" })).toBe(60_000)
 
     expect(passTimeoutMs({ CE_TEST_PASS_TIMEOUT_SECONDS: "90" })).toBe(90_000)
@@ -234,7 +312,9 @@ test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/
     }
     // Watch and hot modes stay alive on purpose; a limit would kill a healthy session.
     for (const flag of ["--watch", "--hot"]) {
-      expect(passTimeoutMs({ CE_TEST_PASS_TIMEOUT_SECONDS: "5" }, ["tests/a.test.ts", flag])).toBeNull()
+      expect(
+        passTimeoutMs({ CE_TEST_PASS_TIMEOUT_SECONDS: "5" }, ["tests/a.test.ts", flag]),
+      ).toBeNull()
     }
   })
 })

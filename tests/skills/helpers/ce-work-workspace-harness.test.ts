@@ -1,15 +1,23 @@
 import { describe, expect, test } from "bun:test"
 import { spawn, spawnSync } from "node:child_process"
-import { existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { alive } from "../../helpers/process"
-import { ctlWithScript, isLostChildExit, makeRepo, throwLostChildExit, tmp } from "./ce-work-workspace-harness"
+import {
+  ctlWithScript,
+  isLostChildExit,
+  makeRepo,
+  throwLostChildExit,
+  tmp,
+} from "./ce-work-workspace-harness"
 
 describe("ce-work workspace harness: lost child-exit", () => {
   test("detects the spawnSync timeout signature and throws TimeoutError", () => {
     expect(isLostChildExit({ status: null, signal: "SIGKILL" })).toBe(true)
-    expect(isLostChildExit({ status: null, signal: "SIGTERM", error: { code: "ETIMEDOUT" } })).toBe(true)
+    expect(isLostChildExit({ status: null, signal: "SIGTERM", error: { code: "ETIMEDOUT" } })).toBe(
+      true,
+    )
     expect(isLostChildExit({ status: 120, signal: null, stdout: "", stderr: "" })).toBe(true)
     expect(isLostChildExit({ status: 120, signal: null, stderr: "assertion failed\n" })).toBe(false)
     expect(isLostChildExit({ status: 0, signal: null, stdout: "READY\n" })).toBe(false)
@@ -27,10 +35,14 @@ describe("ce-work workspace harness: lost child-exit", () => {
 
 describe("ce-work workspace harness: repo template", () => {
   test("makeRepo reseeds when the cached template directory has gone missing", () => {
-    const before = new Set(readdirSync(tmpdir()).filter((name) => name.startsWith("ce-work-repo-template-")))
+    const before = new Set(
+      readdirSync(tmpdir()).filter((name) => name.startsWith("ce-work-repo-template-")),
+    )
     const first = makeRepo()
     expect(existsSync(path.join(first.repo, "docs", "plans", "plan.md"))).toBe(true)
-    const created = readdirSync(tmpdir()).filter((name) => name.startsWith("ce-work-repo-template-") && !before.has(name))
+    const created = readdirSync(tmpdir()).filter(
+      (name) => name.startsWith("ce-work-repo-template-") && !before.has(name),
+    )
     expect(created.length).toBe(1)
     // CI has lost this directory mid-file after a timed-out test; every later makeRepo then threw ENOENT.
     rmSync(path.join(tmpdir(), created[0]), { recursive: true, force: true })
@@ -41,7 +53,7 @@ describe("ce-work workspace harness: repo template", () => {
   })
 })
 
-const RUN_IN_GROUP = path.join(__dirname, "run-in-group.py")
+const RUN_IN_GROUP = path.join(import.meta.dirname, "run-in-group.py")
 
 describe("ce-work workspace harness: process-group timeout", () => {
   test("a timeout kills the command's whole group, including a grandchild holding its output", () => {
@@ -49,7 +61,13 @@ describe("ce-work workspace harness: process-group timeout", () => {
     const started = Date.now()
     const r = spawnSync(
       "python3",
-      [RUN_IN_GROUP, "1", "bash", "-c", "sleep 300 & echo $! > grandchild.pid; echo started; sleep 300"],
+      [
+        RUN_IN_GROUP,
+        "1",
+        "bash",
+        "-c",
+        "sleep 300 & echo $! > grandchild.pid; echo started; sleep 300",
+      ],
       { cwd: dir, encoding: "utf8", timeout: 30_000, killSignal: "SIGKILL" },
     )
     const grandchild = Number(readFileSync(path.join(dir, "grandchild.pid"), "utf8"))
@@ -59,56 +77,99 @@ describe("ce-work workspace harness: process-group timeout", () => {
       expect(r.stdout).toContain("started")
       expect(alive(grandchild)).toBe(false)
     } finally {
-      if (alive(grandchild)) process.kill(grandchild, "SIGKILL")
+      if (alive(grandchild)) {
+        process.kill(grandchild, "SIGKILL")
+      }
     }
   })
 
   // The same signals scripts/run-tests.ts forwards to the pass this helper runs inside.
-  test.each(["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"] as const)("%s to the helper kills the command's whole group too", async (signal) => {
-    const dir = tmp("ce-work-group-int-")
-    const helper = spawn("python3", [RUN_IN_GROUP, "60", "bash", "-c", "sleep 300 & echo $! > grandchild.pid; echo $$ > child.pid; sleep 300"], {
-      cwd: dir,
-      stdio: "ignore",
-    })
-    const exited = new Promise<void>((resolve) => helper.on("exit", () => resolve()))
-    const deadline = Date.now() + 15_000
-    while (!(existsSync(path.join(dir, "grandchild.pid")) && existsSync(path.join(dir, "child.pid"))) && Date.now() < deadline) {
-      await Bun.sleep(50)
-    }
-    const pids = ["child.pid", "grandchild.pid"].map((name) => Number(readFileSync(path.join(dir, name), "utf8")))
-    try {
-      helper.kill(signal)
-      await exited
-      await Bun.sleep(200)
-      for (const pid of pids) expect(alive(pid)).toBe(false)
-    } finally {
-      for (const pid of pids) if (alive(pid)) process.kill(pid, "SIGKILL")
-    }
-  })
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"] as const) {
+    // Re-raising SIGQUIT opens macOS Python crash dialogs. Linux CI keeps this coverage.
+    test.skipIf(process.platform === "darwin" && signal === "SIGQUIT")(
+      `${signal} to the helper kills the command's whole group too`,
+      async () => {
+        const dir = tmp("ce-work-group-int-")
+        const helper = spawn(
+          "python3",
+          [
+            RUN_IN_GROUP,
+            "60",
+            "bash",
+            "-c",
+            "sleep 300 & echo $! > grandchild.pid; echo $$ > child.pid; sleep 300",
+          ],
+          {
+            cwd: dir,
+            stdio: "ignore",
+          },
+        )
+        const exited = new Promise<void>((resolve) => helper.on("exit", () => resolve()))
+        const deadline = Date.now() + 15_000
+        while (
+          !(
+            existsSync(path.join(dir, "grandchild.pid")) && existsSync(path.join(dir, "child.pid"))
+          ) &&
+          Date.now() < deadline
+        ) {
+          await Bun.sleep(50)
+        }
+        const pids = ["child.pid", "grandchild.pid"].map((name) =>
+          Number(readFileSync(path.join(dir, name), "utf8")),
+        )
+        try {
+          helper.kill(signal)
+          await exited
+          await Bun.sleep(200)
+          for (const pid of pids) {
+            expect(alive(pid)).toBe(false)
+          }
+        } finally {
+          for (const pid of pids) {
+            if (alive(pid)) {
+              process.kill(pid, "SIGKILL")
+            }
+          }
+        }
+      },
+    )
+  }
 
   test("a command that exits normally takes its leftover background processes with it", () => {
     const dir = tmp("ce-work-group-exit-")
     const started = Date.now()
-    const r = spawnSync("python3", [RUN_IN_GROUP, "60", "bash", "-c", "sleep 300 & echo $! > leftover.pid; exit 0"], {
-      cwd: dir,
-      encoding: "utf8",
-      timeout: 30_000,
-      killSignal: "SIGKILL",
-    })
+    const r = spawnSync(
+      "python3",
+      [RUN_IN_GROUP, "60", "bash", "-c", "sleep 300 & echo $! > leftover.pid; exit 0"],
+      {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 30_000,
+        killSignal: "SIGKILL",
+      },
+    )
     const leftover = Number(readFileSync(path.join(dir, "leftover.pid"), "utf8"))
     try {
       expect(r.status).toBe(0)
       expect(Date.now() - started).toBeLessThan(10_000)
       expect(alive(leftover)).toBe(false)
     } finally {
-      if (alive(leftover)) process.kill(leftover, "SIGKILL")
+      if (alive(leftover)) {
+        process.kill(leftover, "SIGKILL")
+      }
     }
   })
 
   test("a command that finishes passes its status, output, and signal through unchanged", () => {
-    const done = spawnSync("python3", [RUN_IN_GROUP, "10", "bash", "-c", "echo out; echo err >&2; exit 3"], { encoding: "utf8" })
+    const done = spawnSync(
+      "python3",
+      [RUN_IN_GROUP, "10", "bash", "-c", "echo out; echo err >&2; exit 3"],
+      { encoding: "utf8" },
+    )
     expect([done.status, done.stdout, done.stderr]).toEqual([3, "out\n", "err\n"])
-    const killed = spawnSync("python3", [RUN_IN_GROUP, "10", "bash", "-c", "kill -TERM $$"], { encoding: "utf8" })
+    const killed = spawnSync("python3", [RUN_IN_GROUP, "10", "bash", "-c", "kill -TERM $$"], {
+      encoding: "utf8",
+    })
     expect(killed.signal).toBe("SIGTERM")
   })
 
