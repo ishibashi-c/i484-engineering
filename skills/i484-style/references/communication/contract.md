@@ -35,4 +35,3 @@ node "$SKILL_DIR/scripts/validate-html.mjs" <artifact.html>
 表示について主張する場合は、実際のrenderで文章、表、図のoverflow、読める順序、操作部品のlabel/focusなどを観測する必要がある。どのbrowser/toolを使い、engineering全体のどの時点で検証するかはCompound Engineeringなど現在のengineering frameworkに委ねる。
 
 指定された保存先へ説明的な名前で保存する。未指定なら上位のartifact保存規則、それもなければcwdを使う。最終成果物ではファイルへの参照と重要な未確認事項を示す。
-
