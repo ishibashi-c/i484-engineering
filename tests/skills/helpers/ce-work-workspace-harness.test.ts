@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { alive } from "../../helpers/process"
+import { processSignalPolicy, sendTestSignal } from "../../helpers/process-safety"
 import {
   ctlWithScript,
   isLostChildExit,
@@ -85,9 +86,10 @@ describe("ce-work workspace harness: process-group timeout", () => {
 
   // The same signals scripts/run-tests.ts forwards to the pass this helper runs inside.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"] as const) {
-    // Re-raising SIGQUIT opens macOS Python crash dialogs. Linux CI keeps this coverage.
-    test.skipIf(process.platform === "darwin" && signal === "SIGQUIT")(
-      `${signal} to the helper kills the command's whole group too`,
+    const policy = processSignalPolicy(signal)
+    test.skipIf(policy.skip)(
+      `${signal} to the helper kills the command's whole group too` +
+        (policy.reason ? ` (skipped: ${policy.reason})` : ""),
       async () => {
         const dir = tmp("ce-work-group-int-")
         const helper = spawn(
@@ -118,7 +120,7 @@ describe("ce-work workspace harness: process-group timeout", () => {
           Number(readFileSync(path.join(dir, name), "utf8")),
         )
         try {
-          helper.kill(signal)
+          sendTestSignal(helper, signal)
           await exited
           await Bun.sleep(200)
           for (const pid of pids) {
