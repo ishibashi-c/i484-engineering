@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test"
 import { readdir, readFile } from "fs/promises"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 
 const repoRoot = process.cwd()
 const skillsRoot = path.join(repoRoot, "skills")
@@ -8,9 +8,11 @@ const skillsRoot = path.join(repoRoot, "skills")
 async function markdownFiles(root: string): Promise<string[]> {
   const entries = await readdir(root, { withFileTypes: true })
   const nested = await Promise.all(
-    entries.map(async (entry) => {
+    entries.map((entry) => {
       const absolute = path.join(root, entry.name)
-      if (entry.isDirectory()) return markdownFiles(absolute)
+      if (entry.isDirectory()) {
+        return markdownFiles(absolute)
+      }
       return entry.isFile() && entry.name.endsWith(".md") ? [absolute] : []
     }),
   )
@@ -18,7 +20,7 @@ async function markdownFiles(root: string): Promise<string[]> {
 }
 
 async function filesMatching(pattern: RegExp, files?: string[]): Promise<string[]> {
-  const candidates = files ?? await markdownFiles(skillsRoot)
+  const candidates = files ?? (await markdownFiles(skillsRoot))
   const matches = await Promise.all(
     candidates.map(async (file) => ((await readFile(file, "utf8")).match(pattern) ? file : null)),
   )
@@ -27,7 +29,7 @@ async function filesMatching(pattern: RegExp, files?: string[]): Promise<string[
     .map((file) => path.relative(repoRoot, file))
 }
 
-async function readSkill(relativePath: string): Promise<string> {
+function readSkill(relativePath: string): Promise<string> {
   return readFile(path.join(repoRoot, "skills", relativePath), "utf8")
 }
 
@@ -37,7 +39,9 @@ describe("GPT-5.6 skill migration", () => {
       /\/references\/(?:agents|personas)\//.test(file),
     )
 
-    expect(await filesMatching(/gpt-(?:5\.6|6)-(?:sol|terra|luna|astra)/i, promptAssets)).toEqual([])
+    expect(await filesMatching(/gpt-(?:5\.6|6)-(?:sol|terra|luna|astra)/i, promptAssets)).toEqual(
+      [],
+    )
   })
 
   test("removes the obsolete Codex mini/mid-tier label", async () => {
@@ -52,11 +56,14 @@ describe("GPT-5.6 skill migration", () => {
     ])
     const codeReview = `${codeReviewSkill}\n${codeReviewDispatch}`
 
-    for (const skill of [codeReview, simplifyCode]) {
-      expect(skill).toContain("explicit model or custom-agent selector")
-      expect(skill).toContain("task wording alone does not select a different model")
-      expect(skill).not.toContain("request the host's current lower-cost supporting-agent configuration")
-    }
+    expect(codeReview).toContain("references/native-model-policy.md")
+    expect(simplifyCode).toContain("references/native-model-policy.md")
+    const policy = await readSkill("ce-code-review/references/native-model-policy.md")
+    expect(policy).toContain("Prompt wording is not a model override")
+    expect(policy).toContain("actual dispatch arguments")
+    expect(policy).not.toContain(
+      "request the host's current lower-cost supporting-agent configuration",
+    )
   })
 
   test("does not reference the retired Codex work-delegation config", async () => {

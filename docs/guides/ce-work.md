@@ -340,3 +340,7 @@ The run stops and tells you the Product Contract needs `ce-plan` enrichment firs
 - [`ce-code-review`](./ce-code-review.md): portable self-sizing review path
 - [`ce-commit-push-pr`](./ce-commit-push-pr.md): handles the final commit + PR flow
 - [`ce-compound`](./ce-compound.md): capture reusable learning after shipping
+
+## Native delegation model
+
+Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.

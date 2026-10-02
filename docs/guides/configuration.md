@@ -83,6 +83,10 @@ Config is a default, not another agent-instructions file:
 
 Committed `config.yaml` is shared across worktrees of the same project. `config.local.yaml` is per-checkout. CE Work resolves delegation before it creates detached worker worktrees, so an already-selected route is carried into that run.
 
+## Native subagent models
+
+`native_subagent_models` is an optional map keyed by native host. Each host entry supplies a `model` and optional `effort` for bounded native subagent jobs. A whole map value replaces that key at a configuration layer; an empty map disables the configured override. Ordinary config resolves local then team values per key, while active user and Global instructions take precedence. The consuming skill checks host support and the model ceiling before dispatch; uncertain ordering or support inherits the parent.
+
 ## Options
 
 All settings are optional. Commented examples are documentation, not active values.
@@ -91,6 +95,7 @@ All settings are optional. Commented examples are documentation, not active valu
 |---|---|---|
 | all artifact-writing skills | `docs_root` | Repo-relative folder every CE artifact subdirectory lives under. Set only in `config.yaml`. Unset -> `docs`. See [Artifact root](#artifact-root). |
 | [`ce-ideate`](./ce-ideate.md), [`ce-brainstorm`](./ce-brainstorm.md), [`ce-plan`](./ce-plan.md) | `ideate_output`, `brainstorm_output`, `plan_output` | Artifact format: `md` or `html`. Defaults are HTML for ideation and markdown for brainstorms/plans. Headless and pipeline runs resolve the format the same way; nothing forces markdown. |
+| native delegation skills | `native_subagent_models` | Per-host model and optional effort for bounded native jobs; see [Native subagent models](#native-subagent-models). |
 | [`ce-plan`](./ce-plan.md) | `plan_skip_scoping_confirm` | `true` skips the normal pre-plan scope confirmation; default `false`. It does not suppress genuine blockers or the post-plan menu. |
 | [`ce-plan`](./ce-plan.md), [`ce-brainstorm`](./ce-brainstorm.md) | `plan_model`, `brainstorm_model` | Model elevation: send the reasoning-heavy step to a named model (e.g. `fable`, `opus`) instead of the session model. Value is a model alias; a prompt request or an orchestrator's `plan_model:<alias>` carrier (e.g. from `lfg`, honored even in pipeline mode) overrides it. Takes effect on every harness: natively where the host serves the model, else via the Claude CLI, else inline. Whenever one of these skills runs a Bake-off, automatically in planning or on request, pass the corresponding choice as a candidate model preference. Bake-off owns its dispatch: native access, authorized model CLIs, then fresh same-host agents on failure, subject to explicit model restrictions. With no preference, it seeks model-family diversity. Planning still has a final authoring call, while brainstorming replaces its ordinary generation. No default (elevation off). |
 | [`ce-work`](./ce-work.md), [`lfg`](./lfg.md) | `work_engine_mode`, `work_engine_preferences` | Ordered implementation-author preferences. Mode is `off`, `prefer`, or `require`; each entry has a `harness` and optional `model`. See [Implementation routing](#implementation-routing). |

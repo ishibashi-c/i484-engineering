@@ -260,3 +260,7 @@ The personas are tuned for those two types. Reviewing a learning doc or release 
 - [`ce-pov`](./ce-pov.md): holistic take on a document. This skill produces issue-shaped findings
 - [`ce-code-review`](./ce-code-review.md): sibling skill for code diffs
 - [`ce-proof`](./ce-proof.md): publish a doc to Every's collaborative editor for human review and sharing
+
+## Native delegation model
+
+Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.

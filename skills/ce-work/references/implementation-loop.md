@@ -4,7 +4,8 @@
 
 1. **Task Execution Loop**
 
-For each task in priority order:
+For each task in priority order, follow the model classification and dispatch policy in `references/native-model-policy.md` at the native dispatch boundary. Read that reference immediately before dispatch.
+
 
 When the selected engine is cross-model execution, this loop still decides unit order, the evidence strategy, inspection of what actually changed, authoritative verification, and incremental canonical commits; the worker's authoring follows the serial external-unit protocol in `references/cross-model-execution.md`. A detached worker process finishing proves only that authoring finished; do not mark the task complete until the controller records the host-owned canonical commit. A unit whose workspace was preserved, or whose restoration is blocked, stops this loop before any fallback, retry, or next unit.
 

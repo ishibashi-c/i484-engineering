@@ -10,7 +10,7 @@ The skill body's interaction rule decides whether a question is needed. When it 
 
 Dispatch is tiered by task shape, never hardcoded to a model name:
 
-- **Extraction tier** — the work-recap scout and each behavior-trace scout: search-and-quote work. Use the platform's cheapest capable model when the harness exposes a known override; otherwise inherit.
+- **Extraction tier** — classify each scout by its fixed scope, inputs, and acceptance criteria under `references/native-model-policy.md`; read that policy immediately before native dispatch.
 - **Ceiling tier** — the explainer composition, including its `Check yourself` section. This runs in the main conversation on the orchestrator's model; nothing is dispatched for it.
 
 **Degradation rule.** When the platform's subagent primitive cannot select per-agent models, dispatch scouts on the inherited model and keep their read budgets. When the platform has no subagent primitive at all, run the scout work inline with the same budgets. When a dispatch fails, treat a concurrency or active-agent-limit error as backpressure — retry after a slot frees; a launch that fails for a reason that survives correcting the invocation runs that scout's work inline with the same budgets, disclosed in one line.

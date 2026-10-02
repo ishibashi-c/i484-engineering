@@ -58,6 +58,20 @@
 # brainstorm_output: html        # md | html (default: md)
 # ideate_output: md              # md | html (default: html -- ideation docs are human-facing, so HTML is the default; set md to opt out)
 
+# --- Native subagent models ---
+# Per native host, select a model and optional reasoning effort for bounded jobs.
+# Empty map disables this override. Host support and a known at-or-below-parent
+# capability are required; otherwise the native-model policy inherits the parent.
+# User and Global instructions can select a native model; this map supplies checkout defaults.
+#
+# native_subagent_models:
+#   codex:
+#     model: gpt-6-luna
+#     effort: medium
+#   claude:
+#     model: <host-supported-model>
+#     effort: <host-supported-effort>
+
 # --- Model elevation ---
 # Send only the reasoning-heavy step of /ce-plan (interpret research, then author
 # the plan) and /ce-brainstorm (generate approaches) to a model you name. The rest
