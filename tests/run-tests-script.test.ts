@@ -13,6 +13,7 @@ import {
   rerunCandidates,
 } from "../scripts/run-tests"
 import { alive } from "./helpers/process"
+import { processSignalPolicy, sendTestSignal } from "./helpers/process-safety"
 
 const junit = (suites: string) =>
   `<?xml version="1.0"?>\n<testsuites name="bun test">\n${suites}\n</testsuites>`
@@ -257,9 +258,10 @@ test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/
     ["SIGHUP", 129],
     ["SIGQUIT", 131],
   ] as const) {
-    // Intentional SIGQUIT deaths open macOS crash dialogs. Linux CI keeps this coverage.
-    test.skipIf(process.platform === "darwin" && signal === "SIGQUIT")(
-      `${signal} to the runner stops the pass it started`,
+    const policy = processSignalPolicy(signal)
+    test.skipIf(policy.skip)(
+      `${signal} to the runner stops the pass it started` +
+        (policy.reason ? ` (skipped: ${policy.reason})` : ""),
       async () => {
         const dir = fixture(HANG)
         const runner = spawn(process.execPath, [RUNNER, "./fixture.test.ts"], {
@@ -277,7 +279,7 @@ test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/
         const worker = readPid(path.join(dir, "worker.pid"))
         const orphan = readPid(path.join(dir, "orphan.pid"))
         try {
-          runner.kill(signal)
+          sendTestSignal(runner, signal)
           // The signal's conventional status, so an interrupt is not mistaken for a test failure.
           expect(await exited).toBe(status)
           const settle = Date.now() + 5000

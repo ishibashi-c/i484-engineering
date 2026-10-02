@@ -282,3 +282,7 @@ No. The skill is coupled to git, code reviewers, and PR contexts. For docs (requ
 - [`ce-debug`](./ce-debug.md): for investigating broken behavior, including bugs found during review
 - [`ce-resolve-pr-feedback`](./ce-resolve-pr-feedback.md): handles incoming reviewer comments after a PR is open
 - [`ce-simplify-code`](./ce-simplify-code.md): invoked by `ce-work` before review. Complement, not substitute
+
+## Native delegation model
+
+Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.

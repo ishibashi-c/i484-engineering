@@ -161,6 +161,13 @@ Behavioral changes to a plugin skill or skill-local persona (anything under `ski
 
 - **Mechanical changes do not have this restriction.** Skill scripts (e.g., `extract-metadata.py`), parser logic, conversion code, and anything `bun test` exercises always run the current source. The caching issue only affects LLM-driven skill prose behavior dispatched through the plugin loader. Confirm a version-matched cache by content, not by version — see `docs/solutions/developer-experience/always-on-agents-md.md`.
 
+## Process and Delegation Safety
+
+- Tests that intentionally terminate a child process must use `tests/helpers/process-safety.ts`. Darwin skips crash-producing or unknown signals with a recorded reason; the current approved checks are `SIGINT`, `SIGTERM`, and `SIGHUP`. Linux keeps the existing `SIGQUIT` checks. Do not suppress macOS CrashReporter or claim that every Python failure is prevented.
+- `bun run test` runs `scripts/check-process-test-safety.ts` before starting workers. It scans repository test files with TypeScript, JavaScript, and Python extensions, plus explicitly supplied test file paths. Direct crash signals and unverified dynamic `.kill()` calls stop the run; reviewed forwarding helpers are accepted only by their recorded source fingerprints. Keep the helper usage and tests current when changing those fingerprints.
+- The guard does not make bare `bun test` safe: direct invocation bypasses preflight, although the shared runtime helper remains guarded. Static scanning cannot fully prove opaque executable strings, generated code, computed method aliases, or imports outside `tests/`; externally selected directories and globs also remain the caller's responsibility. Treat those paths as manual review, not as covered.
+- Native subagent routing is owned by the dispatching CE Skill. Use `skills/*/references/native-model-policy.md` for bounded-versus-critical classification, model inheritance, actual launch arguments, receipts, and fallback. Never infer the served model or cost savings from a requested model.
+
 ## CI and Quality Gates
 
 PR CI (`.github/workflows/ci.yml`) is the merge gate. It runs, in order: PR-title lint (PRs only), `bun run check` (Ultracite on the PR or push diff), `bun run release:validate`, `bun run plugin:validate`, and `bun run test`. Do not invent a parallel local-only mechanical suite — if a check is deterministic and should block merges, put it in one of those steps (usually `bun run test`).

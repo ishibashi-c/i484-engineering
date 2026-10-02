@@ -107,3 +107,7 @@ If you want the same wrap-up in ordinary sessions, add a standing instruction to
 - [`ce-code-review`](./ce-code-review.md): deeper review after the diff is thinner
 - [`ce-polish`](./ce-polish.md): live UX on a working page, not a code-cleanup pass
 - [`ce-commit-push-pr`](./ce-commit-push-pr.md): ship after review and validation
+
+## Native delegation model
+
+Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.

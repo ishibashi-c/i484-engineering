@@ -211,13 +211,34 @@ There are two classes:
 - `correctness-reviewer`, `security-reviewer`, and `adversarial-reviewer` keep the session model.
 - Other local review personas may use the platform's balanced mid-tier only when it is a known **down-tier** from the session model.
 - If the session model is already at or below that tier, or ordering cannot be established, inherit the session model.
-- The balanced mid-tier is a cost-saving ceiling, not an upgrade target.
+- The parent model remains the capability ceiling; bounded jobs use C5's configured native model when its ordering and support are known.
 
-This specifically prevents cases such as a Luna session being promoted to Sol solely because Sol is treated as the platform's balanced mid-tier.
+This prevents automatically promoting a Luna session to Sol when a supporting model is selected. C5 replaces the former blanket mid-tier default with task classification.
 
 **Introduced:** [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6)
 
 **Retire when:** upstream CE's reviewer model policy independently guarantees that cost-saving tiering cannot up-tier the session.
+
+#### C5 — Process-test safety and bounded native delegation
+
+**Purpose:** Prevent the known macOS crash-notification path in intentional process tests and let bounded delegated work use a configured native model without weakening critical review.
+
+**Main surfaces:**
+- `tests/helpers/process-safety.ts` and `tests/process-safety.test.ts`
+- `scripts/check-process-test-safety.ts` and `scripts/run-tests.ts`
+- `skills/ce-code-review/references/native-model-policy.md`
+- `skills/ce-doc-review/references/native-model-policy.md`
+- `skills/ce-explain/references/native-model-policy.md`
+- `skills/ce-plan/references/native-model-policy.md`
+- `skills/ce-simplify-code/references/native-model-policy.md`
+- `skills/ce-work/references/native-model-policy.md`
+
+**Behavior retained:**
+- The common test helper skips Darwin crash-producing and unknown signals with a reason; current safe Darwin checks and existing Linux `SIGQUIT` checks remain explicit. The preflight scans repository TypeScript, JavaScript, and Python tests plus explicit file arguments before workers start. Its documented static-analysis limits remain in force.
+- The dispatching CE Skill classifies each task. A bounded task with settled inputs and acceptance criteria may request the configured native model through actual launch arguments. Critical correctness, security, adversarial, architecture, full research interpretation, and final synthesis inherit the parent. Explicit execution engines and review targets remain in control.
+- Receipts separate requested model and effort from served-model evidence, outcome, validation, and fallback reason. Unknown served-model identity alone does not trigger a rerun, and cost savings require measured evidence.
+
+**Retire or shrink when:** upstream CE provides equivalent native delegation policy and process-test safety without the i484-specific constraints.
 
 ## Upstream sync history
 

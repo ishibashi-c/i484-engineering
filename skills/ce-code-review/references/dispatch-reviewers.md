@@ -23,7 +23,7 @@ Do not feed `fast-pass` candidates into the persona or validator prompts. Those 
 
 Three reviewers inherit the session model with no override: `correctness-reviewer`, `security-reviewer`, and `adversarial-reviewer`. These perform the highest-stakes analysis (logic bugs, security vulnerabilities, adversarial failure scenarios) and should run at whatever capability level the user has configured. If the user is on Opus, these get Opus.
 
-All other persona subagents and CE local prompt assets use the platform's balanced mid-tier only as a cost-saving ceiling. Down-tier to it when it is below the session model; never upgrade a lower-tier session merely to reach the mid-tier default. If the host cannot establish that the override is a down-tier, inherit the session model. See the Spawning subsection below for the dispatch-time rule.
+All other review jobs follow the bounded-job rule in `references/native-model-policy.md`; critical reviewer roles above continue to inherit the parent.
 
 The orchestrator (this skill) also inherits the session model; it handles intent discovery, reviewer selection, finding merge/dedup, and synthesis.
 
@@ -41,10 +41,10 @@ Omit the `mode` parameter when dispatching sub-agents so the user's configured p
 
 **Resolve `<root>` in any prompt asset before it leaves this stage.** A subagent never runs the artifact-root block, so a `<root>` placeholder still in the text it receives is a literal path it will search and find nothing at. Whenever you read a prompt asset here, by any of the dispatch routes below, substitute the artifact root this run resolved into every `<root>` it contains.
 
-**Model choice at dispatch time is a cost-and-quality guarantee, not cosmetics.** The balanced mid-tier is a ceiling for down-tiering, not an upgrade target. As you select reviewers in Stage 3 (select reviewers), **record each reviewer's model policy in an internal working list**. That list is your external memory (the role the old printed `[session model]`/`[mid-tier]` labels served), and it must exist and be honored even though it is no longer rendered in the user-facing announce:
+**Model choice at dispatch time** follows the bounded-job rule in `references/native-model-policy.md`. Read it immediately before dispatch. Preserve the critical role assignments above and record each reviewer selection:
 
 - **Session model** (no override; inherits the session model): `correctness-reviewer`, `security-reviewer`, and `adversarial-reviewer` only.
-- **Cost-saving ceiling**: every other persona and CE agent. Use the platform's balanced mid-tier only when it is a known down-tier from the session model. If the session model is already at or below that tier, or the host cannot establish the ordering, omit the override and inherit the parent model. In Claude Code, the balanced mid-tier is the Sonnet class. In Codex, apply an override only when the active dispatch primitive exposes an explicit model or custom-agent selector and the chosen target is known not to upgrade the session; task wording alone does not select a different model.
+- **Other personas**: classify each job by its scope, inputs, and acceptance criteria; persona identity alone does not select a tier.
 
 Apply this on **every** Agent / `spawn_agent` / subagent call. An omitted valid down-tier wastes cost; an invalid up-tier spends more than the session chose. Treat the internal model-policy list as required. Moving it out of the user-facing output removed the *display*, not the requirement to keep and follow it.
 

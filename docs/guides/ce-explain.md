@@ -57,3 +57,7 @@ A local artifact is delivered with a summary and its path. There is no mandatory
 - [`ce-brainstorm`](./ce-brainstorm.md): explore and scope the product direction.
 - [`ce-compound`](./ce-compound.md): capture durable project learning.
 - [`ce-debug`](./ce-debug.md): diagnose observed failure.
+
+## Native delegation model
+
+Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.

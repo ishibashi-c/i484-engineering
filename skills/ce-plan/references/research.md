@@ -6,7 +6,7 @@ Phase 1 of `ce-plan`. Read this before dispatching any research subagent.
 
 All specialist research and deepening prompts used in this phase are skill-local prompt assets under `references/agents/`. When dispatching one, read the matching file and seed a generic subagent with that prompt content plus the task-specific context below. Do not dispatch standalone agents by type/name.
 
-This skill, not the prompt assets, decides which model tier each subagent uses. Local prompt files have no frontmatter. Use the platform's mid-tier model for external/organizational research prompts such as `slack-researcher` and `web-researcher` when the current harness exposes a known override; otherwise omit the override and inherit. Use inherited model for high-judgment architecture, migration, and planning-deepening prompts unless the harness has an established cheaper capable tier.
+This skill classifies each delegated research job by scope, inputs, and acceptance criteria. Read `references/native-model-policy.md` immediately before native dispatch. External or organizational topic labels do not by themselves qualify research as bounded; full interpretation and planning judgment inherit the parent model.
 
 #### 1.1 Local Research
 

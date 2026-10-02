@@ -5,15 +5,16 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   realpathSync,
-  readdirSync,
   rmSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { sendTestSignal } from "../helpers/process-safety"
 
 setDefaultTimeout(30_000)
 
@@ -23,32 +24,84 @@ function temp(prefix: string): string {
   roots.push(dir)
   return dir
 }
-afterAll(() => roots.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
+afterAll(() => {
+  for (const dir of roots) {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
 
-const SCRIPT = path.join(__dirname, "../../skills/ce-pov/scripts/cross-model-pov.sh")
-const ROUTES = ["codex", "claude", "grok-cli", "grok-cursor", "cursor", "composer", "opencode"] as const
-const NEVER_FLAGS = ["--yolo", "--force", "-f", "--always-approve", "--dangerously-skip-permissions"]
-const REAL_TOOLS = [
-  "bash", "sh", "jq", "python3", "date", "sed", "tr", "cat", "wc", "dirname",
-  "basename", "mktemp", "env", "perl", "timeout", "gtimeout", "sleep", "rm", "mv",
-  "chmod", "cp", "printf", "kill", "mkdir", "grep", "tail", "ps",
+const SCRIPT = path.join(import.meta.dirname, "../../skills/ce-pov/scripts/cross-model-pov.sh")
+const ROUTES = [
+  "codex",
+  "claude",
+  "grok-cli",
+  "grok-cursor",
+  "cursor",
+  "composer",
+  "opencode",
+] as const
+const NEVER_FLAGS = [
+  "--yolo",
+  "--force",
+  "-f",
+  "--always-approve",
+  "--dangerously-skip-permissions",
 ]
-let resolved: Array<[string, string]> | undefined
-function realTools(): Array<[string, string]> {
-  if (resolved) return resolved
+const REAL_TOOLS = [
+  "bash",
+  "sh",
+  "jq",
+  "python3",
+  "date",
+  "sed",
+  "tr",
+  "cat",
+  "wc",
+  "dirname",
+  "basename",
+  "mktemp",
+  "env",
+  "perl",
+  "timeout",
+  "gtimeout",
+  "sleep",
+  "rm",
+  "mv",
+  "chmod",
+  "cp",
+  "printf",
+  "kill",
+  "mkdir",
+  "grep",
+  "tail",
+  "ps",
+]
+let resolved: [string, string][] | undefined
+function realTools(): [string, string][] {
+  if (resolved) {
+    return resolved
+  }
   resolved = []
   for (const tool of REAL_TOOLS) {
-    let actual = spawnSync("command", ["-v", tool], { encoding: "utf8", shell: "/bin/bash" }).stdout?.trim()
-    const probe = tool === "python3"
-      ? ["-c", "import sys; print(sys.executable)"]
-      : tool === "perl"
-        ? ["-MConfig", "-e", "print $Config{perlpath}"]
-        : null
+    let actual = spawnSync("command", ["-v", tool], {
+      encoding: "utf8",
+      shell: "/bin/bash",
+    }).stdout?.trim()
+    let probe: string[] | null = null
+    if (tool === "python3") {
+      probe = ["-c", "import sys; print(sys.executable)"]
+    } else if (tool === "perl") {
+      probe = ["-MConfig", "-e", "print $Config{perlpath}"]
+    }
     if (probe && actual) {
       const standalone = spawnSync(actual, probe, { encoding: "utf8" }).stdout?.trim()
-      if (standalone) actual = standalone
+      if (standalone) {
+        actual = standalone
+      }
     }
-    if (actual && existsSync(actual)) resolved.push([tool, actual])
+    if (actual && existsSync(actual)) {
+      resolved.push([tool, actual])
+    }
   }
   return resolved
 }
@@ -57,7 +110,11 @@ function sandbox(providers: string[], body = "#!/bin/sh\nexit 0\n") {
   const bin = path.join(temp("pov-route-"), "bin")
   mkdirSync(bin)
   for (const [tool, actual] of realTools()) {
-    try { symlinkSync(actual, path.join(bin, tool)) } catch { /* shell builtin */ }
+    try {
+      symlinkSync(actual, path.join(bin, tool))
+    } catch {
+      /* shell builtin */
+    }
   }
   for (const provider of providers) {
     const file = path.join(bin, provider)
@@ -65,7 +122,10 @@ function sandbox(providers: string[], body = "#!/bin/sh\nexit 0\n") {
     chmodSync(file, 0o755)
   }
   // Mask any real Codex.app bundle so discovery sees only what the test stages.
-  return { bin, env: { ...process.env, PATH: bin, CROSS_MODEL_CODEX_APP_DIRS: temp("pov-nobundle-") } }
+  return {
+    bin,
+    env: { ...process.env, PATH: bin, CROSS_MODEL_CODEX_APP_DIRS: temp("pov-nobundle-") },
+  }
 }
 
 function payload(contents = "Subject: choose A or B\nProject floor: TypeScript CLI\n") {
@@ -73,7 +133,9 @@ function payload(contents = "Subject: choose A or B\nProject floor: TypeScript C
   writeFileSync(file, contents)
   return file
 }
-function runDir() { return temp("pov-run-") }
+function runDir() {
+  return temp("pov-run-")
+}
 function run(args: string[], dir: string, env: NodeJS.ProcessEnv = process.env) {
   const result = spawnSync("bash", [SCRIPT, ...args], { encoding: "utf8", env })
   return {
@@ -118,7 +180,9 @@ describe("ce-pov cross-model route safety", () => {
   test("all routes preserve read/write/exec denial and avoid never-use flags", () => {
     for (const route of ROUTES) {
       const command = emit(route)
-      for (const denied of NEVER_FLAGS) expect(command.split(/\s+/)).not.toContain(denied)
+      for (const denied of NEVER_FLAGS) {
+        expect(command.split(/\s+/)).not.toContain(denied)
+      }
       expect(command).not.toContain("bypassPermissions")
       expect(command).not.toContain("<run-dir>")
     }
@@ -151,21 +215,25 @@ describe("ce-pov cross-model route safety", () => {
     expect(emit("grok-cli")).toContain("--effort xhigh")
     expect(emit("grok-cursor")).toContain("--model grok-4.7-xhigh")
     expect(emit("opencode")).toContain("opencode run")
-    expect(emit("opencode")).toContain('OPENCODE_CONFIG_CONTENT={"permission":{"edit":"deny","bash":"deny","webfetch":"deny","task":"deny"}}')
+    expect(emit("opencode")).toContain(
+      'OPENCODE_CONFIG_CONTENT={"permission":{"edit":"deny","bash":"deny","webfetch":"deny","task":"deny"}}',
+    )
     expect(emit("opencode")).toContain("OPENCODE_DISABLE_PROJECT_CONFIG=1")
     expect(emit("opencode")).toContain("--dir <read-root>")
     expect(emit("opencode")).toContain("--format json")
     expect(emit("opencode")).toContain("--file <prompt-file>")
     // OpenCode's --file is variadic: a bare argument after it becomes another attachment.
     expect(emit("opencode").indexOf("Follow the attached brief.")).toBeGreaterThan(-1)
-    expect(emit("opencode").indexOf("Follow the attached brief.")).toBeLessThan(emit("opencode").indexOf("--file <prompt-file>"))
+    expect(emit("opencode").indexOf("Follow the attached brief.")).toBeLessThan(
+      emit("opencode").indexOf("--file <prompt-file>"),
+    )
     expect(emit("opencode")).not.toContain("--auto")
     const source = readFileSync(SCRIPT, "utf8")
     // Zombies report as Z+ on macOS; exact "Z" alone leaves them "alive".
     expect(source).toContain('[ "${st#Z}" = "$st" ]')
     // Match peer-job-runner: empty ps state => not alive; kill -0 only if ps missing.
     expect(source).toContain("command -v ps")
-    expect(source).toContain("[ -n \"$st\" ] || return 1")
+    expect(source).toContain('[ -n "$st" ] || return 1')
     // Idle polls must use peer_alive (not bare kill -0) so zombies exit promptly.
     expect(source).toContain('while peer_alive "$pid"; do')
     expect(source).not.toMatch(/while kill -0 "\$pid"/)
@@ -205,7 +273,7 @@ describe("ce-pov cross-model route safety", () => {
     const claude = emit("claude")
     expect(claude).toContain("WebSearch")
     expect(claude).toContain("WebFetch")
-    expect(claude).not.toContain('--tools  ')
+    expect(claude).not.toContain("--tools  ")
     expect(emit("grok-cli")).not.toContain("--disable-web-search")
     expect(emit("grok-cli")).toContain("--no-subagents")
     expect(emit("codex")).toContain("-s read-only")
@@ -213,18 +281,37 @@ describe("ce-pov cross-model route safety", () => {
 })
 
 describe("ce-pov output gate and receipts", () => {
-  const valid = '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":["https://example.com"],"external_check":"ran","mode":"independent","movement":"initial","final":true},"modelUsage":{"claude-opus-5-5-20260801":{"inputTokens":10}}}'
+  const valid =
+    '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":["https://example.com"],"external_check":"ran","mode":"independent","movement":"initial","final":true},"modelUsage":{"claude-opus-5-5-20260801":{"inputTokens":10}}}'
 
   test.each([
     ["missing position", '{"structured_output":{"reasoning":"why"}}'],
     ["empty position", '{"structured_output":{"position":"","reasoning":"why"}}'],
     ["missing reasoning", '{"structured_output":{"position":"Choose A"}}'],
-    ["missing mode", '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","movement":"initial","final":true}}'],
-    ["missing evidence", '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'],
-    ["non-string evidence item", '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[42],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'],
-    ["empty evidence item", '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[""],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'],
-    ["missing external check", '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"mode":"independent","movement":"initial","final":true}}'],
-    ["missing voice", '{"structured_output":{"position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'],
+    [
+      "missing mode",
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","movement":"initial","final":true}}',
+    ],
+    [
+      "missing evidence",
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","external_check":"unavailable","mode":"independent","movement":"initial","final":true}}',
+    ],
+    [
+      "non-string evidence item",
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[42],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}',
+    ],
+    [
+      "empty evidence item",
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[""],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}',
+    ],
+    [
+      "missing external check",
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"mode":"independent","movement":"initial","final":true}}',
+    ],
+    [
+      "missing voice",
+      '{"structured_output":{"position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}',
+    ],
   ])("%s fails the fixed route without publishing an artifact", (_name, invalid) => {
     const { bin, env } = sandbox(["claude"])
     writeFileSync(path.join(bin, "claude"), `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${invalid}'\n`)
@@ -242,7 +329,10 @@ describe("ce-pov output gate and receipts", () => {
 
   test.each([
     ["missing movement", '{"structured_output":{"position":"Choose A","reasoning":"why"}}'],
-    ["invalid movement", '{"structured_output":{"position":"Choose A","reasoning":"why","movement":"changed"}}'],
+    [
+      "invalid movement",
+      '{"structured_output":{"position":"Choose A","reasoning":"why","movement":"changed"}}',
+    ],
   ])("%s is not usable output", (_name, invalid) => {
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${invalid}'\n`)
     const dir = runDir()
@@ -268,7 +358,8 @@ describe("ce-pov output gate and receipts", () => {
   })
 
   test("reads grok's camelCase structuredOutput instead of a first-turn placeholder in text", () => {
-    const envelope = '{"text":"{\\"position\\":\\"blocked: gathering subject evidence\\"}{\\"position\\":\\"Choose A\\"}","structuredOutput":{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":["src/a.ts:1"],"external_check":"unavailable","mode":"independent","movement":"initial","final":true},"modelUsage":{"grok-4.6":{"inputTokens":1}}}'
+    const envelope =
+      '{"text":"{\\"position\\":\\"blocked: gathering subject evidence\\"}{\\"position\\":\\"Choose A\\"}","structuredOutput":{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":["src/a.ts:1"],"external_check":"unavailable","mode":"independent","movement":"initial","final":true},"modelUsage":{"grok-4.6":{"inputTokens":1}}}'
     const { env } = sandbox(["grok"], `#!/bin/sh\nprintf '%s' '${envelope}'\n`)
     const dir = runDir()
     const result = run(["codex", "grok-cli", payload(), dir], dir, env)
@@ -278,7 +369,8 @@ describe("ce-pov output gate and receipts", () => {
   })
 
   test("a settled final object in text beats a non-final structuredOutput", () => {
-    const settled = '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[\\"src/a.ts:1\\"],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
+    const settled =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[\\"src/a.ts:1\\"],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
     const envelope = `{"text":"${settled}","structuredOutput":{"voice":"peer","position":"gathering evidence","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":false},"modelUsage":{"grok-4.6":{"inputTokens":1}}}`
     const { env } = sandbox(["grok"], `#!/bin/sh\nprintf '%s' '${envelope}'\n`)
     const dir = runDir()
@@ -291,29 +383,38 @@ describe("ce-pov output gate and receipts", () => {
   })
 
   test("a valid final POV in text is not outranked by a later fully keyed but invalid draft", () => {
-    const settled = '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
-    const invalid = '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose B\\",\\"reasoning\\":42,\\"evidence\\":\\"none\\",\\"external_check\\":\\"maybe\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
-    const badEvidence = '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose C\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[42,\\"\\"],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
+    const settled =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
+    const invalid =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose B\\",\\"reasoning\\":42,\\"evidence\\":\\"none\\",\\"external_check\\":\\"maybe\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
+    const badEvidence =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose C\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[42,\\"\\"],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
     const envelope = `{"text":"${settled}${invalid}${badEvidence}"}`
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\n`)
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
     expect(result.files).toContain("pov-claude.json")
-    expect(JSON.parse(readFileSync(path.join(dir, "pov-claude.json"), "utf8")).position).toBe("Choose A")
+    expect(JSON.parse(readFileSync(path.join(dir, "pov-claude.json"), "utf8")).position).toBe(
+      "Choose A",
+    )
   })
 
   test("a bare {final:true} structured stub does not beat a complete final POV in text", () => {
-    const settled = '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
+    const settled =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"Choose A\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":true}'
     const envelope = `{"structured_output":{"final":true},"text":"${settled}"}`
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\n`)
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
     expect(result.files).toContain("pov-claude.json")
-    expect(JSON.parse(readFileSync(path.join(dir, "pov-claude.json"), "utf8")).position).toBe("Choose A")
+    expect(JSON.parse(readFileSync(path.join(dir, "pov-claude.json"), "utf8")).position).toBe(
+      "Choose A",
+    )
   })
 
   test("a shaped non-final POV in text beside a bare structured stub still reaches the retry", () => {
-    const placeholder = '{\\"voice\\":\\"peer\\",\\"position\\":\\"gathering evidence\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":false}'
+    const placeholder =
+      '{\\"voice\\":\\"peer\\",\\"position\\":\\"gathering evidence\\",\\"reasoning\\":\\"why\\",\\"evidence\\":[],\\"external_check\\":\\"unavailable\\",\\"mode\\":\\"independent\\",\\"movement\\":\\"initial\\",\\"final\\":false}'
     const stubEnvelope = `{"structured_output":{},"text":"${placeholder}"}`
     const counter = path.join(temp("pov-attempts-"), "n")
     const stub = `#!/bin/sh
@@ -325,12 +426,13 @@ if [ $n -eq 1 ]; then printf '%s' '${stubEnvelope}'; else printf '%s' '${valid}'
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
     expect(readFileSync(counter, "utf8").trim()).toBe("2")
-    expect(result.stderr).toContain("non-final position (\"gathering evidence\")")
+    expect(result.stderr).toContain('non-final position ("gathering evidence")')
     expect(result.files).toContain("pov-claude.json")
   })
 
   test("a shaped artifact that omits final is non-final, whatever its position says", () => {
-    const nofinal = '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial"}}'
+    const nofinal =
+      '{"structured_output":{"voice":"peer","position":"Choose A","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial"}}'
     const counter = path.join(temp("pov-attempts-"), "n")
     const stub = `#!/bin/sh
 cat >/dev/null
@@ -346,7 +448,8 @@ printf '%s' '${nofinal}'
   })
 
   test("a non-final position is retried once on the same route with a final-answer requirement", () => {
-    const placeholder = '{"structured_output":{"voice":"peer","position":"blocked: gathering subject evidence","reasoning":"Need to inspect the tree first.","evidence":["subject-payload: round 1"],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
+    const placeholder =
+      '{"structured_output":{"voice":"peer","position":"blocked: gathering subject evidence","reasoning":"Need to inspect the tree first.","evidence":["subject-payload: round 1"],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
     const counter = path.join(temp("pov-attempts-"), "n")
     const prompts = path.join(temp("pov-prompts-"), "p")
     const stub = `#!/bin/sh
@@ -368,7 +471,8 @@ if [ $n -eq 1 ]; then printf '%s' '${placeholder}'; else printf '%s' '${valid}';
   })
 
   test("a second non-final position drops the voice with skip evidence naming it", () => {
-    const placeholder = '{"structured_output":{"voice":"peer","position":"Blocked: still gathering evidence","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
+    const placeholder =
+      '{"structured_output":{"voice":"peer","position":"Blocked: still gathering evidence","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
     const counter = path.join(temp("pov-attempts-"), "n")
     const stub = `#!/bin/sh
 cat >/dev/null
@@ -381,13 +485,18 @@ printf '%s' '${placeholder}'
     expect(result.code).toBe(0)
     expect(readFileSync(counter, "utf8").trim()).toBe("2")
     expect(result.files).not.toContain("pov-claude.json")
-    expect(result.stderr).toContain("peer skip evidence: non-final position: Blocked: still gathering evidence")
+    expect(result.stderr).toContain(
+      "peer skip evidence: non-final position: Blocked: still gathering evidence",
+    )
   })
 
   test.each([
     ["settled Hold", "Hold: do not adopt"],
     ["settled Blocked grounding-floor verdict", "Blocked — insufficient project grounding"],
-    ["settled Blocked approach-set verdict", "Blocked: the supplied approaches lack enough detail to choose"],
+    [
+      "settled Blocked approach-set verdict",
+      "Blocked: the supplied approaches lack enough detail to choose",
+    ],
   ])("a %s position marked final is accepted, whatever its wording", (_name, position) => {
     const settled = `{"structured_output":{"voice":"peer","position":"${position}","reasoning":"Need evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}`
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${settled}'\n`)
@@ -398,7 +507,8 @@ printf '%s' '${placeholder}'
   })
 
   test("a non-final position with no hard window left is dropped without a retry", () => {
-    const placeholder = '{"structured_output":{"voice":"peer","position":"pending: reading the tree","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
+    const placeholder =
+      '{"structured_output":{"voice":"peer","position":"pending: reading the tree","reasoning":"why","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":false}}'
     const counter = path.join(temp("pov-attempts-"), "n")
     const stub = `#!/bin/sh
 cat >/dev/null
@@ -408,11 +518,17 @@ printf '%s' '${placeholder}'
 `
     const { env } = sandbox(["claude"], stub)
     const dir = runDir()
-    const result = run(["codex", "claude", payload(), dir], dir, { ...env, CROSS_MODEL_HARD_SECS: "60", CROSS_MODEL_RETRY_MIN_SECS: "59" })
+    const result = run(["codex", "claude", payload(), dir], dir, {
+      ...env,
+      CROSS_MODEL_HARD_SECS: "60",
+      CROSS_MODEL_RETRY_MIN_SECS: "59",
+    })
     expect(readFileSync(counter, "utf8").trim()).toBe("1")
     expect(result.files).not.toContain("pov-claude.json")
     expect(result.stderr).toContain("not retrying")
-    expect(result.stderr).toContain("peer skip evidence: non-final position: pending: reading the tree")
+    expect(result.stderr).toContain(
+      "peer skip evidence: non-final position: pending: reading the tree",
+    )
   })
 
   test("normalizes a valid POV with actual route and served-model receipt", () => {
@@ -434,7 +550,8 @@ printf '%s' '${placeholder}'
   })
 
   test("recovers a raw schema-shaped POV without a structured-output envelope", () => {
-    const raw = '{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}'
+    const raw =
+      '{"voice":"peer","position":"Choose A","reasoning":"Lower correction cost","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}'
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${raw}'\n`)
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
@@ -445,9 +562,13 @@ printf '%s' '${placeholder}'
   })
 
   test("recovers a fenced POV nested in a CLI result envelope", () => {
-    const pov = '{"voice":"peer","position":"Choose B","reasoning":"The boundary is clearer","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}'
+    const pov =
+      '{"voice":"peer","position":"Choose B","reasoning":"The boundary is clearer","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}'
     const envelope = JSON.stringify({ type: "result", result: `\`\`\`json\n${pov}\n\`\`\`` })
-    const { env } = sandbox(["cursor-agent"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\n`)
+    const { env } = sandbox(
+      ["cursor-agent"],
+      `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\n`,
+    )
     const dir = runDir()
     const result = run(["codex", "composer", payload(), dir], dir, env)
     expect(result.files).toContain("pov-composer.json")
@@ -460,8 +581,12 @@ printf '%s' '${placeholder}'
   })
 
   test("Cursor default records auto and unverified independence", () => {
-    const response = '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Need evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
-    const { env } = sandbox(["cursor-agent"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\n`)
+    const response =
+      '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Need evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
+    const { env } = sandbox(
+      ["cursor-agent"],
+      `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\n`,
+    )
     const dir = runDir()
     const result = run(["codex", "cursor", payload(), dir], dir, env)
     expect(result.files).toContain("pov-cursor.json")
@@ -476,7 +601,8 @@ printf '%s' '${placeholder}'
   })
 
   test("an explicitly named peer can run with unknown host family but is not independent", () => {
-    const response = '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Need evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
+    const response =
+      '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Need evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
     const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\n`)
     const dir = runDir()
     const result = run(["unknown", "claude", payload(), dir], dir, {
@@ -516,7 +642,10 @@ printf '%s' '${placeholder}'
       padding: "x".repeat(1000),
       terminal_reason: "api_error",
     })
-    const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\nexit 1\n`)
+    const { env } = sandbox(
+      ["claude"],
+      `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\nexit 1\n`,
+    )
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
 
@@ -531,7 +660,10 @@ printf '%s' '${placeholder}'
       diagnostic: "Provider rejected the request for this account",
       terminal_reason: "api_error",
     })
-    const { env } = sandbox(["claude"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\nexit 1\n`)
+    const { env } = sandbox(
+      ["claude"],
+      `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${envelope}'\nexit 1\n`,
+    )
     const dir = runDir()
     const result = run(["codex", "claude", payload(), dir], dir, env)
 
@@ -541,8 +673,12 @@ printf '%s' '${placeholder}'
   })
 
   test("schema-valid output from a timed-out peer is discarded and scratch is cleaned", () => {
-    const response = '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Late evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
-    const { env } = sandbox(["cursor-agent"], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\nsleep 5\n`)
+    const response =
+      '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Late evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
+    const { env } = sandbox(
+      ["cursor-agent"],
+      `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\nsleep 5\n`,
+    )
     const dir = runDir()
     const scratchParent = temp("pov-timeout-scratch-")
     const result = run(["codex", "cursor", payload(), dir], dir, {
@@ -562,7 +698,10 @@ printf '%s' '${placeholder}'
     expect(realMktemp).toBeTruthy()
     writeFileSync(path.join(bin, "claude"), `#!/bin/sh\n: > '${invoked}'\nexit 0\n`)
     rmSync(path.join(bin, "mktemp"))
-    writeFileSync(path.join(bin, "mktemp"), `#!/bin/sh\nif [ "\${1:-}" = "-d" ]; then exit 1; fi\nexec '${realMktemp}' "$@"\n`)
+    writeFileSync(
+      path.join(bin, "mktemp"),
+      `#!/bin/sh\nif [ "\${1:-}" = "-d" ]; then exit 1; fi\nexec '${realMktemp}' "$@"\n`,
+    )
     chmodSync(path.join(bin, "claude"), 0o755)
     chmodSync(path.join(bin, "mktemp"), 0o755)
 
@@ -599,7 +738,10 @@ describe("ce-pov fixed route and egress allowlist", () => {
     writeFileSync(path.join(bundle, "codex"), `#!/bin/sh\n: > '${invoked}'\nexit 0\n`)
     chmodSync(path.join(bundle, "codex"), 0o755)
     const dir = runDir()
-    const result = run(["claude", "codex", payload(), dir], dir, { ...env, CROSS_MODEL_CODEX_APP_DIRS: bundle })
+    const result = run(["claude", "codex", payload(), dir], dir, {
+      ...env,
+      CROSS_MODEL_CODEX_APP_DIRS: bundle,
+    })
     expect(result.stderr).not.toContain("is unavailable")
     expect(existsSync(invoked)).toBe(true)
   })
@@ -645,7 +787,8 @@ describe("ce-pov fixed route and egress allowlist", () => {
     ["grok-cursor", "grok,composer", true],
     ["grok-cursor", "grok", false],
   ])("route %s with allowlist %s allowed=%s", (route, allow, allowed) => {
-    const response = '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
+    const response =
+      '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
     const binary = route === "grok-cli" ? "grok" : "cursor-agent"
     const { env } = sandbox([binary], `#!/bin/sh\ncat >/dev/null\nprintf '%s' '${response}'\n`)
     const dir = runDir()
@@ -660,8 +803,12 @@ describe("ce-pov fixed route and egress allowlist", () => {
     mkdirSync(readRoot)
     const scratchParent = temp("pov-scratch-parent-")
     const observed = path.join(temp("pov-observed-"), "pwd")
-    const response = '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
-    const { env } = sandbox(["cursor-agent"], `#!/bin/sh\nprintf '%s' "$PWD" > '${observed}'\ncat >/dev/null\nprintf '%s' '${response}'\n`)
+    const response =
+      '{"structured_output":{"voice":"peer","position":"Hold","reasoning":"Evidence","evidence":[],"external_check":"unavailable","mode":"independent","movement":"initial","final":true}}'
+    const { env } = sandbox(
+      ["cursor-agent"],
+      `#!/bin/sh\nprintf '%s' "$PWD" > '${observed}'\ncat >/dev/null\nprintf '%s' '${response}'\n`,
+    )
     const dir = runDir()
     const result = run(["codex", "cursor", payload(), dir], dir, {
       ...env,
@@ -699,36 +846,50 @@ describe("ce-pov fixed route and egress allowlist", () => {
     expect(inside.stderr).toContain("run-dir must be outside the repository")
   })
 
-  test.each(["SIGTERM", "SIGINT"] as const)("%s cleans private peer scratch and heartbeat", async (signal) => {
-    const scratchParent = temp("pov-signal-scratch-")
-    const started = path.join(temp("pov-signal-started-"), "marker")
-    const { env } = sandbox(["cursor-agent"], `#!/bin/sh\n: > '${started}'\ncat >/dev/null\nsleep 30\n`)
-    const dir = runDir()
-    const child = spawn("bash", [SCRIPT, "codex", "cursor", payload(), dir], {
-      env: { ...env, CROSS_MODEL_SCRATCH_PARENT: scratchParent },
-      stdio: "ignore",
-    })
-    const deadline = Date.now() + 5_000
-    while ((!existsSync(started) || readdirSync(scratchParent).length === 0) && Date.now() < deadline) {
-      await Bun.sleep(25)
-    }
-    expect(existsSync(started)).toBe(true)
-    expect(readdirSync(scratchParent).length).toBe(1)
-    const workerPid = child.pid
-    expect(workerPid).toBeDefined()
-    const childPids = spawnSync("pgrep", ["-P", String(workerPid)], { encoding: "utf8" })
-      .stdout.split(/\s+/).filter(Boolean).map(Number)
-    expect(childPids.length).toBeGreaterThanOrEqual(2)
-    child.kill(signal)
-    await new Promise<void>((resolve) => child.once("exit", () => resolve()))
-    expect(readdirSync(scratchParent)).toEqual([])
-    for (const pid of childPids) {
-      expect(() => process.kill(pid, 0)).toThrow()
-    }
-  })
+  test.each(["SIGTERM", "SIGINT"] as const)(
+    "%s cleans private peer scratch and heartbeat",
+    async (signal) => {
+      const scratchParent = temp("pov-signal-scratch-")
+      const started = path.join(temp("pov-signal-started-"), "marker")
+      const { env } = sandbox(
+        ["cursor-agent"],
+        `#!/bin/sh\n: > '${started}'\ncat >/dev/null\nsleep 30\n`,
+      )
+      const dir = runDir()
+      const child = spawn("bash", [SCRIPT, "codex", "cursor", payload(), dir], {
+        env: { ...env, CROSS_MODEL_SCRATCH_PARENT: scratchParent },
+        stdio: "ignore",
+      })
+      const deadline = Date.now() + 5000
+      while (
+        (!existsSync(started) || readdirSync(scratchParent).length === 0) &&
+        Date.now() < deadline
+      ) {
+        await Bun.sleep(25)
+      }
+      expect(existsSync(started)).toBe(true)
+      expect(readdirSync(scratchParent).length).toBe(1)
+      const workerPid = child.pid
+      expect(workerPid).toBeDefined()
+      const childPids = spawnSync("pgrep", ["-P", String(workerPid)], { encoding: "utf8" })
+        .stdout.split(/\s+/)
+        .filter(Boolean)
+        .map(Number)
+      expect(childPids.length).toBeGreaterThanOrEqual(2)
+      sendTestSignal(child, signal)
+      await new Promise<void>((resolve) => child.once("exit", () => resolve()))
+      expect(readdirSync(scratchParent)).toEqual([])
+      for (const pid of childPids) {
+        expect(() => process.kill(pid, 0)).toThrow()
+      }
+    },
+  )
 
   test("peer brief restricts external queries to public subject terms", () => {
-    const persona = readFileSync(path.join(__dirname, "../../skills/ce-pov/references/agents/pov-peer.md"), "utf8")
+    const persona = readFileSync(
+      path.join(import.meta.dirname, "../../skills/ce-pov/references/agents/pov-peer.md"),
+      "utf8",
+    )
     expect(persona).toContain("public subject-level terms")
     expect(persona).toContain("Never place repository-derived")
   })
