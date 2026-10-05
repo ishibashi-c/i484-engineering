@@ -91,7 +91,14 @@ describe("ce-prototype protocol", () => {
     )
     expect(ANNOTATION_LOOP_BODY).toMatch(/theirs to answer, and the wait keeps running/)
     expect(ANNOTATION_LOOP_BODY).not.toMatch(/explorer writing in chat/)
-    expect(PREVIEW_BODY).toMatch(/start --root "\$PROTO_DIR" --annotate/)
+    expect(PREVIEW_BODY).toMatch(/start --root "\$PROTO_DIR"/)
+    expect(PREVIEW_BODY).not.toMatch(/start --root "\$PROTO_DIR" --annotate/)
+    expect(PREVIEW_BODY).toMatch(/appending `--annotate`/)
+    expect(SKILL_BODY).toMatch(/host-native annotation channel/)
+    expect(PREVIEW_BODY).toMatch(/Codex app built-in browser Annotation mode/)
+    expect(ANNOTATION_LOOP_BODY).toMatch(
+      /only when an isolated web preview has no usable host-native annotation channel/,
+    )
     expect(
       /hand the explorer the helper's returned URL with only the host rewritten/.test(PREVIEW_BODY),
       "A remote handoff rewrites only the host. The explorer URL is origin-only; visiting that origin sets the session cookie.",

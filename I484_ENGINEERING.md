@@ -240,6 +240,28 @@ This prevents automatically promoting a Luna session to Sol when a supporting mo
 
 **Retire or shrink when:** upstream CE provides equivalent native delegation policy and process-test safety without the i484-specific constraints.
 
+#### C6 — Host-native prototype annotation preference
+
+**Purpose:** Avoid running CE's own annotation overlay and blocking wait loop when the active host already provides page-targeted annotations for the same local preview.
+
+**Main surfaces:**
+- `skills/ce-prototype/SKILL.md`
+- `skills/ce-prototype/references/preview.md`
+- `skills/ce-prototype/references/annotation-loop.md`
+- `docs/guides/ce-prototype.md`
+- `tests/skills/ce-prototype-protocol.test.ts`
+- `tests/skill-eval-cell/catalog.ts`
+
+**Invariant:**
+- If the active host can attach feedback to the rendered local page and deliver it back to the current conversation, use that native annotation channel and start the CE preview helper without `--annotate`.
+- The Codex app built-in browser satisfies that condition when its Annotation mode is available in the current run.
+- If no usable native channel exists, preserve CE's annotation overlay and `annotation-loop.md` wait path as the fallback.
+- This patch changes routing only; it does not remove or fork the shared `light-webserver.js` annotation implementation.
+
+**Introduced:** [PR #23](https://github.com/ishibashi-c/i484-engineering/pull/23)
+
+**Retire when:** upstream CE prefers a usable host-native annotation channel before starting its own annotation overlay, with an equivalent fallback when native annotations are unavailable.
+
 ## Upstream sync history
 
 This is a lightweight checkpoint log, not a duplicate changelog. Git history remains authoritative for individual upstream commits.

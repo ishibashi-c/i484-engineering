@@ -25,7 +25,7 @@ Read `references/scoping.md` before you ask the user anything or touch the repo.
 
 ## Build it
 
-Read `references/build.md` and `references/preview.md` before writing anything. Once an isolated web preview is up, load `references/annotation-loop.md`. Overlay runs and non-web runs stay on chat.
+Read `references/build.md` and `references/preview.md` before writing anything. On an isolated web preview, use a host-native annotation channel when it can target the rendered local page and return feedback to this conversation; otherwise use the CE annotation fallback and load `references/annotation-loop.md` once the preview is up. Overlay runs and non-web runs stay on chat.
 
 **i484 product-design knowledge is additive, never a second prototype workflow.** The required build read governs `i484-style` (product-ui domain) as product-design domain knowledge before design judgments.
 

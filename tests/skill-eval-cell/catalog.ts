@@ -3514,6 +3514,40 @@ Units:
     },
   },
   {
+    id: "ce-prototype/native-annotation-preferred",
+    baseline_ref: "6cc07dc17f644e7be938a55f85dfaf5edb81e322",
+    skill: "ce-prototype",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    why: "A host that already provides page-targeted annotations should not get a second CE overlay and blocking wait loop.",
+    pre_contract:
+      "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
+    task: "Use ce-prototype only for this already-scoped, authorized preview handoff. The isolated web screen is ready. The active host has a built-in browser annotation mode that can attach a comment to this local page and deliver that feedback back into the current conversation. Resolve the feedback route and helper annotation state, then stop before running commands. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
+    grade: {
+      must_include: ["ANNOTATION_ROUTE: native", "CE_OVERLAY: off"],
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
+    id: "ce-prototype/annotation-helper-fallback",
+    baseline_ref: "6cc07dc17f644e7be938a55f85dfaf5edb81e322",
+    skill: "ce-prototype",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    why: "Removing duplicate chrome on capable hosts must preserve the CE annotation loop on hosts without a native page-annotation channel.",
+    pre_contract:
+      "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
+    task: "The ce-prototype isolated web preview is already up. This host has no native way to attach page-targeted feedback to the local preview and return it to this conversation. Resolve which feedback channel owns the session and what reference governs intake; do not run the wait. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
+    grade: {
+      must_include: ["ANNOTATION_ROUTE: ce-overlay", "CE_OVERLAY: on"],
+      actions: "none",
+      delegates: "none",
+    },
+  },
+  {
     id: "ce-prototype/batch-conflict-asks",
     post_only: true,
     skill: "ce-prototype",
