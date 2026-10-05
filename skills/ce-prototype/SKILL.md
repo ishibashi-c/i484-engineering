@@ -25,7 +25,7 @@ Read `references/scoping.md` before you ask the user anything or touch the repo.
 
 ## Build it
 
-Read `references/build.md` and `references/preview.md` before writing anything. For an isolated web preview, prefer a host-native annotation channel when the active host can attach feedback to the rendered local page and deliver it back to this conversation; in that case keep the CE annotation overlay off and do not load `references/annotation-loop.md`. The Codex app built-in browser Annotation mode is such a channel when it is available in the current run. When no usable native annotation channel exists, use the CE annotation fallback and load `references/annotation-loop.md` once the preview is up. Overlay runs and non-web runs stay on chat.
+Read `references/build.md` and `references/preview.md` before writing anything. On an isolated web preview, use a host-native annotation channel when it can target the rendered local page and return feedback to this conversation; otherwise use the CE annotation fallback and load `references/annotation-loop.md` once the preview is up. Overlay runs and non-web runs stay on chat.
 
 **i484 product-design knowledge is additive, never a second prototype workflow.** The required build read governs `i484-style` (product-ui domain) as product-design domain knowledge before design judgments.
 
