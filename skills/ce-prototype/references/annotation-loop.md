@@ -1,6 +1,6 @@
 # Annotation loop
 
-Load this once an isolated web preview is up. Overlay and yielded-medium runs do not use it.
+Load this only when an isolated web preview has no usable host-native annotation channel and the helper is running with `--annotate`. Do not load it when the host can annotate the rendered local page and deliver that feedback to the current conversation; for example, the Codex app built-in browser uses its native Annotation mode when that capability is available. Overlay and yielded-medium runs do not use this loop.
 
 ## When to wait
 
