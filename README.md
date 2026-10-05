@@ -24,7 +24,7 @@ planning、implementation、debugging、verification、review、Git、shipping�
 
 ## 個人用開発環境の導入書
 
-別のPCで採用環境を再構築するAI向けに、[個人用開発環境の導入書](docs/guides/personal-environment.md)を用意しています。導入元、採用する外部SkillとMCP、目的・使用条件、Global指示、確認方法を記載しています。これは個人の採用構成であり、i484 Engineering全利用者の必須設定ではありません。
+別のPCで採用環境を再構築するAI向けに、[個人用開発環境の導入書](docs/guides/personal-environment.md)を用意しています。CodexとGoogle Antigravityの導入手順、外部SkillとMCPの目的・使用条件、Global指示、確認方法を記載しています。これは個人の採用構成であり、i484 Engineering全利用者の必須設定ではありません。
 
 ## Architecture
 
