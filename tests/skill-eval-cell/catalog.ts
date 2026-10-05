@@ -3539,7 +3539,8 @@ Units:
     key_behavior: "judgment",
     read_only: true,
     why: "Removing duplicate chrome on capable hosts must preserve the CE annotation loop on hosts without a native page-annotation channel.",
-    pre_contract: "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
+    pre_contract:
+      "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
     task: "The ce-prototype isolated web preview is already up. This host has no native way to attach page-targeted feedback to the local preview and return it to this conversation. Resolve which feedback channel owns the session and what reference governs intake; do not run the wait. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
     grade: {
       files_read_post: ["references/annotation-loop.md"],
