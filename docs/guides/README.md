@@ -6,7 +6,7 @@ For runtime behavior and contributor reference, the `SKILL.md` in each skill's s
 
 The [root README adoption inventory](../../README.md#37-skills) owns why each shipped skill is included, its expected outcome, and its activation boundary. This catalog owns usage descriptions and links. Update both affected entries in the same capability change; do not maintain a separate Behavior Studio inventory. Generic external review/debug/QA skills are alternatives by explicit request or narrow knowledge providers, while CE remains the default workflow owner.
 
-For the personally adopted Codex environment and AI setup handoff, see [Personal development environment](./personal-environment.md). This profile is not a required configuration for all plugin users.
+For the personally adopted Codex and Google Antigravity environments and AI setup handoff, see [Personal development environment](./personal-environment.md). This profile is not a required configuration for all plugin users.
 
 Checkout-local defaults shared across skills are documented in [Compound Engineering configuration](./configuration.md). Prescriptive rule packs the pipeline grounds in are documented in [Compound Packs](./packs.md).
 
