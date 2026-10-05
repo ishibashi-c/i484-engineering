@@ -258,7 +258,7 @@ This prevents automatically promoting a Luna session to Sol when a supporting mo
 - If no usable native channel exists, preserve CE's annotation overlay and `annotation-loop.md` wait path as the fallback.
 - This patch changes routing only; it does not remove or fork the shared `light-webserver.js` annotation implementation.
 
-**Introduced:** Pending PR
+**Introduced:** [PR #23](https://github.com/ishibashi-c/i484-engineering/pull/23)
 
 **Retire when:** upstream CE prefers a usable host-native annotation channel before starting its own annotation overlay, with an equivalent fallback when native annotations are unavailable.
 
