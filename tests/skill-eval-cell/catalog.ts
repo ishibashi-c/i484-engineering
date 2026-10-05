@@ -3515,7 +3515,7 @@ Units:
   },
   {
     id: "ce-prototype/native-annotation-preferred",
-    post_only: true,
+    baseline_ref: "6cc07dc17f644e7be938a55f85dfaf5edb81e322",
     skill: "ce-prototype",
     cohort: "resized",
     key_behavior: "judgment",
@@ -3525,7 +3525,6 @@ Units:
       "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
     task: "Use ce-prototype only for this already-scoped, authorized preview handoff. The isolated web screen is ready. The active host has a built-in browser annotation mode that can attach a comment to this local page and deliver that feedback back into the current conversation. Resolve the feedback route and helper annotation state, then stop before running commands. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
     grade: {
-      files_read_post: ["references/preview.md"],
       must_include: ["ANNOTATION_ROUTE: native", "CE_OVERLAY: off"],
       actions: "none",
       delegates: "none",
@@ -3533,7 +3532,7 @@ Units:
   },
   {
     id: "ce-prototype/annotation-helper-fallback",
-    post_only: true,
+    baseline_ref: "6cc07dc17f644e7be938a55f85dfaf5edb81e322",
     skill: "ce-prototype",
     cohort: "resized",
     key_behavior: "judgment",
@@ -3543,7 +3542,6 @@ Units:
       "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
     task: "The ce-prototype isolated web preview is already up. This host has no native way to attach page-targeted feedback to the local preview and return it to this conversation. Resolve which feedback channel owns the session and what reference governs intake; do not run the wait. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
     grade: {
-      files_read_post: ["references/annotation-loop.md"],
       must_include: ["ANNOTATION_ROUTE: ce-overlay", "CE_OVERLAY: on"],
       actions: "none",
       delegates: "none",
