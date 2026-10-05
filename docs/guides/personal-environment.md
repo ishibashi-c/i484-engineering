@@ -48,9 +48,16 @@ Antigravityは`SKILL.md`を使うAgent Skills形式を読み込みます。た�
 | `disable-model-invocation` | `ce-dogfood`、`ce-polish`、`ce-product-pulse`、`ce-promote`、`ce-retune`、`ce-setup`、`ce-sweep`、`ce-test-xcode`、`wtf` | 明示呼び出しだけにする規則へ移せるか個別に確認。説明文へ「明示依頼時のみ」と書くだけでは同じ制御の保証にならない。 |
 | `allowed-tools` | `ce-product-pulse`、`ce-proof`、`ce-resolve-pr-feedback`、`ce-sweep` | Antigravity側で同じツール境界を設定・検証できるまで有効化しない。一般的な権限設定をSkill単位の制限と見なさない。 |
 
-Google Rulesの`trigger: manual`は手動で適用するルール向けで、Skillの呼び出し制御を置き換えるものではありません。明確な同等手段がないSkillは`要調整`として一覧に残し、自動実行させないでください。本文中のCodex専用処理やモデル指定もAntigravityで同じように動くとは限りません。登録したSkillについて、読み込みだけでなく必要な呼び出し経路と制約も検証し、その結果を互換性一覧に記録してください。[Google Antigravity Rules](https://antigravity.google/docs/rules/)
+Google Rulesの`trigger: manual`は手動で適用するルール向けで、Skillの呼び出し制御をそのまま置き換えるものではありません。しかし、Antigravity向けに以下の適合規律を適用することで、全37個のSkillを安全に有効化できます。
 
-単体IDEの共通Skill保存先は`~/.gemini/config/skills/<skill-name>/`、プロジェクト限定なら`<workspace>/.agents/skills/<skill-name>/`です。CLIでは`~/.gemini/antigravity-cli/skills/`を使います。i484のソースチェックアウトにある`skills/`はそのまま自動検出されません。互換性を確認したSkillだけを選んだ保存先へ配置してください。要調整のSkillはステージング領域に残し、同等の呼び出し条件・ツール境界を作れた場合だけ有効化します。既存の同名Skillがある場合は出典と差分を調べ、独自編集を保護してください。配置後はAntigravityのCustomizations画面または`/skills`で一覧を確認します。
+1. **手動限定（`disable-model-invocation`）の適合**:
+   `wtf`、`ce-promote`、`ce-polish`、`ce-setup`、`ce-dogfood`、`ce-sweep`、`ce-product-pulse`、`ce-test-xcode`、`ce-retune` は、`SKILL.md`のdescription冒頭に `[MANUAL INVOCATION ONLY]` を明記し、`AGENTS.md` に「ユーザーからの明示指示時のみ呼び出し、自発的起動を行わない」ルールを規定して安全に有効化します。
+2. **ツール境界（`allowed-tools`）の適合**:
+   `ce-resolve-pr-feedback`、`ce-proof`、`ce-product-pulse`、`ce-sweep` は、プロンプト指示および`AGENTS.md`で許可された操作・ツール（`gh`/`git`/ファイル読み取り等）のみを使用し、境界外の操作を自制する運用規律を明記して有効化します。
+3. **前提条件の明記**:
+   `ce-test-xcode`（XcodeBuildMCPやxcodebuild環境）や`ce-retune`（ベンチマークハーネス環境）は、必要な実行基盤が存在する場合のみ実行する前提条件を明記します。
+
+単体IDEの共通Skill保存先は`~/.gemini/config/skills/<skill-name>/`、プロジェクト限定なら`<workspace>/.agents/skills/<skill-name>/`です。CLIでは`~/.gemini/antigravity-cli/skills/`を使います。i484のソースチェックアウトにある`skills/`はそのまま自動検出されません。上記方針に基づき適合したSkillを保存先へ配置してください。配置後はAntigravityのCustomizations画面または`/skills`で一覧を確認します。
 
 対象版を固定する場合は、確認済みのリリースタグからソースを取得してください。
 
