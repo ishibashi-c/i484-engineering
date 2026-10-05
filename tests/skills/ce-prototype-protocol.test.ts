@@ -95,7 +95,7 @@ describe("ce-prototype protocol", () => {
     expect(PREVIEW_BODY).not.toMatch(/start --root "\$PROTO_DIR" --annotate/)
     expect(PREVIEW_BODY).toMatch(/appending `--annotate`/)
     expect(SKILL_BODY).toMatch(/host-native annotation channel/)
-    expect(SKILL_BODY).toMatch(/Codex app built-in browser Annotation mode/)
+    expect(PREVIEW_BODY).toMatch(/Codex app built-in browser Annotation mode/)
     expect(ANNOTATION_LOOP_BODY).toMatch(
       /only when an isolated web preview has no usable host-native annotation channel/,
     )
