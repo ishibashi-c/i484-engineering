@@ -3521,7 +3521,8 @@ Units:
     key_behavior: "judgment",
     read_only: true,
     why: "A host that already provides page-targeted annotations should not get a second CE overlay and blocking wait loop.",
-    pre_contract: "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
+    pre_contract:
+      "Every isolated web prototype enabled the CE annotation overlay and loaded the wait loop.",
     task: "Use ce-prototype only for this already-scoped, authorized preview handoff. The isolated web screen is ready. The active host has a built-in browser annotation mode that can attach a comment to this local page and deliver that feedback back into the current conversation. Resolve the feedback route and helper annotation state, then stop before running commands. Return exactly these fields with one value each: ANNOTATION_ROUTE: <native|ce-overlay>; CE_OVERLAY: <on|off>.",
     grade: {
       files_read_post: ["references/preview.md"],
