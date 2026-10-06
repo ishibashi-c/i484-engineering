@@ -10,7 +10,7 @@ Resolve the question directory once, at the start of the run, and reuse the abso
 
 `RUN_SLUG` is `<date>-<short-question-slug>` for the run; `QUESTION_SLUG` is `NN-<question-slug>` for the question being built. A run that covers a second related question resolves a second question directory under the same run directory.
 
-Settle durability before you run this block; it reads both decisions once and there is no second pass. Set `RUN_KEEP="no"` when the user asked that this run not be left in the repo, and run the block as it stands — it sends the run to OS temp and nothing else changes. Otherwise, when the run is inside a git repository, probe the repo root for `.context/compound-engineering/`; if it is not covered, offer to append that one line to the repo-root `.gitignore`, appending only if the user agrees and leaving the rest of the file alone. A run that is headed for OS temp either way gets no offer.
+Settle durability before you run this block; it reads both decisions once and there is no second pass. Set `RUN_KEEP="no"` when the user asked that this run not be left in the repo, and run the block as it stands — it sends the run to OS temp and nothing else changes. Otherwise, when the run is inside a git repository, probe `prototypes/` from the repo root; if it is not ignored, offer to append `/prototypes/` to the repo-root `.gitignore`, appending only if the user agrees and leaving the rest of the file alone. A run that is headed for OS temp either way gets no offer.
 
 ```bash
 RUN_SLUG="<YYYY-MM-DD>-<run-slug>";
@@ -18,11 +18,17 @@ RUN_KEEP="yes";
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)";
 TEMP_ROOT="/tmp/compound-engineering-$(id -u)";
 [ ! -L "$TEMP_ROOT" ] && (umask 077; mkdir -p "$TEMP_ROOT") 2>/dev/null && [ ! -L "$TEMP_ROOT" ] && [ -O "$TEMP_ROOT" ] && [ -w "$TEMP_ROOT" ] || TEMP_ROOT="${TMPDIR:-/tmp}/compound-engineering-$(id -u)";
-if [ "$RUN_KEEP" = yes ] && [ -n "$REPO_ROOT" ] && [ ! -L "$REPO_ROOT/.context" ] && [ ! -L "$REPO_ROOT/.context/compound-engineering" ] && git -C "$REPO_ROOT" check-ignore -q .context/compound-engineering/ 2>/dev/null; then
-ROOT="$REPO_ROOT/.context/compound-engineering";
-else
-ROOT="$TEMP_ROOT";
+BASE="";
+if [ "$RUN_KEEP" = yes ] && [ -n "$REPO_ROOT" ] && git -C "$REPO_ROOT" check-ignore -q prototypes/ 2>/dev/null; then
+BASE="$REPO_ROOT/prototypes";
+if [ -L "$BASE" ]; then echo "unsafe base symlink: $BASE" >&2; BASE="";
+elif ! (umask 077; mkdir -p "$BASE"); then echo "could not create $BASE" >&2; BASE="";
+elif [ -L "$BASE" ] || [ ! -O "$BASE" ]; then echo "base is not owned by the current user: $BASE" >&2; BASE="";
+elif ! chmod 700 "$BASE"; then echo "could not restrict $BASE" >&2; BASE="";
 fi;
+fi;
+if [ -z "$BASE" ]; then
+ROOT="$TEMP_ROOT";
 while :; do
 BASE="$ROOT/ce-prototype";
 if [ -L "$ROOT" ]; then echo "unsafe root symlink: $ROOT" >&2;
@@ -37,6 +43,7 @@ else break; fi;
 if [ "$ROOT" = "$TEMP_ROOT" ]; then echo "no usable run root" >&2; exit 1; fi;
 echo "falling back to $TEMP_ROOT" >&2; ROOT="$TEMP_ROOT";
 done;
+fi;
 RUN_DIR="$BASE/$RUN_SLUG"; n=1;
 while ! (umask 077; mkdir "$RUN_DIR") 2>/dev/null; do
 if [ ! -e "$RUN_DIR" ]; then echo "could not create $RUN_DIR" >&2; exit 1; fi;
@@ -47,9 +54,7 @@ chmod 700 "$RUN_DIR" || exit 1;
 echo "$RUN_DIR"
 ```
 
-Three things this block is careful about. The symlink and ownership checks run against both the **root** — the directory sitting in a shared or world-writable location — and the `ce-prototype` directory beneath it, because that one survives between runs: `mkdir -p` follows a symlink that is already there, and `chmod` would then change the link's target rather than anything inside the validated root. Every check is inside the retry loop, so an unsafe in-repo path at either level falls back to OS temp rather than aborting — a hostile or misconfigured `.context` costs the run its durability, not the run itself, and only a temp root that also fails is fatal.
-
-Creating the directory is how it is claimed — never test whether the name is free and then write, which two runs starting together both pass. There is no rejoin: this block runs once per invocation, so a second question never re-derives the run directory and can neither split into a suffixed sibling nor adopt a finished run's directory.
+Three things this block is careful about. The durable path validates only the repo-local `prototypes/` directory; it never changes permissions on the repository root. The OS-temp fallback still validates both its private root and the persistent `ce-prototype` directory beneath it. Creating the run directory is how it is claimed — never test whether the name is free and then write, which two runs starting together both pass. There is no rejoin: this block runs once per invocation, so a second question never re-derives the run directory and can neither split into a suffixed sibling nor adopt a finished run's directory.
 
 Then, once per question, create that question's directory under the run directory the block above printed:
 
@@ -93,7 +98,7 @@ A default start reloads only when the newest screen changes; it must not continu
 Write screens under:
 
 ```text
-<repo>/.context/compound-engineering/ce-prototype/<YYYY-MM-DD>-<run-slug>/
+<repo>/prototypes/<YYYY-MM-DD>-<run-slug>/
   decisions.md               # run capsule for the next skill; not a plan
   01-<question-slug>/
     screens/

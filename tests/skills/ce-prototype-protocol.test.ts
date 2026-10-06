@@ -263,7 +263,7 @@ describe("ce-prototype protocol", () => {
       ["references/preview.md", PREVIEW_BODY],
     ] as const) {
       expect(
-        body.includes(".context/compound-engineering/ce-prototype/"),
+        body.includes("prototypes/"),
         `${label} must name the durable run root. A prototype the next skill is told to read cannot live only where the OS may reap it.`,
       ).toBe(true)
       expect(
@@ -272,7 +272,7 @@ describe("ce-prototype protocol", () => {
       ).toBe(true)
     }
     // The durable path must be the taken branch and temp the fallback, not the reverse.
-    const durableBranch = PREVIEW_SHELL.indexOf('ROOT="$REPO_ROOT/.context/compound-engineering"')
+    const durableBranch = PREVIEW_SHELL.indexOf('BASE="$REPO_ROOT/prototypes"')
     const fallbackBranch = PREVIEW_SHELL.indexOf('ROOT="$TEMP_ROOT"')
     expect(durableBranch, "The executed block must assign the durable root.").toBeGreaterThan(-1)
     expect(
@@ -287,7 +287,7 @@ describe("ce-prototype protocol", () => {
     const storageRule = (SKILL_BODY.match(/^.*Build under.*$/m) ?? [""])[0]
     expect(storageRule, "SKILL.md must state where a run builds.").not.toBe("")
     expect(
-      storageRule.indexOf(".context/compound-engineering/") <
+      storageRule.indexOf("prototypes/") <
         storageRule.indexOf("/tmp/compound-engineering-"),
       "The durable path must be stated as the default and OS temp as the fallback. Reversing them still mentions both paths while inverting the rule.",
     ).toBe(true)
@@ -327,29 +327,12 @@ describe("ce-prototype protocol", () => {
     ).toBe(true)
   })
 
-  test("the scratch ignore entry is one literal across both writers", () => {
-    // Two skills can append this line and skill isolation forbids sharing a
-    // file, so nothing but this guard stops them drifting into two entries
-    // that both satisfy check-ignore and accumulate as separate lines.
-    const IGNORE_ENTRY = ".context/compound-engineering/"
-    // Corpus grep across ce-setup: the offer is a Phase 2 mechanic, which lives in the
-    // reference ce-setup requires before any repo-local write.
-    const setupBody = [
-      readFileSync(path.join(SKILLS_ROOT, "ce-setup", "SKILL.md"), "utf8"),
-      readFileSync(path.join(SKILLS_ROOT, "ce-setup", "references", "repo-fixes.md"), "utf8"),
-    ].join("\n")
-    expect(
-      setupBody.includes(`\`\`\`text\n${IGNORE_ENTRY}\n\`\`\``),
-      "ce-setup must offer the scratch ignore entry as exactly this literal.",
-    ).toBe(true)
-    expect(
-      SKILL_BODY.includes(`check-ignore -q ${IGNORE_ENTRY}`),
-      "ce-prototype must probe the identical literal it would ask ce-setup's user to add.",
-    ).toBe(true)
-    expect(
-      PREVIEW_SHELL.includes(`check-ignore -q ${IGNORE_ENTRY}`),
-      "The resolution block must probe that same literal in executed shell, so the path it picks matches the path the offer covers.",
-    ).toBe(true)
+  test("the repo-local prototype ignore contract is explicit", () => {
+    expect(SKILL_BODY).toContain("append `/prototypes/`")
+    expect(PREVIEW_BODY).toContain("append `/prototypes/`")
+    expect(SKILL_BODY).toContain("check-ignore -q prototypes/")
+    expect(PREVIEW_SHELL).toContain("check-ignore -q prototypes/")
+    expect(PREVIEW_BODY).not.toContain("check-ignore -q .context/compound-engineering/")
   })
 
   test("no skill reintroduces a retired ce-prototype routing predicate", () => {
