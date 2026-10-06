@@ -73,6 +73,18 @@ test("quality scope covers branch, staged, unstaged and untracked source, exclud
   ])
 })
 
+test("upstream sync boundary excludes imported files but keeps later i484 changes", () => {
+  const { root, git, write } = fixture()
+  write("src/upstream.ts")
+  git("add", ".")
+  git("commit", "-qm", "chore(upstream): merge Compound Engineering 3.30.3")
+  write("src/i484.ts")
+  git("add", ".")
+  git("commit", "-qm", "fix(i484): reconcile local behavior")
+
+  expect(qualityFiles("baseline", root)).toEqual(["src/i484.ts"])
+})
+
 test("clean scope is empty but unknown base fails closed", () => {
   const { root } = fixture()
   expect(qualityFiles("baseline", root)).toEqual([])

@@ -23,13 +23,6 @@ export const CLAUDE_FAMILY_ALIASES: Record<string, string> = {
  * Keep in sync with CLAUDE_FAMILY_ALIASES when new generations are released.
  * See the Sonnet 5/5.5, Opus 4.7/4.8, and Opus 5.5 migration notes.
  */
-const ANTHROPIC_PREFIX = /^anthropic\//
-const CLAUDE_MODEL = /^claude-/
-const OPENAI_MODEL = /^(gpt-|o1-|o3-)/
-const GEMINI_MODEL = /^gemini-/
-const QWEN_MODEL = /^qwen-/
-const MINIMAX_MODEL = /^minimax-/i
-
 const SAMPLING_PARAM_REJECTING_MODELS: ReadonlySet<string> = new Set([
   "claude-sonnet-5",
   "claude-sonnet-5-5",
@@ -61,24 +54,12 @@ export function resolveClaudeFamilyAlias(model: string): string {
  * "anthropic/foo"     -> "anthropic/foo" (unchanged)
  */
 export function addProviderPrefix(model: string): string {
-  if (model.includes("/")) {
-    return model
-  }
-  if (CLAUDE_MODEL.test(model)) {
-    return `anthropic/${model}`
-  }
-  if (OPENAI_MODEL.test(model)) {
-    return `openai/${model}`
-  }
-  if (GEMINI_MODEL.test(model)) {
-    return `google/${model}`
-  }
-  if (QWEN_MODEL.test(model)) {
-    return `qwen/${model}`
-  }
-  if (MINIMAX_MODEL.test(model)) {
-    return `minimax/${model}`
-  }
+  if (model.includes("/")) return model
+  if (/^claude-/.test(model)) return `anthropic/${model}`
+  if (/^(gpt-|o1-|o3-)/.test(model)) return `openai/${model}`
+  if (/^gemini-/.test(model)) return `google/${model}`
+  if (/^qwen-/.test(model)) return `qwen/${model}`
+  if (/^minimax-/i.test(model)) return `minimax/${model}`
   return `anthropic/${model}`
 }
 
@@ -91,14 +72,12 @@ export function addProviderPrefix(model: string): string {
  * "anthropic/claude-opus"    -> "anthropic/claude-opus" (unchanged)
  */
 export function normalizeModelWithProvider(model: string): string {
-  if (model.includes("/")) {
-    return model
-  }
+  if (model.includes("/")) return model
   const resolved = resolveClaudeFamilyAlias(model)
   if (resolved !== model) {
     console.warn(
       `Warning: bare model alias "${model}" mapped to "anthropic/${resolved}". ` +
-        "Update CLAUDE_FAMILY_ALIASES if a newer version is available.",
+        `Update CLAUDE_FAMILY_ALIASES if a newer version is available.`,
     )
   }
   return addProviderPrefix(resolved)
@@ -113,6 +92,6 @@ export function normalizeModelWithProvider(model: string): string {
  * "claude-sonnet-4-20250514"   -> false (dated Sonnet 4 accepts sampling params)
  */
 export function rejectsSamplingParams(model: string): boolean {
-  const canonical = resolveClaudeFamilyAlias(model).replace(ANTHROPIC_PREFIX, "")
+  const canonical = resolveClaudeFamilyAlias(model).replace(/^anthropic\//, "")
   return SAMPLING_PARAM_REJECTING_MODELS.has(canonical)
 }

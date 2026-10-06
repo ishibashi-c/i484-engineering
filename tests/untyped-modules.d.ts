@@ -8,8 +8,8 @@ declare module "*/index.js" {
   }
   const CompoundEngineeringPlugin: {
     id: string
-    setup: (ctx: never) => Promise<void>
-    server: () => Promise<{ config: (config: ConfigHookInput) => Promise<void> }>
+    setup(ctx: never): Promise<void>
+    server(): Promise<{ config(config: ConfigHookInput): Promise<void> }>
   }
   export default CompoundEngineeringPlugin
 }

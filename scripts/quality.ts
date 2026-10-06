@@ -14,7 +14,16 @@ export function qualityFiles(base: string, cwd = process.cwd()): string[] {
   // Include committed branch changes, staged/unstaged edits, and new files.
   // A missing base is an error: an empty scope must never hide a bad CI checkout.
   const ancestor = runGit(["merge-base", "HEAD", base]).trim()
-  const tracked = runGit(["diff", "--name-only", "-z", "--diff-filter=ACMR", ancestor, "--"])
+  const upstreamBoundary = runGit([
+    "log",
+    "-1",
+    "--format=%H",
+    "--extended-regexp",
+    "--grep=^[[:alpha:]]+\\(upstream\\):",
+    `${ancestor}..HEAD`,
+  ]).trim()
+  const scopeBase = upstreamBoundary || ancestor
+  const tracked = runGit(["diff", "--name-only", "-z", "--diff-filter=ACMR", scopeBase, "--"])
   const untracked = runGit(["ls-files", "--others", "--exclude-standard", "-z"])
   return [...new Set(`${tracked}${untracked}`.split("\0"))]
     .filter(

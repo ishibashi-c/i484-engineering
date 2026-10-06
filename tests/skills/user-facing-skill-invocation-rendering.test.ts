@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test"
 import { readFileSync } from "fs"
 import path from "path"
+import { describe, expect, test } from "bun:test"
 
 function readRepoFile(relativePath: string): string {
   return readFileSync(path.join(process.cwd(), relativePath), "utf8")
@@ -117,15 +117,9 @@ describe("user-facing skill invocation rendering", () => {
       expect(body).toMatch(/\$[a-z][^\n]*(?:Codex|dollar-prefixed)|(?:Codex|dollar-prefixed)[^\n]*\$[a-z]/i)
       expect(body).toMatch(/Render (?:only (?:each|the) invocation as inline code|it as the fenced command below)/i)
       expect(body).toMatch(/Output one form only/i)
-      for (const invocation of defaults) {
-        expect(body).toContain(invocation)
-      }
-      for (const invocation of codex) {
-        expect(body).toContain(invocation)
-      }
-      for (const invocation of unnecessaryOmp) {
-        expect(body).not.toContain(invocation)
-      }
+      for (const invocation of defaults) expect(body).toContain(invocation)
+      for (const invocation of codex) expect(body).toContain(invocation)
+      for (const invocation of unnecessaryOmp) expect(body).not.toContain(invocation)
     },
   )
 
@@ -142,15 +136,9 @@ describe("user-facing skill invocation rendering", () => {
       for (const target of targets) {
         expect(readRepoFile(`skills/${target}/SKILL.md`)).toMatch(/^disable-model-invocation:\s*true$/m)
       }
-      for (const invocation of defaults) {
-        expect(body).toContain(invocation)
-      }
-      for (const invocation of codex) {
-        expect(body).toContain(invocation)
-      }
-      for (const invocation of omp) {
-        expect(body).toContain(invocation)
-      }
+      for (const invocation of defaults) expect(body).toContain(invocation)
+      for (const invocation of codex) expect(body).toContain(invocation)
+      for (const invocation of omp) expect(body).toContain(invocation)
     },
   )
 

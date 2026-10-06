@@ -4,13 +4,9 @@ import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-const BUNFIG = path.join(import.meta.dirname, "../bunfig.toml")
+const BUNFIG = path.join(__dirname, "../bunfig.toml")
 const roots: string[] = []
-afterAll(() => {
-  for (const dir of roots) {
-    rmSync(dir, { recursive: true, force: true })
-  }
-})
+afterAll(() => roots.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
 
 function layout(withBunfig: boolean): string {
   const dir = mkdtempSync(path.join(tmpdir(), "bunfig-fixture-exclusion-"))
@@ -21,9 +17,7 @@ function layout(withBunfig: boolean): string {
     path.join(dir, "tests/skill-eval-cell/fixtures/x/fail.test.ts"),
     `import { test } from "bun:test"\ntest("fixture ran", () => { throw new Error("fixture ran") })\n`,
   )
-  if (withBunfig) {
-    copyFileSync(BUNFIG, path.join(dir, "bunfig.toml"))
-  }
+  if (withBunfig) copyFileSync(BUNFIG, path.join(dir, "bunfig.toml"))
   return dir
 }
 

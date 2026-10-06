@@ -311,6 +311,7 @@ For each upstream sync:
 6. Validate CE behavior first and i484 specialist/integration contracts second.
 7. Update this registry in the same PR whenever a patch is added, materially changed, retired, or absorbed upstream.
 8. Inspect the resulting diff for accidental growth of CE-native patch surface.
+9. On an upstream-sync PR, Ultracite begins after the latest `(upstream)`-scoped sync commit so imported upstream files are not restyled into fork-only divergence; i484 reconciliation and feature commits after that boundary remain in the quality scope.
 
 Preferred Git shape:
 
