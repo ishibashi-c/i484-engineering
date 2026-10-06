@@ -287,8 +287,7 @@ describe("ce-prototype protocol", () => {
     const storageRule = (SKILL_BODY.match(/^.*Build under.*$/m) ?? [""])[0]
     expect(storageRule, "SKILL.md must state where a run builds.").not.toBe("")
     expect(
-      storageRule.indexOf("prototypes/") <
-        storageRule.indexOf("/tmp/compound-engineering-"),
+      storageRule.indexOf("prototypes/") < storageRule.indexOf("/tmp/compound-engineering-"),
       "The durable path must be stated as the default and OS temp as the fallback. Reversing them still mentions both paths while inverting the rule.",
     ).toBe(true)
   })
