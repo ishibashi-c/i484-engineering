@@ -92,7 +92,7 @@ Cleanliness is not enough. A surface can clear every threshold and still be a te
 
 ### Where the prototype lives
 
-The prototype lands in `.context/compound-engineering/ce-prototype/<date>-<slug>/`, gitignored and uncommitted, so it is still openable next week when implementation reads it. Each question in a run gets its own directory beneath that. If `.context/compound-engineering/` is not already ignored, the skill offers to append that one line; decline it, or run outside a git repository, and it falls back to OS temp, where survival is best-effort. Nothing is deleted for you.
+The prototype lands in `<repo>/prototypes/<date>-<slug>/`, gitignored and uncommitted, so it remains visible in the project tree to Codex, Antigravity, or another agent using the same checkout without becoming production code. Each question in a run gets its own directory beneath that. If `prototypes/` is not already ignored, the skill offers to append `/prototypes/`; decline it, ask not to keep the run in the repo, run outside a git repository, or fail the path-safety checks and it falls back to OS temp, where survival is best-effort. Nothing is deleted for you.
 
 The run also writes `decisions.md` there: the question, what was built, what won and why, what was rejected, stated adjustments that were not in the prototype, and what is still open. That capsule is continuity for the next skill, not a plan.
 

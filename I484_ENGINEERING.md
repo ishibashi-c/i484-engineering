@@ -199,25 +199,23 @@ There are two classes:
 
 ---
 
-#### C4 — Reviewer model down-tier ceiling
+#### C4 — Reviewer model down-tier ceiling (absorbed into C5)
 
-**Purpose:** Preserve CE's cost-saving reviewer tiering without allowing a lower-cost parent session to be automatically promoted to a more expensive model.
+**Status:** No longer an independent runtime patch. C5's shared native-model policy now enforces the same parent-capability ceiling for reviewer and other bounded native dispatches.
 
-**Main surfaces:**
-- `skills/ce-code-review/references/dispatch-reviewers.md`
-- `tests/review-skill-contract.test.ts`
+**Invariant retained through C5:**
+- Critical correctness, security, and adversarial reviewer roles inherit the parent model.
+- A configured bounded-job model is used only when the host supports it and it is known to be at or below the parent's capability.
+- Unknown model ordering, hierarchy, or support inherits the parent rather than risking an up-tier.
+- The parent model remains the capability ceiling, preventing a Luna session from being promoted to Sol by supporting work.
 
-**Invariant:**
-- `correctness-reviewer`, `security-reviewer`, and `adversarial-reviewer` keep the session model.
-- Other local review personas may use the platform's balanced mid-tier only when it is a known **down-tier** from the session model.
-- If the session model is already at or below that tier, or ordering cannot be established, inherit the session model.
-- The parent model remains the capability ceiling; bounded jobs use C5's configured native model when its ordering and support are known.
-
-This prevents automatically promoting a Luna session to Sol when a supporting model is selected. C5 replaces the former blanket mid-tier default with task classification.
+**Current surfaces:**
+- `skills/*/references/native-model-policy.md` for CE skills that dispatch bounded native jobs
+- `tests/subagent-model-policy.test.ts`
 
 **Introduced:** [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6)
 
-**Retire when:** upstream CE's reviewer model policy independently guarantees that cost-saving tiering cannot up-tier the session.
+**Absorbed into C5 when:** bounded native delegation generalized the same no-up-tier rule beyond review personas. Keep this historical entry so old sync decisions remain legible; retire it entirely if C5 itself is retired because upstream guarantees an equivalent parent-capability ceiling.
 
 #### C5 — Process-test safety and bounded native delegation
 
@@ -262,6 +260,29 @@ This prevents automatically promoting a Luna session to Sol when a supporting mo
 
 **Retire when:** upstream CE prefers a usable host-native annotation channel before starting its own annotation overlay, with an equivalent fallback when native annotations are unavailable.
 
+#### C7 — Project-local prototype workspace
+
+**Purpose:** Keep durable `ce-prototype` artifacts in a tool-neutral project location that multiple coding-agent harnesses using the same checkout can discover and edit directly.
+
+**Main surfaces:**
+- `skills/ce-prototype/SKILL.md`
+- `skills/ce-prototype/references/build.md`
+- `skills/ce-prototype/references/preview.md`
+- `docs/guides/ce-prototype.md`
+- `tests/skills/ce-prototype-protocol.test.ts`
+- `tests/skills/ce-prototype-run-root-executes.test.ts`
+
+**Invariant:**
+- A kept isolated prototype defaults to `<repo>/prototypes/<date>-<slug>/`, alongside its `decisions.md` capsule.
+- `/prototypes/` stays gitignored and uncommitted; the directory is a shared local work artifact, not production code or a CE-owned namespace.
+- Another agent using the same checkout can address the prototype through the stable project-relative path.
+- If the user declines the ignore entry, asks not to keep the run in the repo, no Git repository exists, or the project-local path fails its safety checks, preserve CE's private OS-temp fallback at `/tmp/compound-engineering-<uid>/ce-prototype/`.
+- The repo-local path is validated for symlink, ownership, and writability without changing permissions on an existing project-owned `prototypes/` directory.
+
+**Introduced:** [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26)
+
+**Retire or shrink when:** upstream CE provides a configurable or tool-neutral project-local durable prototype root with equivalent gitignore, safety, and OS-temp fallback semantics.
+
 ## Upstream sync history
 
 This is a lightweight checkpoint log, not a duplicate changelog. Git history remains authoritative for individual upstream commits.
@@ -272,6 +293,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6) | CE 3.28.2 | Pulled later CE model/review updates and added C4 reviewer-model ceiling. |
 | [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
 | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
+| [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26) | CE 3.30.3 | Merged planning/work/test-loop/resolver/typecheck/model-pin updates, retained i484 identity and C1-C6 behavior, absorbed C4 into C5, and added C7 project-local prototype workspace. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
@@ -289,6 +311,7 @@ For each upstream sync:
 6. Validate CE behavior first and i484 specialist/integration contracts second.
 7. Update this registry in the same PR whenever a patch is added, materially changed, retired, or absorbed upstream.
 8. Inspect the resulting diff for accidental growth of CE-native patch surface.
+9. On an upstream-sync PR, Ultracite begins after the latest `(upstream)`-scoped sync commit so imported upstream files are not restyled into fork-only divergence; i484 reconciliation and feature commits after that boundary remain in the quality scope.
 
 Preferred Git shape:
 

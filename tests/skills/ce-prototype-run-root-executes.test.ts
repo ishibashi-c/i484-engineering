@@ -58,7 +58,7 @@ function initRepo(root: string, gitignore: string): void {
 }
 
 describe("ce-prototype run-root resolution executes", () => {
-  const IGNORED = "node_modules\n.context/compound-engineering/\n"
+  const IGNORED = "node_modules\n/prototypes/\n"
   const UNIGNORED = "node_modules\n"
 
   function fixture() {
@@ -73,7 +73,7 @@ describe("ce-prototype run-root resolution executes", () => {
       initRepo(repo, IGNORED)
       const result = run(resolutionScript(tempRoot), repo)
       expect(result.status, result.stderr).toBe(0)
-      expect(result.stdout).toBe(path.join(repo, ".context/compound-engineering/ce-prototype/2026-08-14-run"))
+      expect(result.stdout).toBe(path.join(repo, "prototypes/2026-08-14-run"))
       expect(existsSync(result.stdout)).toBe(true)
     } finally {
       rmSync(dir, { recursive: true, force: true })
@@ -96,42 +96,15 @@ describe("ce-prototype run-root resolution executes", () => {
     }
   })
 
-  test("a symlinked scratch path is refused and the run falls back to OS temp", () => {
+  test("a symlinked prototypes path is refused and the run falls back to OS temp", () => {
     // The durable path must never be reached through a link someone else controls.
-    for (const linked of [".context", ".context/compound-engineering"]) {
-      const { dir, tempRoot } = fixture()
-      try {
-        const repo = path.join(dir, "repo")
-        initRepo(repo, IGNORED)
-        const elsewhere = path.join(dir, "elsewhere")
-        mkdirSync(elsewhere, { recursive: true })
-        const link = path.join(repo, linked)
-        mkdirSync(path.dirname(link), { recursive: true })
-        symlinkSync(elsewhere, link)
-
-        const result = run(resolutionScript(tempRoot), repo)
-        expect(result.status, result.stderr).toBe(0)
-        expect(result.stdout, `a symlinked ${linked} must not be written through`).toBe(
-          path.join(tempRoot, "ce-prototype/2026-08-14-run"),
-        )
-        expect(existsSync(path.join(elsewhere, "ce-prototype"))).toBe(false)
-      } finally {
-        rmSync(dir, { recursive: true, force: true })
-      }
-    }
-  })
-
-  test("a symlinked ce-prototype base is refused and the run falls back to OS temp", () => {
-    // This one survives between runs, so mkdir -p would follow it and chmod would
-    // retarget the link rather than anything under the validated root.
     const { dir, tempRoot } = fixture()
     try {
       const repo = path.join(dir, "repo")
       initRepo(repo, IGNORED)
       const elsewhere = path.join(dir, "elsewhere")
       mkdirSync(elsewhere, { recursive: true })
-      mkdirSync(path.join(repo, ".context/compound-engineering"), { recursive: true })
-      symlinkSync(elsewhere, path.join(repo, ".context/compound-engineering/ce-prototype"))
+      symlinkSync(elsewhere, path.join(repo, "prototypes"))
 
       const result = run(resolutionScript(tempRoot), repo)
       expect(result.status, result.stderr).toBe(0)
@@ -153,7 +126,7 @@ describe("ce-prototype run-root resolution executes", () => {
       const result = run(script, repo)
       expect(result.status, result.stderr).toBe(0)
       expect(result.stdout).toBe(path.join(tempRoot, "ce-prototype/2026-08-14-run"))
-      expect(existsSync(path.join(repo, ".context"))).toBe(false)
+      expect(existsSync(path.join(repo, "prototypes"))).toBe(false)
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
