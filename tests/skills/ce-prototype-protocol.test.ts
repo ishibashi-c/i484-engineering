@@ -323,9 +323,10 @@ describe("ce-prototype protocol", () => {
     expect(
       /unsafe base symlink/.test(PREVIEW_SHELL) &&
         /base is not owned by the current user/.test(PREVIEW_SHELL) &&
+        /base is not writable/.test(PREVIEW_SHELL) &&
         /unsafe root symlink/.test(PREVIEW_SHELL) &&
         /root is not owned by the current user/.test(PREVIEW_SHELL),
-      "The repo-local prototypes directory and OS-temp root must both carry symlink and ownership checks; gitignoring a path does not make it safe to write into.",
+      "The repo-local prototypes directory must carry symlink, ownership, and writability checks without changing an existing project's permissions; the OS-temp root keeps its stricter private-root checks.",
     ).toBe(true)
   })
 

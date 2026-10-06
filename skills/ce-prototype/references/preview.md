@@ -24,7 +24,7 @@ BASE="$REPO_ROOT/prototypes";
 if [ -L "$BASE" ]; then echo "unsafe base symlink: $BASE" >&2; BASE="";
 elif ! (umask 077; mkdir -p "$BASE"); then echo "could not create $BASE" >&2; BASE="";
 elif [ -L "$BASE" ] || [ ! -O "$BASE" ]; then echo "base is not owned by the current user: $BASE" >&2; BASE="";
-elif ! chmod 700 "$BASE"; then echo "could not restrict $BASE" >&2; BASE="";
+elif [ ! -w "$BASE" ]; then echo "base is not writable: $BASE" >&2; BASE="";
 fi;
 fi;
 if [ -z "$BASE" ]; then
@@ -54,7 +54,7 @@ chmod 700 "$RUN_DIR" || exit 1;
 echo "$RUN_DIR"
 ```
 
-Three things this block is careful about. The durable path validates only the repo-local `prototypes/` directory; it never changes permissions on the repository root. The OS-temp fallback still validates both its private root and the persistent `ce-prototype` directory beneath it. Creating the run directory is how it is claimed — never test whether the name is free and then write, which two runs starting together both pass. There is no rejoin: this block runs once per invocation, so a second question never re-derives the run directory and can neither split into a suffixed sibling nor adopt a finished run's directory.
+Three things this block is careful about. The durable path validates only the repo-local `prototypes/` directory; it never changes permissions on the repository root or an existing project-owned prototype directory. The OS-temp fallback still validates both its private root and the persistent `ce-prototype` directory beneath it. Creating the run directory is how it is claimed — never test whether the name is free and then write, which two runs starting together both pass. There is no rejoin: this block runs once per invocation, so a second question never re-derives the run directory and can neither split into a suffixed sibling nor adopt a finished run's directory.
 
 Then, once per question, create that question's directory under the run directory the block above printed:
 

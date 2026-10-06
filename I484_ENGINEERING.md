@@ -262,6 +262,29 @@ This prevents automatically promoting a Luna session to Sol when a supporting mo
 
 **Retire when:** upstream CE prefers a usable host-native annotation channel before starting its own annotation overlay, with an equivalent fallback when native annotations are unavailable.
 
+#### C7 — Project-local prototype workspace
+
+**Purpose:** Keep durable `ce-prototype` artifacts in a tool-neutral project location that multiple coding-agent harnesses using the same checkout can discover and edit directly.
+
+**Main surfaces:**
+- `skills/ce-prototype/SKILL.md`
+- `skills/ce-prototype/references/build.md`
+- `skills/ce-prototype/references/preview.md`
+- `docs/guides/ce-prototype.md`
+- `tests/skills/ce-prototype-protocol.test.ts`
+- `tests/skills/ce-prototype-run-root-executes.test.ts`
+
+**Invariant:**
+- A kept isolated prototype defaults to `<repo>/prototypes/<date>-<slug>/`, alongside its `decisions.md` capsule.
+- `/prototypes/` stays gitignored and uncommitted; the directory is a shared local work artifact, not production code or a CE-owned namespace.
+- Another agent using the same checkout can address the prototype through the stable project-relative path.
+- If the user declines the ignore entry, asks not to keep the run in the repo, no Git repository exists, or the project-local path fails its safety checks, preserve CE's private OS-temp fallback at `/tmp/compound-engineering-<uid>/ce-prototype/`.
+- The repo-local path is validated for symlink, ownership, and writability without changing permissions on an existing project-owned `prototypes/` directory.
+
+**Introduced:** 2026-10-06 project-local prototype workspace change.
+
+**Retire or shrink when:** upstream CE provides a configurable or tool-neutral project-local durable prototype root with equivalent gitignore, safety, and OS-temp fallback semantics.
+
 ## Upstream sync history
 
 This is a lightweight checkpoint log, not a duplicate changelog. Git history remains authoritative for individual upstream commits.
