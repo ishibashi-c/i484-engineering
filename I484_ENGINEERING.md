@@ -199,25 +199,23 @@ There are two classes:
 
 ---
 
-#### C4 — Reviewer model down-tier ceiling
+#### C4 — Reviewer model down-tier ceiling (absorbed into C5)
 
-**Purpose:** Preserve CE's cost-saving reviewer tiering without allowing a lower-cost parent session to be automatically promoted to a more expensive model.
+**Status:** No longer an independent runtime patch. C5's shared native-model policy now enforces the same parent-capability ceiling for reviewer and other bounded native dispatches.
 
-**Main surfaces:**
-- `skills/ce-code-review/references/dispatch-reviewers.md`
-- `tests/review-skill-contract.test.ts`
+**Invariant retained through C5:**
+- Critical correctness, security, and adversarial reviewer roles inherit the parent model.
+- A configured bounded-job model is used only when the host supports it and it is known to be at or below the parent's capability.
+- Unknown model ordering, hierarchy, or support inherits the parent rather than risking an up-tier.
+- The parent model remains the capability ceiling, preventing a Luna session from being promoted to Sol by supporting work.
 
-**Invariant:**
-- `correctness-reviewer`, `security-reviewer`, and `adversarial-reviewer` keep the session model.
-- Other local review personas may use the platform's balanced mid-tier only when it is a known **down-tier** from the session model.
-- If the session model is already at or below that tier, or ordering cannot be established, inherit the session model.
-- The parent model remains the capability ceiling; bounded jobs use C5's configured native model when its ordering and support are known.
-
-This prevents automatically promoting a Luna session to Sol when a supporting model is selected. C5 replaces the former blanket mid-tier default with task classification.
+**Current surfaces:**
+- `skills/*/references/native-model-policy.md` for CE skills that dispatch bounded native jobs
+- `tests/subagent-model-policy.test.ts`
 
 **Introduced:** [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6)
 
-**Retire when:** upstream CE's reviewer model policy independently guarantees that cost-saving tiering cannot up-tier the session.
+**Absorbed into C5 when:** bounded native delegation generalized the same no-up-tier rule beyond review personas. Keep this historical entry so old sync decisions remain legible; retire it entirely if C5 itself is retired because upstream guarantees an equivalent parent-capability ceiling.
 
 #### C5 — Process-test safety and bounded native delegation
 
