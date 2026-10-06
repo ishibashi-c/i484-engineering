@@ -22,7 +22,9 @@ const ENTITIES: Record<string, string> = { lt: "<", gt: ">", amp: "&", quot: '"'
 
 function decodeXml(text: string): string {
   return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, ref: string) => {
-    if (ref[0] !== "#") return ENTITIES[ref] ?? whole
+    if (ref[0] !== "#") {
+      return ENTITIES[ref] ?? whole
+    }
     const code = ref[1] === "x" || ref[1] === "X" ? Number.parseInt(ref.slice(2), 16) : Number(ref.slice(1))
     return String.fromCodePoint(code)
   })
@@ -40,16 +42,25 @@ export function junitCases(xml: string): JunitCase[] {
       return value === undefined ? undefined : decodeXml(value)
     }
     if (name === "testsuite") {
-      if (closing) suites.pop()
-      else if (!selfClosing) suites.push({ label: attr("file") ?? attr("name") ?? "", name: attr("name") ?? "" })
+      if (closing) {
+        suites.pop()
+      } else if (!selfClosing) {
+        suites.push({ label: attr("file") ?? attr("name") ?? "", name: attr("name") ?? "" })
+      }
     } else if (name === "testcase") {
-      if (closing) current = null
-      else {
+      if (closing) {
+        current = null
+      } else {
         const file = attr("file") ?? suites.findLast((s) => TEST_FILE.test(s.label))?.label ?? ""
         // bun nests one suite per describe inside the file's suite; classname lists them innermost first.
         const describe = suites.slice(suites.findLastIndex((s) => s.name === file) + 1).map((s) => s.name)
-        if (TEST_FILE.test(file)) out.push((current = { file, failure: null, describe, name: attr("name") ?? "", message: "" }))
-        if (selfClosing) current = null
+        if (TEST_FILE.test(file)) {
+          current = { file, failure: null, describe, name: attr("name") ?? "", message: "" }
+          out.push(current)
+        }
+        if (selfClosing) {
+          current = null
+        }
       }
     } else if (!closing && current && !current.failure) {
       current.failure = attr("type") ?? name
@@ -97,7 +108,9 @@ function reportRecap(cases: JunitCase[] | null): string {
  */
 export function rerunCandidates(cases: JunitCase[]): string[] {
   const byFile = new Map<string, JunitCase[]>()
-  for (const c of cases) byFile.set(c.file, [...(byFile.get(c.file) ?? []), c])
+  for (const c of cases) {
+    byFile.set(c.file, [...(byFile.get(c.file) ?? []), c])
+  }
   const failed = [...byFile].filter(([, cs]) => cs.some((c) => c.failure))
   const timeoutOnly = failed.every(([, cs]) => cs.filter((c) => c.failure).every((c) => c.failure === "TimeoutError"))
   return failed.length > 0 && timeoutOnly ? failed.map(([file]) => file).sort() : []
@@ -109,12 +122,18 @@ export function passthroughArgs(argv: string[]): string[] {
   const out: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
-    if (arg === "--parallel" || arg.startsWith("--reporter-outfile=") || arg === "--reporter=junit") continue
-    if (skipValue.has(arg)) {
-      if (argv[i + 1] && !argv[i + 1].startsWith("-")) i++
+    if (arg === "--parallel" || arg.startsWith("--reporter-outfile=") || arg === "--reporter=junit") {
       continue
     }
-    if (TEST_FILE.test(arg)) continue
+    if (skipValue.has(arg)) {
+      if (argv[i + 1] && !argv[i + 1].startsWith("-")) {
+        i++
+      }
+      continue
+    }
+    if (TEST_FILE.test(arg)) {
+      continue
+    }
     out.push(arg)
   }
   return out

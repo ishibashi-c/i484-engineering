@@ -4,7 +4,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-const BUNFIG = path.join(__dirname, "../bunfig.toml")
+const BUNFIG = path.join(import.meta.dirname, "../bunfig.toml")
 const roots: string[] = []
 afterAll(() => {
   for (const dir of roots) {
