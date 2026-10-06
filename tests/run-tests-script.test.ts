@@ -1,3 +1,4 @@
+// biome-ignore-all format: Preserve upstream test layout; avoid fork-wide restyling for a small i484 compatibility fixture.
 import { afterAll, describe, expect, test } from "bun:test"
 import { spawn, spawnSync } from "node:child_process"
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
@@ -146,10 +147,14 @@ describe("run-tests: choosing files to re-run from a bun junit report", () => {
   })
 })
 
-const RUNNER = path.join(__dirname, "../scripts/run-tests.ts")
-const PROCESS_SAFETY = path.join(__dirname, "../scripts/check-process-test-safety.ts")
+const RUNNER = path.join(import.meta.dirname, "../scripts/run-tests.ts")
+const PROCESS_SAFETY = path.join(import.meta.dirname, "../scripts/check-process-test-safety.ts")
 const fixtureRoots: string[] = []
-afterAll(() => fixtureRoots.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
+afterAll(() => {
+  for (const dir of fixtureRoots) {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
 
 function fixture(body: string): string {
   const dir = mkdtempSync(path.join(tmpdir(), "run-tests-watchdog-"))
@@ -218,7 +223,11 @@ describe("run-tests: stall watchdog", () => {
       expect(alive(worker)).toBe(false)
       expect(alive(orphan)).toBe(false)
     } finally {
-      for (const pid of [worker, orphan]) if (alive(pid)) process.kill(pid, "SIGKILL")
+      for (const pid of [worker, orphan]) {
+        if (alive(pid)) {
+          process.kill(pid, "SIGKILL")
+        }
+      }
     }
   }, 90_000)
 
@@ -248,7 +257,9 @@ test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/
       expect(r.status).toBe(0)
       expect(alive(orphan)).toBe(false)
     } finally {
-      if (alive(orphan)) process.kill(orphan, "SIGKILL")
+      if (alive(orphan)) {
+        process.kill(orphan, "SIGKILL")
+      }
     }
   }, 90_000)
 
@@ -305,7 +316,7 @@ test("leaves an orphan behind", () => { spawnSync("sh", ["-c", "sleep 300 >/dev/
   }
 
   test("reads the limit override in seconds and ignores unusable values", () => {
-    expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "2" })).toBe(2_000)
+    expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "2" })).toBe(2000)
     expect(lostExitMs({ CE_TEST_LOST_EXIT_SECONDS: "abc" })).toBe(60_000)
 
     expect(passTimeoutMs({ CE_TEST_PASS_TIMEOUT_SECONDS: "90" })).toBe(90_000)
