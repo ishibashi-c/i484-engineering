@@ -279,7 +279,7 @@ There are two classes:
 - If the user declines the ignore entry, asks not to keep the run in the repo, no Git repository exists, or the project-local path fails its safety checks, preserve CE's private OS-temp fallback at `/tmp/compound-engineering-<uid>/ce-prototype/`.
 - The repo-local path is validated for symlink, ownership, and writability without changing permissions on an existing project-owned `prototypes/` directory.
 
-**Introduced:** 2026-10-06 project-local prototype workspace change.
+**Introduced:** [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26)
 
 **Retire or shrink when:** upstream CE provides a configurable or tool-neutral project-local durable prototype root with equivalent gitignore, safety, and OS-temp fallback semantics.
 
@@ -293,6 +293,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #6](https://github.com/ishibashi-c/i484-engineering/pull/6) | CE 3.28.2 | Pulled later CE model/review updates and added C4 reviewer-model ceiling. |
 | [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
 | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
+| [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26) | CE 3.30.3 | Merged planning/work/test-loop/resolver/typecheck/model-pin updates, retained i484 identity and C1-C6 behavior, absorbed C4 into C5, and added C7 project-local prototype workspace. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
