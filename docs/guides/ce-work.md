@@ -10,6 +10,8 @@ After code review, the host resolves verified fixes within the requested work an
 
 Project simplification thresholds override the default. Deployment guidance belongs in the shipping handoff and must distinguish expected behavior changes from regressions.
 
+Incremental commits follow the same message precedence as `ce-commit`: project conventions, then the recent log pattern, then conventional commits. A user override wins. This also applies in return-to-caller mode.
+
 It is the fourth step in the compound-engineering ideation chain:
 
 ```text
@@ -255,7 +257,7 @@ work_engine_preferences:
   - harness: cursor
     model: composer
   - harness: codex
-    model: "gpt-6-sol"
+    model: "gpt-6.1-sol"
   - harness: claude
 ```
 
