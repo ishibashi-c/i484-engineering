@@ -311,7 +311,7 @@ describe("ce-prototype protocol", () => {
   test("the durable path is probed with the trailing slash and claimed atomically", () => {
     // Both prose and executed shell anchor the probe to the repo root; accept either spelling
     // of that anchor, but require the trailing slash in both.
-    const probe = /git (?:-C [^\n]{0,24})?check-ignore -q \.context\/compound-engineering\//
+    const probe = /git (?:-C [^\n]{0,24})?check-ignore -q prototypes\//
     expect(
       probe.test(SKILL_BODY) && probe.test(PREVIEW_SHELL),
       "Both files must probe coverage with the trailing slash. Without it an existing directory-only ignore rule is missed and a correctly configured repo falls back for no reason.",
@@ -321,9 +321,11 @@ describe("ce-prototype protocol", () => {
       "The collision rule must be exclusive creation, not check-then-write — two runs starting together both pass the check and then write into one directory.",
     ).toBe(true)
     expect(
-      /unsafe root symlink/.test(PREVIEW_SHELL) &&
+      /unsafe base symlink/.test(PREVIEW_SHELL) &&
+        /base is not owned by the current user/.test(PREVIEW_SHELL) &&
+        /unsafe root symlink/.test(PREVIEW_SHELL) &&
         /root is not owned by the current user/.test(PREVIEW_SHELL),
-      "The run root must carry symlink and ownership checks inside the executed block; gitignoring a path does not make it safe to write into.",
+      "The repo-local prototypes directory and OS-temp root must both carry symlink and ownership checks; gitignoring a path does not make it safe to write into.",
     ).toBe(true)
   })
 
