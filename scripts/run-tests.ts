@@ -14,43 +14,78 @@ import { constants, tmpdir } from "node:os"
 import path from "node:path"
 import { checkProcessTestSafety, TEST_FILE } from "./check-process-test-safety"
 
-const PS_ROW = /^(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+\S+\s+(.*)$/
-const BUN_TEST_PROCESS = /(^|\/)bun\s+test\b/
 
-export type JunitCase = { file: string; failure: string | null }
 
-/** Every testcase in a bun junit report, in report order, with its failure type if any. */
+export type JunitCase = { file: string; failure: string | null; describe: string[]; name: string; message: string }
+
+const ENTITIES: Record<string, string> = { lt: "<", gt: ">", amp: "&", quot: '"', apos: "'" }
+
+function decodeXml(text: string): string {
+  return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, ref: string) => {
+    if (ref[0] !== "#") return ENTITIES[ref] ?? whole
+    const code = ref[1] === "x" || ref[1] === "X" ? Number.parseInt(ref.slice(2), 16) : Number(ref.slice(1))
+    return String.fromCodePoint(code)
+  })
+}
+
+/** Every testcase in a bun junit report, in report order, with its describe path and first failure if any. */
 export function junitCases(xml: string): JunitCase[] {
   const out: JunitCase[] = []
-  const suites: string[] = []
+  const suites: { label: string; name: string }[] = []
   let current: JunitCase | null = null
   for (const tag of xml.matchAll(/<(\/?)(testsuite|testcase|failure|error)\b([^>]*?)(\/?)>/g)) {
-    const [, closing, name, attrs, selfClosing] = tag
-    const attr = (key: string) => attrs.match(new RegExp(`\\b${key}="([^"]*)"`))?.[1]
+    const [whole, closing, name, attrs, selfClosing] = tag
+    const attr = (key: string) => {
+      const value = attrs.match(new RegExp(`\\b${key}="([^"]*)"`))?.[1]
+      return value === undefined ? undefined : decodeXml(value)
+    }
     if (name === "testsuite") {
-      if (closing) {
-        suites.pop()
-      } else if (!selfClosing) {
-        suites.push(attr("file") ?? attr("name") ?? "")
-      }
+      if (closing) suites.pop()
+      else if (!selfClosing) suites.push({ label: attr("file") ?? attr("name") ?? "", name: attr("name") ?? "" })
     } else if (name === "testcase") {
-      if (closing) {
-        current = null
-      } else {
-        const file = attr("file") ?? suites.findLast((s) => TEST_FILE.test(s)) ?? ""
-        if (TEST_FILE.test(file)) {
-          current = { file, failure: null }
-          out.push(current)
-        }
-        if (selfClosing) {
-          current = null
-        }
+      if (closing) current = null
+      else {
+        const file = attr("file") ?? suites.findLast((s) => TEST_FILE.test(s.label))?.label ?? ""
+        // bun nests one suite per describe inside the file's suite; classname lists them innermost first.
+        const describe = suites.slice(suites.findLastIndex((s) => s.name === file) + 1).map((s) => s.name)
+        if (TEST_FILE.test(file)) out.push((current = { file, failure: null, describe, name: attr("name") ?? "", message: "" }))
+        if (selfClosing) current = null
       }
     } else if (!closing && current && !current.failure) {
       current.failure = attr("type") ?? name
+      const bodyStart = tag.index + whole.length
+      const body = selfClosing ? "" : xml.slice(bodyStart, xml.indexOf(`</${name}>`, bodyStart))
+      current.message = attr("message") ?? decodeXml(body)
     }
   }
   return out
+}
+
+const RECAP_MESSAGE_LINES = 4
+
+/** Every failing case as `file > describe > test`, each with its first few non-blank message lines. */
+function failureRecap(cases: JunitCase[]): string {
+  const failed = cases.filter((c) => c.failure)
+  if (failed.length === 0) {
+    return "\nThe junit report lists no failing test; the failure (a load error or an error between tests) is in bun's output above."
+  }
+  const entries = failed.map((c) => {
+    const lines = (c.message || c.failure || "").split("\n").filter((line) => line.trim()).slice(0, RECAP_MESSAGE_LINES)
+    return [`  ${[c.file, ...c.describe, c.name].join(" > ")}`, ...lines.map((line) => `      ${line.trimEnd()}`)].join("\n")
+  })
+  return `\nFailing tests (${failed.length}):\n${entries.join("\n")}`
+}
+
+function readReport(report: string): JunitCase[] | null {
+  return existsSync(report) ? junitCases(readFileSync(report, "utf8")) : null
+}
+
+/** The recap for a failing pass, or why there is none to read. */
+function reportRecap(cases: JunitCase[] | null): string {
+  if (cases === null) {
+    return "\nNo junit report, so no recap: bun exited before writing one (for example, no test file matched). See bun's output above."
+  }
+  return failureRecap(cases)
 }
 
 /**
@@ -62,13 +97,9 @@ export function junitCases(xml: string): JunitCase[] {
  */
 export function rerunCandidates(cases: JunitCase[]): string[] {
   const byFile = new Map<string, JunitCase[]>()
-  for (const c of cases) {
-    byFile.set(c.file, [...(byFile.get(c.file) ?? []), c])
-  }
+  for (const c of cases) byFile.set(c.file, [...(byFile.get(c.file) ?? []), c])
   const failed = [...byFile].filter(([, cs]) => cs.some((c) => c.failure))
-  const timeoutOnly = failed.every(([, cs]) =>
-    cs.filter((c) => c.failure).every((c) => c.failure === "TimeoutError"),
-  )
+  const timeoutOnly = failed.every(([, cs]) => cs.filter((c) => c.failure).every((c) => c.failure === "TimeoutError"))
   return failed.length > 0 && timeoutOnly ? failed.map(([file]) => file).sort() : []
 }
 
@@ -78,22 +109,12 @@ export function passthroughArgs(argv: string[]): string[] {
   const out: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
-    if (
-      arg === "--parallel" ||
-      arg.startsWith("--reporter-outfile=") ||
-      arg === "--reporter=junit"
-    ) {
-      continue
-    }
+    if (arg === "--parallel" || arg.startsWith("--reporter-outfile=") || arg === "--reporter=junit") continue
     if (skipValue.has(arg)) {
-      if (argv[i + 1] && !argv[i + 1].startsWith("-")) {
-        i++
-      }
+      if (argv[i + 1] && !argv[i + 1].startsWith("-")) i++
       continue
     }
-    if (TEST_FILE.test(arg)) {
-      continue
-    }
+    if (TEST_FILE.test(arg)) continue
     out.push(arg)
   }
   return out
@@ -111,13 +132,8 @@ function positiveSecondsMs(value: string | undefined, fallback: number): number 
  * First-pass wall-clock limit: CE_TEST_PASS_TIMEOUT_SECONDS when it is a positive
  * number, else 20 minutes. None for --watch or --hot, which stay alive on purpose.
  */
-export function passTimeoutMs(
-  env: Record<string, string | undefined>,
-  argv: string[] = [],
-): number | null {
-  if (argv.includes("--watch") || argv.includes("--hot")) {
-    return null
-  }
+export function passTimeoutMs(env: Record<string, string | undefined>, argv: string[] = []): number | null {
+  if (argv.includes("--watch") || argv.includes("--hot")) return null
   return positiveSecondsMs(env.CE_TEST_PASS_TIMEOUT_SECONDS, DEFAULT_PASS_TIMEOUT_MS)
 }
 
@@ -126,36 +142,14 @@ export function lostExitMs(env: Record<string, string | undefined>): number {
   return positiveSecondsMs(env.CE_TEST_LOST_EXIT_SECONDS, DEFAULT_LOST_EXIT_MS)
 }
 
-export type PsRow = {
-  pid: number
-  ppid: number
-  pgid: number
-  stat: string
-  args: string
-  line: string
-}
+export type PsRow = { pid: number; ppid: number; pgid: number; stat: string; args: string; line: string }
 
 /** Rows of `ps -eo pid,ppid,pgid,stat,etime,args`, header excluded. */
 export function parsePs(stdout: string): PsRow[] {
-  return stdout
-    .trim()
-    .split("\n")
-    .slice(1)
-    .flatMap((line) => {
-      const m = line.trim().match(PS_ROW)
-      return m
-        ? [
-            {
-              pid: Number(m[1]),
-              ppid: Number(m[2]),
-              pgid: Number(m[3]),
-              stat: m[4],
-              args: m[5],
-              line,
-            },
-          ]
-        : []
-    })
+  return stdout.trim().split("\n").slice(1).flatMap((line) => {
+    const m = line.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+\S+\s+(.*)$/)
+    return m ? [{ pid: Number(m[1]), ppid: Number(m[2]), pgid: Number(m[3]), stat: m[4], args: m[5], line }] : []
+  })
 }
 
 /**
@@ -164,15 +158,21 @@ export function parsePs(stdout: string): PsRow[] {
  * no timeout frees it.
  */
 export function lostExitZombies(rows: PsRow[]): PsRow[] {
-  const bunTest = new Set(rows.filter((r) => BUN_TEST_PROCESS.test(r.args)).map((r) => r.pid))
+  const bunTest = new Set(rows.filter((r) => /(^|\/)bun\s+test\b/.test(r.args)).map((r) => r.pid))
   return rows.filter((r) => r.stat.startsWith("Z") && bunTest.has(r.ppid))
+}
+
+/** Declared dependencies with no `node_modules/<name>/package.json` in the repo that holds this script. */
+function missingDependencies(): string[] {
+  const repo = path.join(import.meta.dir, "..")
+  const pkg = JSON.parse(readFileSync(path.join(repo, "package.json"), "utf8"))
+  const declared = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
+  return declared.filter((name) => !existsSync(path.join(repo, "node_modules", name, "package.json"))).sort()
 }
 
 function run(args: string[]): number {
   const result = spawnSync(process.execPath, ["test", ...args], { stdio: "inherit" })
-  if (result.error) {
-    throw result.error
-  }
+  if (result.error) throw result.error
   return result.status ?? 1
 }
 
@@ -181,9 +181,7 @@ type PassResult = { status: number; stalled: boolean; lostExit: boolean; interru
 /** Every live process that belongs to the pass: its descendants plus anything left in its process group. */
 function passProcesses(root: number): PsRow[] {
   const listing = spawnSync("ps", ["-eo", "pid,ppid,pgid,stat,etime,args"], { encoding: "utf8" })
-  if (listing.status !== 0) {
-    return []
-  }
+  if (listing.status !== 0) return []
   const rows = parsePs(listing.stdout)
   const members = new Set([root])
   for (let grew = true; grew; ) {
@@ -199,16 +197,11 @@ function passProcesses(root: number): PsRow[] {
 }
 
 function killPass(child: ChildProcess, signal: NodeJS.Signals, extra: number[] = []): void {
-  const { pid } = child
-  if (pid === undefined) {
-    return
-  }
+  const pid = child.pid
+  if (pid === undefined) return
   try {
-    if (process.platform === "win32") {
-      child.kill(signal)
-    } else {
-      process.kill(-pid, signal)
-    }
+    if (process.platform === "win32") child.kill(signal)
+    else process.kill(-pid, signal)
   } catch {
     // The group may already be gone.
   }
@@ -237,81 +230,45 @@ function runPass(args: string[], limitMs: number | null, lostMs: number): Promis
     // held and forwarded once it does, so the detached pass cannot outlive the runner.
     const forward = (signal: NodeJS.Signals) => {
       interrupted = signal
-      if (child) {
-        killPass(child, signal)
-      }
+      if (child) killPass(child, signal)
     }
     // The detached pass receives none of the signals a terminal sends the runner.
-    const forwarded: NodeJS.Signals[] =
-      process.platform === "win32"
-        ? ["SIGINT", "SIGTERM"]
-        : ["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"]
+    const forwarded: NodeJS.Signals[] = process.platform === "win32" ? ["SIGINT", "SIGTERM"] : ["SIGINT", "SIGTERM", "SIGHUP", "SIGQUIT"]
     const handlers = forwarded.map((signal) => [signal, () => forward(signal)] as const)
-    for (const [signal, handler] of handlers) {
-      process.on(signal, handler)
-    }
-    child = spawn(process.execPath, ["test", ...args], {
-      stdio: "inherit",
-      detached: process.platform !== "win32",
-    })
-    if (interrupted) {
-      killPass(child, interrupted)
-    }
+    for (const [signal, handler] of handlers) process.on(signal, handler)
+    child = spawn(process.execPath, ["test", ...args], { stdio: "inherit", detached: process.platform !== "win32" })
+    if (interrupted) killPass(child, interrupted)
     const stop = (reason: string) => {
       const members = child.pid === undefined ? [] : passProcesses(child.pid)
       console.error(
         `\n${reason} Its processes, before they were killed:` +
           `\n  PID  PPID  PGID STAT ELAPSED ARGS\n  ${members.map((m) => m.line).join("\n  ")}\n`,
       )
-      killPass(
-        child,
-        "SIGKILL",
-        members.map((m) => m.pid),
-      )
+      killPass(child, "SIGKILL", members.map((m) => m.pid))
     }
-    const timer =
-      limitMs === null
-        ? undefined
-        : setTimeout(() => {
-            stalled = true
-            stop(
-              `The test pass stalled: it was still running after ${Math.round(limitMs / 1000)}s (CE_TEST_PASS_TIMEOUT_SECONDS overrides the limit).`,
-            )
-          }, limitMs)
+    const timer = limitMs === null ? undefined : setTimeout(() => {
+      stalled = true
+      stop(`The test pass stalled: it was still running after ${Math.round(limitMs / 1000)}s (CE_TEST_PASS_TIMEOUT_SECONDS overrides the limit).`)
+    }, limitMs)
     const firstSeen = new Map<number, number>()
-    const poller = setInterval(
-      () => {
-        if (child.pid === undefined || stalled || lostExit) {
-          return
-        }
-        const now = Date.now()
-        const zombies = lostExitZombies(passProcesses(child.pid))
-        for (const pid of firstSeen.keys()) {
-          if (!zombies.some((z) => z.pid === pid)) {
-            firstSeen.delete(pid)
-          }
-        }
-        for (const z of zombies) {
-          if (!firstSeen.has(z.pid)) {
-            firstSeen.set(z.pid, now)
-          }
-        }
-        if ([...firstSeen.values()].some((seen) => now - seen >= lostMs)) {
-          lostExit = true
-          stop(
-            `A bun test process left an exited child unreaped for ${Math.round(lostMs / 1000)}s: a lost child-exit` +
-              " (oven-sh/bun#34069) that wedges its worker (CE_TEST_LOST_EXIT_SECONDS overrides the limit).",
-          )
-        }
-      },
-      Math.min(15_000, lostMs / 4),
-    )
+    const poller = setInterval(() => {
+      if (child.pid === undefined || stalled || lostExit) return
+      const now = Date.now()
+      const zombies = lostExitZombies(passProcesses(child.pid))
+      for (const pid of firstSeen.keys()) if (!zombies.some((z) => z.pid === pid)) firstSeen.delete(pid)
+      for (const z of zombies) if (!firstSeen.has(z.pid)) firstSeen.set(z.pid, now)
+      if ([...firstSeen.values()].some((seen) => now - seen >= lostMs)) {
+        lostExit = true
+        stop(
+          `A bun test process left an exited child unreaped for ${Math.round(lostMs / 1000)}s: a lost child-exit` +
+            ` (oven-sh/bun#34069) that wedges its worker (CE_TEST_LOST_EXIT_SECONDS overrides the limit).`,
+        )
+      }
+    }, Math.min(15_000, lostMs / 4))
     const clearTimers = () => {
       clearTimeout(timer)
       clearInterval(poller)
-      for (const [signal, handler] of handlers) {
-        process.off(signal, handler)
-      }
+      for (const [signal, handler] of handlers) process.off(signal, handler)
     }
     child.on("error", (error) => {
       clearTimers()
@@ -323,18 +280,18 @@ function runPass(args: string[], limitMs: number | null, lostMs: number): Promis
       killPass(child, "SIGKILL")
       // A signal death keeps its conventional status (130 for SIGINT), so Ctrl-C is not a test failure.
       const signalled = signal ?? interrupted
-      const status =
-        stalled || lostExit
-          ? 1
-          : (code ?? (signalled ? 128 + (constants.signals[signalled] ?? 0) : 0))
+      const status = stalled || lostExit ? 1 : code ?? (signalled ? 128 + (constants.signals[signalled] ?? 0) : 0)
       resolve({ status, stalled, lostExit, interrupted: interrupted !== null })
     })
   })
 }
 
 async function main(argv: string[]): Promise<number> {
-  // The root follows the test cwd, including throwaway fixture repositories.
-  // Explicit external test files are scanned too; directory/glob discovery remains Bun's.
+  const missing = missingDependencies()
+  if (missing.length > 0) {
+    console.error(`Missing dependencies: ${missing.join(", ")}. Run \`bun install\`, then re-run the tests.`)
+    return 1
+  }
   try {
     const explicit = argv.filter((arg) => TEST_FILE.test(arg))
     const findings = checkProcessTestSafety(process.cwd(), explicit)
@@ -363,30 +320,29 @@ async function main(argv: string[]): Promise<number> {
     }
     // A stall is never re-run into a green result: without a lost-exit zombie its cause is unknown.
     if (pass.stalled || pass.lostExit) {
+      console.error("\nNo junit report, so no recap: the test pass was killed before a report was written. See bun's output above.")
       return 1
     }
-    if (pass.interrupted) {
-      return pass.status
-    }
+    if (pass.interrupted) return pass.status
     const first = pass.status
-    if (first === 0) {
-      return 0
-    }
+    if (first === 0) return 0
 
-    const failed = existsSync(report)
-      ? rerunCandidates(junitCases(readFileSync(report, "utf8")))
-      : []
+    const cases = readReport(report)
+    const failed = cases === null ? [] : rerunCandidates(cases)
     if (failed.length === 0) {
+      console.error(reportRecap(cases))
       return first
     }
 
     console.error(
-      "\nEvery first-pass failure was a TimeoutError, the bun lost-child-exit shape." +
+      `\nEvery first-pass failure was a TimeoutError, the bun lost-child-exit shape.` +
         ` Re-running ${failed.length} file(s) serially in a fresh process (oven-sh/bun#34069):` +
         `\n  ${failed.join("\n  ")}\n`,
     )
-    const second = run([...passthroughArgs(argv), ...failed])
-    if (second === 0) {
+    const rerunReport = path.join(reportDir, "rerun.xml")
+    const second = run(["--reporter=junit", `--reporter-outfile=${rerunReport}`, ...passthroughArgs(argv), ...failed])
+    if (second !== 0) console.error(reportRecap(readReport(rerunReport)))
+    else {
       console.error(
         "\nEvery re-run file passed in a fresh process, so the first-pass failures were" +
           " process-local (a lost child-exit notification), not a defect the tests reproduce.",
