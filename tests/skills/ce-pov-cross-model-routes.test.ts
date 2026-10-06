@@ -877,8 +877,9 @@ describe("ce-pov fixed route and egress allowlist", () => {
         .filter(Boolean)
         .map(Number)
       expect(childPids.length).toBeGreaterThanOrEqual(2)
+      const exited = new Promise<void>((resolve) => child.once("exit", () => resolve()))
       sendTestSignal(child, signal)
-      await new Promise<void>((resolve) => child.once("exit", () => resolve()))
+      await exited
       expect(readdirSync(scratchParent)).toEqual([])
       for (const pid of childPids) {
         expect(() => process.kill(pid, 0)).toThrow()

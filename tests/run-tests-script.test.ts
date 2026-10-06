@@ -147,6 +147,7 @@ describe("run-tests: choosing files to re-run from a bun junit report", () => {
 })
 
 const RUNNER = path.join(__dirname, "../scripts/run-tests.ts")
+const PROCESS_SAFETY = path.join(__dirname, "../scripts/check-process-test-safety.ts")
 const fixtureRoots: string[] = []
 afterAll(() => fixtureRoots.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
 
@@ -459,6 +460,7 @@ describe("run-tests: dependency preflight", () => {
     const repo = fixture(`import { test } from "bun:test"\nimport { writeFileSync } from "node:fs"\ntest("ran", () => writeFileSync("ran", ""))\n`)
     mkdirSync(path.join(repo, "scripts"))
     copyFileSync(RUNNER, path.join(repo, "scripts", "run-tests.ts"))
+    copyFileSync(PROCESS_SAFETY, path.join(repo, "scripts", "check-process-test-safety.ts"))
     writeFileSync(
       path.join(repo, "package.json"),
       JSON.stringify({ dependencies: { present: "1" }, devDependencies: { "@scope/absent": "1", "plain-absent": "1" } }),
