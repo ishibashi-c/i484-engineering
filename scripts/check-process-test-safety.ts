@@ -247,7 +247,11 @@ function callArgs(input: Token[], start: number): Token[][] {
     if (!token.literal && token.value === "," && closers.length === 0) {
       args.push([])
     } else {
-      args.at(-1).push(token)
+      const currentArg = args.at(-1)
+      if (currentArg === undefined) {
+        throw new Error("Missing signal argument bucket")
+      }
+      currentArg.push(token)
       if (!token.literal && matching[token.value]) {
         closers.push(matching[token.value])
       } else if (
