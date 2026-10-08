@@ -16,6 +16,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { ACPX_PIN } from "../helpers/acpx-pin"
 import { alive } from "../helpers/process"
+import { sendTestSignal } from "../helpers/process-safety"
 
 setDefaultTimeout(30_000)
 
@@ -895,7 +896,7 @@ describe("ce-pov fixed route and egress allowlist", () => {
       .stdout.split(/\s+/).filter(Boolean).map(Number)
     expect(childPids.length).toBeGreaterThanOrEqual(2)
     const stubPids = readFileSync(sb.logs.pids, "utf8").trim().split("\n").map(Number)
-    child.kill(signal)
+    sendTestSignal(child, signal)
     await new Promise<void>((resolve) => child.once("exit", () => resolve()))
     expect(readdirSync(scratchParent)).toEqual([])
     for (const pid of [...childPids, ...stubPids]) expect(alive(pid)).toBe(false)
