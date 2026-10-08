@@ -294,8 +294,17 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #10](https://github.com/ishibashi-c/i484-engineering/pull/10) | CE 3.29.0 | Merged upstream live-polish, learning-retirement, review/testing, cross-model, retune, and CI updates; retained registered F1/F2 and C1-C4 behavior. |
 | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
 | [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26) | CE 3.30.3 | Merged planning/work/test-loop/resolver/typecheck/model-pin updates, retained i484 identity and C1-C6 behavior, absorbed C4 into C5, and added C7 project-local prototype workspace. |
+| 2026-10-08 sync PR (`codex/ce-upstream-sync-2026-10-08`) | CE 3.30.4, through `67035e9` | Integrated seven upstream commits including acpx-backed peer transport, chained-unit inline semantics, prototype annotation persistence, and review standards split. Preserved fork distribution version 3.31.1, i484 specialist integration and C1–C7; no registered patch was fully superseded. Replaced obsolete pre-acpx POV route fixtures with upstream acpx-contract tests. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
+
+### 2026-10-08 overlap adjudication
+
+- **C1/C3:** Upstream refactored `ce-work/references/implementation-loop.md` into a dependency-ordered checklist. The i484 specialist entry, native delegation reference, and functional UI-copy baseline remain as small additive constraints in that new structure; do not restore the superseded task-loop wording.
+- **C5:** The upstream pinned `acpx` transport replaces older cross-model peer scripts and corresponding fixture assumptions. Keep the independently scoped native-model ceiling and Darwin-safe process-test helpers. For the changed POV route tests, prefer upstream's `SIGTERM`/`SIGINT` process-group assertions over obsolete direct-signal fixtures.
+- **C6/C7:** Variant-scoped annotation persistence is complementary to host-native annotation preference and the project-local `prototypes/` workspace, not a replacement for either. Retain both patches and their existing contracts.
+- **F2:** Upstream CE's 3.30.4 release numbers must not downgrade i484 distribution manifests already at 3.31.1. Maintain fork names, URLs and version alignment while importing CE runtime additions.
+- **Review/test coverage:** Adopt `CODING_STANDARDS.md` ownership and the new acpx tests; retain i484 additions in the skill-eval catalog and local CI quality gates.
 
 ## Upstream update policy
 

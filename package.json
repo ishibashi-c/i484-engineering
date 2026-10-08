@@ -8,6 +8,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "acpx:bump": "bun run scripts/bump-acpx-pin.ts",
     "check": "bun run scripts/quality.ts check",
     "check:all": "ultracite check",
     "cleanup": "bun run src/index.ts cleanup",
@@ -27,11 +28,12 @@
     "site:serve": "cd site && bundle exec jekyll serve --livereload",
     "site:test": "cd site && bundle exec rake test",
     "test": "bun run scripts/run-tests.ts",
+    "test:acpx-contract": "ACPX_CONTRACT=1 bun test tests/acpx-contract.test.ts",
     "test:skill-eval-cell": "bun tests/skill-eval-cell/run.ts",
     "test:skill-eval-judge": "bun tests/skill-eval-cell/judge.ts",
     "test:skill-eval-pack": "bun tests/skill-eval-cell/pack.ts",
-    "typecheck": "tsc --noEmit",
-    "test:skill-guards": "bun run scripts/run-tests.ts skill-conventions codex-skill-prompt-budget repo-local-ce-skill-work contract"
+    "test:skill-guards": "bun run scripts/run-tests.ts skill-conventions codex-skill-prompt-budget repo-local-ce-skill-work contract",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "citty": "^0.1.6",
