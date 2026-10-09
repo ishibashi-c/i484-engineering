@@ -10,6 +10,10 @@ Default is manual: you own the server. `mode:pipeline` is for `lfg` and other un
 
 ---
 
+A PR or branch selects the change to test, not permission to switch the checkout. The skill resolves the actual base rather than assuming `main`, and checks that the server serves the selected revision. An unresolved base or served-revision mismatch blocks the test. A verified absence of affected browser routes is reported as no browser change, not as PASS.
+
+Observed outcomes stay independent from remediation choices. A failed route stays Fail when investigation is deferred; only a completed passing retest can replace it. Skip means a check has no completed outcome. Any residual Fail makes the result FAIL; otherwise Skip makes it PARTIAL; PASS requires passing evidence for every scoped route.
+
 ## TL;DR
 
 | Question | Answer |
@@ -26,7 +30,7 @@ Default is manual: you own the server. `mode:pipeline` is for `lfg` and other un
 PR and branch arguments choose the diff used to pick routes. They do not switch your checkout. Have the target code checked out and, in manual mode, its server running.
 
 ```text
-# Empty: routes from git diff main...HEAD. You own the server
+# Empty: branch changes plus staged, unstaged, and relevant untracked source in the served checkout. You own the server
 /ce-test-browser
 
 # Same as empty, said explicitly
@@ -35,7 +39,7 @@ PR and branch arguments choose the diff used to pick routes. They do not switch 
 # Routes from a PR's file list. Does not check out the PR
 /ce-test-browser 847
 
-# Routes from a named branch vs main. Does not check out that branch
+# Routes from a named branch vs its verified base. Does not check out that branch
 /ce-test-browser feature/new-dashboard
 
 # Manual mode against a server already on a custom port
@@ -123,7 +127,7 @@ Visibility is separate from unattended. A host-native browser stays visible in b
 
 You answer yes (continue) or no (describe the issue). Pipeline mode logs each of these as Skip.
 
-A failed route gets a screenshot and repro steps, then fix-now (debug, patch, retest) or skip. Pipeline mode does not ask.
+A failed route gets a screenshot and repro steps. Fix-now runs `ce-debug` and retests the flow; deferring investigation retains Fail. Pipeline mode does not ask and also retains the observed failure.
 
 ---
 
@@ -131,7 +135,7 @@ A failed route gets a screenshot and repro steps, then fix-now (debug, patch, re
 
 You finished a notification settings page and a layout tweak. You run `/ce-test-browser` with the server already up.
 
-It selects the host-native browser. Scope from `git diff --name-only main...HEAD`: layout, the notifications template, and a Stimulus toggle controller. Routes: `/` (layout), `/settings/notifications`, and other pages that render the toggle.
+It selects the host-native browser. Scope from the branch comparison and local source changes in the served checkout: layout, the notifications template, and a Stimulus toggle controller. Routes: `/` (layout), `/settings/notifications`, and other pages that render the toggle.
 
 It uses port 3000, confirms your server is listening, and tests each route: heading and primary content, console, screenshot, toggle interaction. The window stays visible.
 
@@ -174,9 +178,9 @@ Bare and `mode:agent` `ce-code-review` runs are report-only and can share the ch
 
 | Argument | Effect |
 |----------|--------|
-| _(empty)_ or `current` | Routes from `main...HEAD` |
+| _(empty)_ or `current` | Branch changes from a verified merge base plus staged, unstaged, and relevant untracked source in the served checkout |
 | `<PR number>` | Routes from that PR's files. Does not check out |
-| `<branch name>` | Routes from `main...<branch>`. Does not check out |
+| `<branch name>` | Routes from the branch vs its verified base. Does not check out; the server must serve that revision |
 | `--port <number>` | Skip port detection |
 | `mode:pipeline` | Auto-start server, free-port scan, no questions, skip human-only flows |
 

@@ -140,6 +140,12 @@ native_subagent_models:
 
 実行時の共通契約は、[ce-work](../../skills/ce-work/references/native-model-policy.md)、[ce-code-review](../../skills/ce-code-review/references/native-model-policy.md)、[ce-doc-review](../../skills/ce-doc-review/references/native-model-policy.md)、[ce-explain](../../skills/ce-explain/references/native-model-policy.md)、[ce-plan](../../skills/ce-plan/references/native-model-policy.md)、[ce-simplify-code](../../skills/ce-simplify-code/references/native-model-policy.md)の各参照文書に詳細があります。
 
+## Skillの判断と検証
+
+Skillの改修では、成果と完了条件を基準にします。必要な観点と証拠を保ち、対象に合う実行方法を選んでください。計画では必要な関係が説明されているかを確認し、コード整理では再利用・品質・効率を確認します。独立調査が役立つ場合に委託し、既に十分なSkillは維持してください。
+
+ユーザーが承認した判断の更新は、元の判断を記載した箇所へ反映します。ブラウザ検証は、実際に配信する変更を対象にし、失敗と修正の見送りを区別します。役割と使用条件を確認するための参照先は、[計画](ce-plan.md)、[コード整理](ce-simplify-code.md)、[ブラウザ検証](ce-test-browser.md)の各ガイドです。改修の効果は実行結果で確認し、構造検査だけで性能向上を断定しません。参考は[OpenAIのSkill作成ガイド](https://learn.chatgpt.com/docs/build-skills)と[AnthropicのSkill設計ガイド](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)です。
+
 ## 個人設定として残すMCP
 
 次の6接続を導入します。接続設定の登録と、認証・通信・実操作の成功は別々に確認してください。
