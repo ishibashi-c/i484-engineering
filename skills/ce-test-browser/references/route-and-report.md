@@ -2,6 +2,16 @@
 
 Read this before mapping changed files to routes (workflow step 3). It carries the route-mapping starting points, the port and server commands, what to check on each page, the two human-facing prompts, and the summary format.
 
+## Resolve the changed surface
+
+A route belongs to scope when the selected change can affect the application actually served. Record the selected target, comparison base, and served checkout before mapping files. Resolve the base from the PR metadata, the branch's integration target, or the repository's default branch on its tracking remote. Do not assume its name. If no reliable base exists, report the scope blocker rather than substitute a different change.
+
+- For a PR, use its changed-file metadata and verify that the served application contains the selected head's changes. PR metadata alone does not establish what a running server renders.
+- For `current` or empty input, include the branch changes from its merge base plus staged, unstaged, and relevant untracked source files in the served checkout. A clean branch diff does not exclude local UI work. Inspect untracked files before treating them as application source; exclude generated output and unrelated work.
+- For a named branch, compare that branch with its resolved base without checking it out. If the server does not serve that revision, report the mismatch and what would establish it. Do not claim the named branch was tested against another checkout.
+
+Deduplicate the file set and map shared UI dependencies to the routes that consume them. A proven absence of affected browser routes is a no-browser-change result, not a passing browser test.
+
 ## Map changed files to routes
 
 Map each changed file to the route(s) that render it, then build the list of URLs to test. The table below is a starting point of common patterns, not an exhaustive rule set — apply judgment for the project's actual layout:
@@ -95,8 +105,10 @@ Did it work correctly?
    2. Skip - continue testing other pages
    ```
 
-3. **If "Fix now":** investigate, propose a fix, apply, re-run the failing test
-4. **If "Skip":** log as skipped, continue
+3. **If "Fix now":** use `ce-debug` for investigation and the scoped fix, then retest the failing flow with the selected browser driver. A code change alone does not replace the observed Fail.
+4. **If "Skip":** retain the observed Fail and record that investigation was deferred, then continue. The choice changes the next action, not the evidence. Only a completed passing retest can replace Fail. Use Skip only when a check has no completed outcome.
+
+Derive the overall result from evidence: any remaining Fail means FAIL; otherwise any Skip means PARTIAL; otherwise all scoped routes must have completed passing evidence for PASS. A server, scope, or revision mismatch is a blocker, never PASS.
 
 ## Test summary
 

@@ -8,7 +8,7 @@ argument-hint: "[PR number, branch name, 'current', or --port PORT]"
 
 Run end-to-end browser tests on pages affected by a PR or branch using the best approved browser driver available in the active harness.
 
-**Done:** the run ends by reporting what it found — either the summary, with every affected route marked Pass, Fail, or Skip and each Skip carrying its reason, or, when a preflight blocker stops testing before any route can be exercised, the blocker and what would clear it. Reaching neither, or dropping a route from the summary because nobody could reach it, is the failure this done condition exists to prevent.
+**Done:** the run ends by reporting what it found — either the summary, with every affected route marked Pass, Fail, or Skip and each Skip carrying its reason, a verified no-browser-change result, or, when a preflight blocker stops testing before any route can be exercised, the blocker and what would clear it. Reaching neither, or dropping a route from the summary because nobody could reach it, is the failure this done condition exists to prevent.
 
 ## Modes
 
@@ -30,7 +30,7 @@ Use one driver for the entire run. A selected host-native driver may fall back t
 Read `references/route-and-report.md` from this skill's directory before step 3 (Map changed files to routes). It carries the route-mapping patterns, the port and server commands, the per-page checks, the two human-facing prompts, and the summary format.
 
 1. **Select the driver** per the policy above and record it. This also requires a git repository with changes to test.
-2. **Determine test scope** from the argument: a PR number → `gh pr view [number] --json files -q '.files[].path'`; `current` or empty → `git diff --name-only main...HEAD`; a branch name → `git diff --name-only main...[branch]`.
+2. **Determine test scope** from the selected change and the state the server will render. Read `references/route-and-report.md` before resolving scope; it owns base selection, working-tree coverage, and the relationship between the selected revision and the served application. A PR or branch selects a review target and never authorizes switching the checkout.
 3. **Map changed files to routes** and build the list of URLs to test.
 4. **Determine the dev server port.** `scripts/resolve-port.sh` resolves it and prints the port alone on stdout: an explicit port argument; else a `--port` flag in a `package.json` dev/start script; else `PORT=` in `.env`, `.env.local`, or `.env.development`; else `3000`. Pass an explicit port when the user gave `--port N`, or when your active project instructions already in context state the dev-server port. Do not grep instruction files for one: prose mentions in docs, examples, and troubleshooting are unreliable and false-positive-prone, while config files and `.env` are trustworthy. Each mode runs the script in the shell call that needs the port, so no port value has to survive between shell calls or be transcribed out of prose; the reference gives the command. Manual mode uses that port as-is: the user controls their own server, so do not scan for alternatives.
 5. **Verify the dev server is running** before asking the headed/headless question — a manual run with no server stops here, so asking first would waste the question.
@@ -42,7 +42,7 @@ Read `references/route-and-report.md` from this skill's directory before step 3 
    Then navigate to `http://localhost:<port>`, capture its rendered or interactive state, and confirm the root is served before iterating.
 7. **Test each affected page** — navigate, inspect fresh state, exercise the critical interactions, capture evidence.
 8. **Human verification** where a flow needs external interaction (OAuth, email, payments, SMS, third-party APIs): pause and ask. **Pipeline mode does not pause** — log each such flow as Skip with the reason and continue.
-9. **Handle failures** by capturing the error state and the exact repro, then asking whether to fix now or skip. **Pipeline mode does not ask** — log the failure and continue.
+9. **Handle failures** by capturing the error state and the exact repro, then asking whether to fix now or skip. **Pipeline mode does not ask** — retain Fail and continue.
 10. **Report the summary** in the format the reference gives.
 
 ## Driver Reference

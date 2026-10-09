@@ -1,10 +1,10 @@
+import { describe, expect, test } from "bun:test"
 import { mkdtempSync, writeFileSync } from "fs"
 import { readFile } from "fs/promises"
 import { tmpdir } from "os"
 import path from "path"
-import { describe, expect, test } from "bun:test"
 
-async function readRepoFile(relativePath: string): Promise<string> {
+function readRepoFile(relativePath: string): Promise<string> {
   return readFile(path.join(process.cwd(), relativePath), "utf8")
 }
 
@@ -33,9 +33,7 @@ describe("ce-test-browser browser-driver policy", () => {
   })
 
   test("keeps the agent-browser fallback operational and version-matched", async () => {
-    const fallback = await readRepoFile(
-      "skills/ce-test-browser/references/agent-browser-driver.md",
-    )
+    const fallback = await readRepoFile("skills/ce-test-browser/references/agent-browser-driver.md")
 
     expect(fallback).toContain("command -v agent-browser")
     expect(fallback).toContain("agent-browser skills get core")
@@ -55,6 +53,21 @@ describe("ce-test-browser browser-driver policy", () => {
     expect(content).toMatch(/visible.+non-blocking/is)
     expect(content).not.toContain("subsequent `agent-browser` command")
     expect(content).not.toContain("never pass `--headed`")
+  })
+
+  // Browser outcomes describe observations, not whether the user wants a fix.
+  test("retains observed failure until retested and resolves the actually served change", async () => {
+    const body = await readRepoFile("skills/ce-test-browser/SKILL.md")
+    const routes = await readRepoFile("skills/ce-test-browser/references/route-and-report.md")
+    expect(body).not.toMatch(/main\.\.\.(?:HEAD|\[branch\])/)
+    expect(body).toMatch(/never authorizes switching the checkout/i)
+    expect(routes).toMatch(/staged, unstaged, and relevant untracked source files/i)
+    expect(routes).toMatch(/server does not serve that revision.*report the mismatch/is)
+    expect(routes).toMatch(/retain the observed Fail/i)
+    expect(routes).toMatch(/Only a completed passing retest can replace Fail/i)
+    expect(routes).toMatch(/Skip only when a check has no completed outcome/i)
+    expect(routes).toMatch(/any remaining Fail means FAIL/i)
+    expect(routes).not.toMatch(/If "Skip".*log as skipped/i)
   })
 
   // Port seeding used to cross files as a prose-emitted line ("Preferred dev server

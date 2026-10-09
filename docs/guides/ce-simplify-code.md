@@ -1,18 +1,18 @@
 # `ce-simplify-code`
 
-> Refine recently changed code. Three reviews look for reuse, quality, and efficiency issues; the skill applies the worthwhile ones and checks that behavior did not change.
+> Refine recently changed code. Three perspectives cover reuse, quality, and efficiency; the skill applies the worthwhile ones and checks that behavior did not change.
 
 A finished change usually carries debt you could not see while writing it: a helper that already exists in the repo, copy-paste with a small variation, string compares where an enum exists, names that only make sense if you followed the chat, two API calls that could run together. One "review and improve" prompt finds the obvious items and misses the ones that need a search across the tree.
 
-`ce-simplify-code` runs three focused reviews of the same scope instead:
+`ce-simplify-code` examines the same scope from three perspectives:
 
 - **Reuse** searches for existing utilities, stdlib/runtime primitives, and platform guarantees the new code reimplements
 - **Quality** flags hacky structure, dead code, context-only names, leftover pre-release compatibility, and comments that only restate the code
 - **Efficiency** looks for extra work, missed concurrency, hot-path bloat, and no-op updates
 
-Collected review agents are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
+For a coherent local change, the coordinator applies all three rubrics inline. Delegation is used when independent scrutiny or separable investigation can materially improve coverage; it does not replace a rubric or transfer edit ownership. Collected review agents are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
 
-It applies what is worth keeping, notes false positives as skipped without stopping to argue, then runs project-wide typecheck and lint plus tests sized to the change. The summary reports what was already sound, what changed, counts by category, and which checks ran.
+It applies what is worth keeping, notes false positives as skipped without stopping to argue, then runs project-wide typecheck and lint plus tests sized to the change. The summary reports what was already sound, consequential changes, material limits, and which checks ran. A calling workflow continues in the same session after receiving the result.
 
 This is not `ce-polish` (live UX on a working page), not `ce-code-review` (deeper review you still act on yourself), and not a rewrite of the feature. Use it after implementation has settled and before review, commit, or handoff.
 

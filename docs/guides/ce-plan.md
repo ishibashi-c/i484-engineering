@@ -138,7 +138,7 @@ For a hard problem you can ask one level up: produce a grounded approach-plan (a
 
 ### Session-settled decisions are carried, not re-asked
 
-When a decision was examined and chosen in the invoking conversation, or arrives distilled in a caller brief, `ce-plan` records it on its Key Technical Decision as `session-settled: user-directed` or `user-approved`, names what it was chosen over, and never re-asks it. Research may contradict a settled decision only on evidence: nothing found proceeds silently, suboptimal-but-workable proceeds with a conflict call-out, and invalidating evidence (infeasible, wrong-thing, destructive) stops the run. In pipeline mode that returns a `settled-decision-invalidated` blocked report. An unexamined assertion is not settled; it earns exactly one plan-time challenge.
+When a decision was examined and chosen in the invoking conversation, or arrives distilled in a caller brief, `ce-plan` records it on its Key Technical Decision as `session-settled: user-directed` or `user-approved`, names what it was chosen over, and never re-asks it. Research may contradict a settled decision only on evidence: nothing found proceeds silently, suboptimal-but-workable proceeds with a conflict call-out, and invalidating evidence (infeasible, wrong-thing, destructive) requires a decision. In pipeline mode that returns a `settled-decision-invalidated` blocked report; interactive review presents the evidence to the user, and an explicitly accepted replacement becomes the new settlement. An unexamined assertion is not settled; it earns exactly one plan-time challenge.
 
 ---
 
@@ -309,3 +309,9 @@ It runs after research and before decisions and dependent units are fixed. The n
 ## Native delegation model
 
 Native dispatch uses the [native subagent model configuration](./configuration.md#native-subagent-models). Bounded work needs fixed scope, inputs, and acceptance criteria; critical judgments inherit the parent. Selection receipts distinguish requested models from serving evidence.
+
+## Coverage and settled decisions
+
+Technical design is checked for the relationships an executor needs to understand. One adequate diagram can cover several architecture triggers; a second drawing is needed only when a required relationship remains unclear. Diagram count is not the acceptance criterion.
+
+Deepening preserves the current settlement. A replacement explicitly accepted by the user during interactive review becomes the new settlement at the same owning KTD, retaining its `session-settled: user-approved` annotation. Pipeline and auto mode cannot invent that approval. Invalidating evidence stops autonomous work and is presented for a decision in interactive work.
