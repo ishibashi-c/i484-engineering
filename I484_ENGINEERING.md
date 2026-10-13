@@ -295,6 +295,7 @@ This is a lightweight checkpoint log, not a duplicate changelog. Git history rem
 | [PR #11](https://github.com/ishibashi-c/i484-engineering/pull/11) | CE 3.30.1 | Merged upstream test-runner, plan/review/optimize, model-normalization, and workflow updates; retained C1-C4 and added F3 UI Skills MCP knowledge fallback. |
 | [PR #26](https://github.com/ishibashi-c/i484-engineering/pull/26) | CE 3.30.3 | Merged planning/work/test-loop/resolver/typecheck/model-pin updates, retained i484 identity and C1-C6 behavior, absorbed C4 into C5, and added C7 project-local prototype workspace. |
 | [PR #27](https://github.com/ishibashi-c/i484-engineering/pull/27) | CE 3.30.4, through `67035e9` | Integrated seven upstream commits including acpx-backed peer transport, chained-unit inline semantics, prototype annotation persistence, and review standards split. Preserved fork distribution version 3.31.1, i484 specialist integration and C1–C7; no registered patch was fully superseded. Replaced obsolete pre-acpx POV route fixtures with upstream acpx-contract tests. |
+| [2026-10-13 merge](https://github.com/ishibashi-c/i484-engineering/commit/9653896550b4ee7e749ac42dfff5d305afc21b43) | CE 3.30.5, through `50532b0` | Merged five upstream commits for ce-noslop certainty and punctuation, ce-debug commit conventions, code-review asset reads and maintainability checks, and accompanying tests/evals. Preserved fork identity/version 3.31.1 and C1–C7; no registered CE-native patch was superseded. |
 
 Update this table only for meaningful upstream-sync PRs. Do not mirror every upstream commit here.
 
@@ -305,6 +306,14 @@ Update this table only for meaningful upstream-sync PRs. Do not mirror every ups
 - **C6/C7:** Variant-scoped annotation persistence is complementary to host-native annotation preference and the project-local `prototypes/` workspace, not a replacement for either. Retain both patches and their existing contracts.
 - **F2:** Upstream CE's 3.30.4 release numbers must not downgrade i484 distribution manifests already at 3.31.1. Maintain fork names, URLs and version alignment while importing CE runtime additions.
 - **Review/test coverage:** Adopt `CODING_STANDARDS.md` ownership and the new acpx tests; retain i484 additions in the skill-eval catalog and local CI quality gates.
+
+### 2026-10-13 overlap adjudication
+
+- **C1–C7:** None of the five upstream commits implements the i484 specialist integration, adaptive brainstorm batching, functional UI-copy baseline, native-model/process-test safety, host-native annotation preference, or project-local prototype workspace. Keep their registered behavior unchanged; no patch retirement is warranted.
+- **CE code review:** Adopt upstream's one-file-per-read Stage 4 asset contract and maintainability checks for unrequested surface and needless dependencies. Preserve i484's independent reviewer model ceiling and dispatch policy.
+- **CE debug / noslop:** Adopt project-specific commit-message precedence, claim-certainty preservation, and the rule against semicolons as dash substitutes. Import the associated regression tests and four new noslop evaluation fixtures/scenarios.
+- **Evaluation catalog:** Merge the new CE scenarios and `result_must_include` grading contract into the fork catalog while retaining i484 specialist scenarios and tests. Do not overwrite the fork's catalog with the upstream copy.
+- **F2 distribution:** Upstream's 3.30.5 manifest bumps do not replace i484's existing 3.31.1 distribution version, branding, metadata, or URLs. Keep the fork's manifest versions aligned at 3.31.1.
 
 ## Upstream update policy
 
